@@ -7,7 +7,7 @@ export function checkReferences(d:Deployment,index:Map<string,ReferenceEntry>,em
  function check(id:string,key:string,path:string,owner:string):void {
   const entry=index.get(id), allowed=targets[key];
   const top=entry&&entry.path.split('/').length===3&&authorCollections.has(entry.collection);
-  const valid=top&&(!allowed||allowed.includes(entry.collection))&&(key!=='subjectIds'||entry.collection!=='workflows'||entry.record.mode==='intended')&&(key!=='evidenceRequirementIds'||entry.record.purpose==='acceptance-requirement');
+  const valid=top&&(!allowed||allowed.includes(entry.collection))&&(key!=='subjectIds'||entry.collection!=='workflows'||entry.record.mode==='intended')&&(key!=='evidenceRequirementIds'||entry.record.purpose==='acceptance-requirement')&&(key!=='evidenceIds'||!path.includes('/verification/')||entry.record.purpose==='planning');
   if(!valid)emit('RP-003',[owner,id],[path],`Expected ${allowed?.join(' or ')??'an authoring record'}`);
  }
  function visit(value:unknown,path:string,owner:string):void {
