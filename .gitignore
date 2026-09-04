@@ -1,0 +1,12 @@
+node_modules/
+.worktrees/
+dist/
+coverage/
+playwright-report/
+test-results/
+.gstack/
+*.tgz
+.DS_Store
+.env
+.env.*
+!.env.example
