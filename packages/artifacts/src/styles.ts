@@ -1,4 +1,4 @@
-export const printStyles=`
+export const printStyles = `
 :root{color-scheme:light;font-family:system-ui,sans-serif;color:#242923;background:#f7f5f0;font-size:16px;line-height:1.55}
 *{box-sizing:border-box}body{margin:0;padding:48px 24px}main{max-width:900px;margin:auto;background:white;padding:48px}
 h1,h2{font-family:Georgia,serif;font-weight:600}h1{font-size:36px;line-height:1.15}h2{font-size:26px;margin-top:40px;border-top:1px solid #d8ddd1;padding-top:24px}h3{font-size:19px;margin-top:28px}

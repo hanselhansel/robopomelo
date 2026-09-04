@@ -7,12 +7,15 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@robopomelo/spec": "*",
+    "@robopomelo/artifacts": "*",
     "@robopomelo/core": "*",
     "@robopomelo/project-fs": "*",
-    "@robopomelo/artifacts": "*",
-    "sigstore": "5.0.0",
+    "@robopomelo/spec": "*",
+    "@sigstore/bundle": "5.0.0",
+    "@sigstore/protobuf-specs": "0.5.2",
+    "@sigstore/verify": "4.1.2",
     "semver": "7.8.5",
+    "sigstore": "5.0.0",
     "tar-stream": "3.2.1",
     "yazl": "3.3.1"
   }

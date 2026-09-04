@@ -42,3 +42,7 @@ test('docs checker accepts relative targets and fragment-only links', async () =
   const r = await run('check-docs.mjs', { 'README.md': '[guide](docs/guide.md#example) [local](#local)\n', 'docs/guide.md': '# Example\n' });
   assert.equal(r.status, 0, r.stderr);
 });
+test('does not impose the code line limit on generated example deployment data', async () => {
+  const r = await run('check-source-lines.mjs', { 'examples/inbound-pallet/deployment.yaml': 'record: data\n'.repeat(722) });
+  assert.equal(r.status, 0, r.stderr);
+});

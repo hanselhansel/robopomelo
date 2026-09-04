@@ -1,7 +1,12 @@
 import type { ProjectSnapshot, ReviewDocument } from '@robopomelo/spec';
 import { html, provenance } from './display.js';
 import { printStyles } from './styles.js';
-export function renderHtml(document:ReviewDocument,snapshot:ProjectSnapshot):string{
- const sections=document.sections.map(section=>`<section aria-labelledby="section-${html(section.id)}"><h2 id="section-${html(section.id)}">${html(section.title)}</h2>${section.records.length?section.records.map(record=>`<article class="record"><h3>${html(record.title)}</h3><p class="record-id">${html(record.id)}</p><dl>${record.fields.map(field=>`<dt>${html(field.label)}</dt><dd>${html(field.value)}</dd>`).join('')}</dl></article>`).join(''):'<p>None recorded.</p>'}</section>`).join('');
- return `<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"><title>${html(document.title)} | RoboPomelo</title><style>${printStyles}</style></head><body><main><p class="brand">RoboPomelo</p><h1>${html(document.title)}</h1><p class="status">${html(snapshot.validation.label)}. Operator decision: ${html(snapshot.approvalStatus)}.</p><pre class="metadata">${html(provenance(snapshot))}</pre>${sections}<footer><p>This package records planning intent and supplied human decisions. It does not execute acceptance tests or determine physical deployment readiness.</p></footer></main></body></html>\n`;
+export function renderHtml(document: ReviewDocument, snapshot: ProjectSnapshot): string {
+  const sections = document.sections
+    .map(
+      (section) =>
+        `<section aria-labelledby="section-${html(section.id)}"><h2 id="section-${html(section.id)}">${html(section.title)}</h2>${section.records.length ? section.records.map((record) => `<article class="record"><h3>${html(record.title)}</h3><p class="record-id">${html(record.id)}</p><dl>${record.fields.map((field) => `<dt>${html(field.label)}</dt><dd>${html(field.value)}</dd>`).join('')}</dl></article>`).join('') : '<p>None recorded.</p>'}</section>`,
+    )
+    .join('');
+  return `<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"><title>${html(document.title)} | RoboPomelo</title><style>${printStyles}</style></head><body><main><p class="brand">RoboPomelo</p><h1>${html(document.title)}</h1><p class="status">${html(snapshot.validation.label)}. Operator decision: ${html(snapshot.approvalStatus)}.</p><pre class="metadata">${html(provenance(snapshot))}</pre>${sections}<footer><p>This package records planning intent and supplied human decisions. It does not execute acceptance tests or determine physical deployment readiness.</p></footer></main></body></html>\n`;
 }
