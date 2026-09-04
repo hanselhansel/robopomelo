@@ -2,59 +2,19 @@ import { checkSchema, type Deployment, type ObservedEvidence, type ProjectSnapsh
 import { planningHash } from '@robopomelo/core';
 import { validateDeployment } from '../../../core/src/validation.js';
 import { approvalDetails } from '../../../core/src/review-validity.js';
-import { createHash } from 'node:crypto';
 import { parseSource } from '../yaml/parse.js';
 import type { SessionOptions } from '../contracts.js';
 import { ProjectFsError } from '../errors.js';
 import { byteHash } from './digest.js';
+import { observeEvidence } from '../evidence/observe.js';
 export async function observations(
   deployment: Deployment,
   options: SessionOptions,
 ): Promise<ObservedEvidence[]> {
   if (options.observeEvidence) return options.observeEvidence(deployment);
-  return Promise.all(
-    deployment.evidence.map(async (item) => {
-      if (item.location.kind !== 'attachment')
-        return { evidenceId: item.id, state: item.location.kind, checkedAt: null };
-      const checkedAt = options.clock();
-      try {
-        const handle = await options.root.openRead(item.location.path);
-        try {
-          const hash = createHash('sha256');
-          let size = 0;
-          for (;;) {
-            const bytes = await handle.readChunk();
-            if (!bytes.length) break;
-            size += bytes.length;
-            if (size > 256 * 1024 * 1024)
-              throw new ProjectFsError('LIMIT_EXCEEDED', 'Evidence exceeds the attachment limit.');
-            hash.update(bytes);
-          }
-          const sha256 = hash.digest('hex');
-          return {
-            evidenceId: item.id,
-            state:
-              sha256 === item.location.sha256 && size === item.location.size
-                ? ('present' as const)
-                : ('mismatch' as const),
-            sha256,
-            size,
-            checkedAt,
-          };
-        } finally {
-          await handle.close();
-        }
-      } catch (error) {
-        return {
-          evidenceId: item.id,
-          state:
-            (error as { code?: string }).code === 'ENOENT' ? ('missing' as const) : ('unreadable' as const),
-          checkedAt,
-        };
-      }
-    }),
-  );
+  return observeEvidence(options.root, deployment, options.clock);
 }
+
 export function deploymentBytes(bytes: Uint8Array, projectId: string) {
   const source = parseSource(bytes);
   if (checkSchema(source.value).length)
