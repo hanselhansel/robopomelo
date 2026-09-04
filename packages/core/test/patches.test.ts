@@ -108,3 +108,31 @@ it('rejects duplicate IDs across collections and leaves the source intact',()=>{
  const d=complete();const before=structuredClone(d);
  expect(()=>evaluatePatch(d,patch([{op:'add',collection:'needs',record:{...d.needs[0]!,id:'person'} as unknown as Json}]),mutationContext())).toThrow();expect(d).toEqual(before);
 });
+it('enforces the declared frame Skill write boundary',()=>{
+ const d=complete(),before=structuredClone(d);
+ expect(()=>evaluatePatch(d,patch([update({baseline:null})],{capabilityId:'frame-robot-deployment'}),mutationContext())).toThrow(expect.objectContaining({code:'FIELD_NOT_ALLOWED'}));
+ expect(d).toEqual(before);
+ expect(evaluatePatch(d,patch([{op:'project',fields:{scope:provided('Inbound planning') as Json}}],{capabilityId:'frame-robot-deployment'}),mutationContext()).deployment.project.scope).toEqual(provided('Inbound planning'));
+});
+it('does not let the KPI Skill write acceptance records through updates, adds or removals',()=>{
+ const d=complete();
+ const operations:PatchOperation[]=[{op:'update',collection:'acceptanceTests',id:'test',fields:{procedure:['Changed']}},{op:'remove',collection:'acceptanceTests',id:'test'},{op:'add',collection:'acceptanceTests',record:{...d.acceptanceTests[0]!,id:'test-2'} as unknown as Json}];
+ for(const op of operations)expect(()=>evaluatePatch(d,patch([op],{capabilityId:'define-deployment-kpis'}),mutationContext())).toThrow(expect.objectContaining({code:'FIELD_NOT_ALLOWED'}));
+});
+it('permits the orchestration Skill authoring union without granting protected authority',()=>{
+ const d=complete();
+ const result=evaluatePatch(d,patch([update({baseline:null}),{op:'update',collection:'acceptanceTests',id:'test',fields:{procedure:['Observe two transfers']}}],{capabilityId:'plan-amr-deployment'}),mutationContext({scopes:['author']}));
+ expect(result.deployment.kpis[0]!.baseline).toBeNull();expect(result.deployment.acceptanceTests[0]!.procedure).toEqual(['Observe two transfers']);
+ d.challenges=[{...issue(),requiredBeforeReview:true}];
+ expect(()=>evaluatePatch(d,patch([{op:'remove',collection:'challenges',id:'issue'}],{capabilityId:'plan-amr-deployment'}),mutationContext({scopes:['author']}))).toThrow(expect.objectContaining({code:'SCOPE_REQUIRED'}));
+});
+it('rejects unregistered, unavailable and non-Skill capability declarations',()=>{
+ for(const capabilityId of ['not-installed','open-rmf','deployment-planning'])expect(()=>evaluatePatch(complete(),patch([],{capabilityId}),mutationContext())).toThrow(expect.objectContaining({code:'UNSUPPORTED_CAPABILITY'}));
+});
+it('keeps ordinary authorized patches available without a capability declaration',()=>{
+ expect(evaluatePatch(complete(),patch([update({baseline:null})]),mutationContext({scopes:['author']})).deployment.kpis[0]!.baseline).toBeNull();
+});
+it('does not let an orchestration Skill declaration grant accepted-decision authority',()=>{
+ const d=complete();d.decisions=[{id:'decision',title:'Design decision',description:null,ownerId:null,sourceEvidenceIds:[],extensions:{},question:provided('Proceed?'),options:['Proceed'],rationale:provided('Reviewed'),state:'accepted',relatedIds:[],actor:{kind:'human',name:'person',source:'review meeting'},decidedAt:'2026-09-05T00:00:00Z'}];
+ expect(()=>evaluatePatch(d,patch([{op:'remove',collection:'decisions',id:'decision'}],{capabilityId:'plan-amr-deployment'}),mutationContext({scopes:['author']}))).toThrow(expect.objectContaining({code:'SCOPE_REQUIRED'}));
+});

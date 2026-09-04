@@ -78,3 +78,10 @@ describe('closed mutation contracts', () => {
     expect(checkSchema({...envelope,baseHash:'not-a-hash',operations:[]},'patch').length).toBeGreaterThan(0);
   });
 });
+it('permits an optional declared Skill capability on patches only',()=>{
+ const general={...envelope,operations:[]};
+ expect(checkSchema(general,'patch')).toEqual([]);
+ expect(checkSchema({...general,capabilityId:'frame-robot-deployment'},'patch')).toEqual([]);
+ for(const capabilityId of ['',42,'bad/id'])expect(checkSchema({...general,capabilityId},'patch').length).toBeGreaterThan(0);
+ expect(checkSchema({...envelope,capabilityId:'frame-robot-deployment',input:{action:'approve',record:approval}},'review').length).toBeGreaterThan(0);
+});

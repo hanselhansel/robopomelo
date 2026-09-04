@@ -1,5 +1,6 @@
 import { fields, type Collection, type Deployment, type Json, type PatchContext, type PatchEnvelope, type PatchEvaluation, type RecordBase } from '@robopomelo/spec';
 import { DomainError } from './errors.js';
+import { checkDeclaredCapability } from './mutation-capability.js';
 import { assertMutationBase, finishMutation } from './mutation-common.js';
 import { checkRecordPermissions, requireScope } from './permissions.js';
 const allowlist=new Map<Collection|'project',Set<string>>();
@@ -13,7 +14,7 @@ function assignAllowed(target:Record<string,unknown>,collection:Collection|'proj
  for(const [key,value] of Object.entries(values))Object.defineProperty(target,key,{value:structuredClone(value),writable:true,enumerable:true,configurable:true});
 }
 export function evaluatePatch(d:Deployment,patch:PatchEnvelope,c:PatchContext):PatchEvaluation {
- assertMutationBase(d,patch,c,'patch');requireScope(c,'author');
+ assertMutationBase(d,patch,c,'patch');requireScope(c,'author');checkDeclaredCapability(patch,d.specVersion);
  const candidate=structuredClone(d);
  for(const op of patch.operations) {
   if(op.op==='project'){assignAllowed(candidate.project as unknown as Record<string,unknown>,'project',op.fields);continue;}

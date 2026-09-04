@@ -43,7 +43,7 @@ export type PatchOperation =
   | { op: 'project'; fields: Record<string, Json> };
 export interface PatchEnvelope {
   formatVersion: '1.0.0'; id: Id; projectId: Id; baseRevision: Id; baseHash: string;
-  actor: Actor; purpose: string; operations: PatchOperation[];
+  actor: Actor; purpose: string; capabilityId?: string; operations: PatchOperation[];
 }
 export interface PatchContext extends ValidationContext {
   scopes: Scope[]; nextRevision: Id; timestamp: string;
