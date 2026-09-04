@@ -6,3 +6,5 @@ export { sha256 } from './hash.js';
 export { planningHash } from './planning-hash.js';
 export { buildReferenceIndex } from './references.js';
 export { createBlankProject } from './factory.js';
+export { reviewDocument } from './review-document.js';
+export { traceability } from './traceability.js';
