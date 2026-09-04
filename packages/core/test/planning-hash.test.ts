@@ -32,3 +32,10 @@ it('excludes decision-only evidence but retains planning support digests', () =>
   b.evidence.at(-1)!.purpose='planning';
   expect(planningHash(a)).not.toBe(planningHash(b));
 });
+it('includes decision-labeled evidence when a planning claim also depends on it',()=>{
+ const a=sample();
+ a.evidence.push({...base('shared-source'),purpose:'decision',required:false,relatedIds:[],provenance:null,location:{kind:'attachment',path:'evidence/shared.txt',sha256:'a'.repeat(64),size:4}});
+ a.needs[0]!.sourceEvidenceIds=['shared-source'];
+ const b=structuredClone(a);(b.evidence.at(-1)!.location as {sha256:string}).sha256='b'.repeat(64);
+ expect(planningHash(a)).not.toBe(planningHash(b));
+});
