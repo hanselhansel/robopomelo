@@ -1,0 +1,12 @@
+const definitions = [
+ ['open','Open a local browser workspace'],['init','Create a portable project folder'],['plan','Plan through the five-step terminal wizard'],['show','Inspect the source, a record or a change receipt'],['validate','Validate specification readiness'],
+ ['patch check','Check a proposed structured patch'],['patch diff','Inspect a structured patch diff'],['patch apply','Apply or propose an authorized patch'],
+ ['history list','List recorded revisions'],['history show','Inspect a recorded revision'],['history restore','Restore authoring content as a new revision'],
+ ['evidence add','Copy explicitly selected evidence or record a reference'],['evidence list','List evidence declarations'],['evidence check','Check local evidence integrity'],['evidence remove','Remove an active evidence reference'],
+ ['review acknowledge','Record supplied warning acknowledgments'],['review waive','Record an explicitly permitted waiver'],['review approve','Record a supplied operator decision'],['review revoke','Record revocation of a decision'],
+ ['export','Generate a review and engineering handoff package'],['migrate','Preview or explicitly apply a specification migration'],['capabilities','Inspect available capabilities and Skills'],
+ ['trust show','Inspect machine-local project authority'],['trust grant','Remember explicitly authorized project scopes'],['trust revoke','Revoke a project grant'],['trust forget','Forget remembered trust without deleting the project'],
+ ['doctor','Inspect local runtime and recovery diagnostics'],['update check','Check the update channel'],['update install','Install a verified compatible runtime'],['update rollback','Return to a verified previous runtime'],['update configure','Configure update mode, pin or rollback hold'],
+] as const;
+export type CommandName=typeof definitions[number][0];
+export const commandRegistry=definitions.map(([name,description])=>({name,description}));
