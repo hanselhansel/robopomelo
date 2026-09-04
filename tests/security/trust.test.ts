@@ -126,12 +126,12 @@ describe('machine-local settings and trust', () => {
     await once(worker,'message'); const held = once(worker,'message'); worker.send('hold'); await held;
     const stopped = once(worker,'exit'); worker.kill('SIGKILL'); await stopped;
     expect(await readFile(join(config,'settings.json'),'utf8')).toBe(before);
-    await settings.update(draft => {draft.updates.automatic = false;});
-    expect((await settings.read()).updates).toMatchObject({automatic:false,offline:false});
+    await settings.update(draft => {draft.updates.mode = 'off';});
+    expect((await settings.read()).updates).toMatchObject({mode:'off',offline:false});
   });
   it('requires settings authority for update preferences and preserves invalid-input recovery', async () => {
     const {settings} = await fixture(); const updates = new UpdatePreferences(settings);
-    expect((await updates.read()).automatic).toBe(true);
+    expect((await updates.read()).mode).toBe('auto');
     await expect(updates.configure({offline:true},{scopes:['author']})).rejects.toMatchObject({code:'SCOPE_DENIED'});
     expect(await updates.configure({offline:true,pinnedVersion:'1.2.3'},authority)).toMatchObject({offline:true,pinnedVersion:'1.2.3'});
     await expect(updates.configure({pinnedVersion:'latest'},authority)).rejects.toMatchObject({code:'SETTINGS_INVALID'});
