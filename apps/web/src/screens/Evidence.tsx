@@ -21,10 +21,12 @@ export function Evidence({
   snapshot,
   onRefresh,
   onView,
+  onSettings,
 }: {
   snapshot: ProjectSnapshot;
   onRefresh: () => Promise<void>;
   onView: (id: string) => void;
+  onSettings: () => void;
 }) {
   const resource = useResource<EvidenceData>('/api/evidence');
   const [purpose, setPurpose] = useState('all');
@@ -160,7 +162,14 @@ export function Evidence({
         </PagedList>
       )}
       <p role="status">{action.notice}</p>
-      {adding && <AddEvidence snapshot={snapshot} onClose={() => setAdding(false)} onRefresh={refresh} />}
+      {adding && (
+        <AddEvidence
+          snapshot={snapshot}
+          onClose={() => setAdding(false)}
+          onRefresh={refresh}
+          onSettings={onSettings}
+        />
+      )}
     </>
   );
 }

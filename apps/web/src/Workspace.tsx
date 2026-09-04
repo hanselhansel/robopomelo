@@ -18,6 +18,8 @@ import type { TrustData } from './screens/Settings.js';
 import { Findings } from './components/Findings.js';
 import { Modal, ErrorNotice } from './components/ui.js';
 import { AuthorContext } from './components/SuppliedRecorder.js';
+import { EditorPane } from './EditorPane.js';
+import { NavigationGuard } from './components/NavigationGuard.js';
 import { ConflictDialog } from './components/ConflictDialog.js';
 type Screen = StepId | 'review' | 'changes' | 'evidence' | 'history' | 'settings';
 const sections: [Screen, string][] = [
@@ -73,9 +75,13 @@ export function Workspace({ initial, onSwitch }: { initial: ProjectSnapshot; onS
   }, [view.dirty, view.state]);
   const changeScreen = (next: Screen) => {
     setScreen(next);
+    if (next !== 'settings') setParked(null);
     setNav(false);
     setRevealId(null);
-    setTimeout(() => document.getElementById('section-heading')?.focus(), 0);
+    setTimeout(
+      () => document.getElementById(next === 'settings' ? 'settings-heading' : 'section-heading')?.focus(),
+      0,
+    );
   };
   const navigate = async (next: Screen | 'switch') => {
     if (await draft.flush()) {
@@ -259,39 +265,23 @@ export function Workspace({ initial, onSwitch }: { initial: ProjectSnapshot; onS
                   <button onClick={() => void navigate('changes')}>Review proposal</button>
                 </p>
               )}
-              {['frame', 'flow', 'success', 'requirements', 'acceptance'].includes(screen) ? (
-                <Planning
-                  step={screen as StepId}
-                  deployment={view.deployment}
-                  edit={(operation) => draft.edit(operation)}
-                  onView={onView}
-                  revealId={revealId}
-                />
-              ) : screen === 'review' ? (
-                <Review
-                  snapshot={view.committed}
-                  onView={onView}
-                  onRefresh={refresh}
-                  scopes={trust?.effectiveScopes ?? []}
-                  onSettings={settings}
-                />
-              ) : screen === 'changes' ? (
-                <Changes snapshot={view.committed} onRefresh={refresh} onResume={resume} />
-              ) : screen === 'evidence' ? (
-                <Evidence snapshot={view.committed} onRefresh={refresh} onView={onView} />
-              ) : screen === 'history' ? (
-                <History snapshot={view.committed} onRefresh={refresh} />
-              ) : (
-                <Settings
-                  onTrustChange={refreshTrust}
-                  parked={Boolean(parked)}
-                  onReturn={() => {
-                    const previous = parked;
-                    setParked(null);
-                    if (previous) changeScreen(previous);
-                  }}
-                />
-              )}
+              <EditorPane
+                screen={screen}
+                parked={parked}
+                view={view}
+                draft={draft}
+                revealId={revealId}
+                scopes={trust?.effectiveScopes ?? []}
+                onView={onView}
+                onRefresh={refresh}
+                onResume={resume}
+                onSettings={settings}
+                refreshTrust={refreshTrust}
+                onReturn={() => {
+                  const previous = parked;
+                  if (previous) changeScreen(previous);
+                }}
+              />
             </AuthorContext.Provider>
           </main>
           <aside className="inspector" aria-label="Validation findings">
@@ -311,34 +301,31 @@ export function Workspace({ initial, onSwitch }: { initial: ProjectSnapshot; onS
         </Modal>
       )}
       {guard && (
-        <Modal title="Keep your unsaved work" onClose={() => setGuard(null)}>
-          <p>The latest edits could not be saved. All current input is still available.</p>
-          <div className="actions">
-            <button onClick={() => setGuard(null)}>Stay here</button>
-            <button
-              onClick={() =>
-                void draft.flush().then((ok) => {
-                  if (ok) {
-                    const next = guard;
-                    setGuard(null);
-                    if (next === 'switch') onSwitch();
-                    else changeScreen(next);
-                  }
-                })
+        <NavigationGuard
+          unsaved={draft.copy()}
+          onStay={() => setGuard(null)}
+          onRetry={() =>
+            void draft.flush().then((ok) => {
+              if (ok) {
+                const next = guard;
+                setGuard(null);
+                if (next === 'switch') onSwitch();
+                else changeScreen(next);
               }
-            >
-              Retry and continue
-            </button>
-            <button
-              onClick={() =>
-                void navigator.clipboard.writeText(draft.copy()).catch(() => setContext(draft.copy()))
-              }
-            >
-              Copy unsaved changes
-            </button>
-            <button onClick={settings}>Park input and open Settings</button>
-          </div>
-        </Modal>
+            })
+          }
+          onCopy={() =>
+            void navigator.clipboard.writeText(draft.copy()).catch(() => setContext(draft.copy()))
+          }
+          onSettings={settings}
+          onDiscard={() => {
+            draft.replace(view.committed);
+            const next = guard;
+            setGuard(null);
+            if (next === 'switch') onSwitch();
+            else changeScreen(next);
+          }}
+        />
       )}
       {trustPanel && screen !== 'settings' && (
         <Modal title="Inspect or authorize this folder" onClose={() => setTrustPanel(false)}>

@@ -54,3 +54,17 @@ it('includes the session and epoch binding but never cookies', async () => {
     headers: { Authorization: 'Bearer credential', 'X-RP-CSRF': 'csrf', 'X-RP-Project-Epoch': 'epoch' },
   });
 });
+it('keeps an unresolved mutation identity when the receipt confirms a commit but immutable readback fails', async () => {
+  vi.stubGlobal('fetch', async (path: string) => {
+    if (path.startsWith('/api/changes/'))
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          data: { status: 'committed', mutationId: 'm1', digest: 'x', sourceRevision: 'r2', sourceHash: 'b' },
+        }),
+      );
+    throw new TypeError('Connection unavailable');
+  });
+  const api = new LocalApi();
+  await expect(api.patch(patch)).rejects.toMatchObject({ code: 'OUTCOME_UNKNOWN' });
+});

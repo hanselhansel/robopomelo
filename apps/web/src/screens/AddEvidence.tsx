@@ -22,10 +22,12 @@ export function AddEvidence({
   snapshot,
   onClose,
   onRefresh,
+  onSettings,
 }: {
   snapshot: ProjectSnapshot;
   onClose: () => void;
   onRefresh: () => Promise<void>;
+  onSettings: () => void;
 }) {
   const [title, setTitle] = useState('');
   const [purpose, setPurpose] = useState<EvidenceRecord['purpose']>('planning');
@@ -121,6 +123,12 @@ export function AddEvidence({
       action.setNotice(
         `Evidence is proposed as ${receipt.proposalId}. Open Changes to inspect and apply it.`,
       );
+    } else if ((receipt.status as string) === 'retired') {
+      setOutcomeKnown(true);
+      setRetryAllowed(false);
+      action.setNotice(
+        'This uncommitted evidence attempt was explicitly retired. Close this declaration and create a fresh one against the current source. The old mutation identity cannot be reused.',
+      );
     } else if (receipt.status === 'not-found') {
       setRetryAllowed(true);
       action.setNotice('No committed receipt exists. Retry uses the same selected file and mutation key.');
@@ -215,6 +223,7 @@ export function AddEvidence({
         />
       </fieldset>
       <ErrorNotice message={action.error} />
+      {action.error && <button onClick={onSettings}>Open permission settings</button>}
       <p role="status">{action.notice}</p>
       <div className="actions">
         <button

@@ -75,7 +75,7 @@ export function Settings({
     <>
       <div className="page-intro">
         <p className="eyebrow">Local authority and runtime</p>
-        <h1 id="section-heading" tabIndex={-1}>
+        <h1 id="settings-heading" tabIndex={-1}>
           Settings &amp; updates
         </h1>
         <p className="lede">Project trust and application updates have separate controls.</p>

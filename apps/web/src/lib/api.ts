@@ -131,23 +131,42 @@ export class LocalApi {
         );
       }
       if (receipt.status === 'committed') {
-        const history = await this.request<{ snapshot: ProjectSnapshot; entry: { diff: FieldDiff[] } }>(
-          `/api/history/${encodeURIComponent(receipt.sourceRevision)}`,
-        );
-        return { kind: 'committed', snapshot: history.snapshot, diff: history.entry.diff };
+        try {
+          const history = await this.request<{ snapshot: ProjectSnapshot; entry: { diff: FieldDiff[] } }>(
+            `/api/history/${encodeURIComponent(receipt.sourceRevision)}`,
+          );
+          return { kind: 'committed', snapshot: history.snapshot, diff: history.entry.diff };
+        } catch {
+          throw new ApiError(
+            'OUTCOME_UNKNOWN',
+            `The receipt confirms revision ${receipt.sourceRevision}, but its immutable source could not be read. Keep the original mutation identity and retry after reconnecting.`,
+          );
+        }
       }
       if (receipt.status === 'proposed') {
-        const proposals =
-          await this.request<{ id: string; patchDigest: string; diff: FieldDiff[] }[]>('/api/proposals');
-        const proposal = proposals.find((p) => p.id === receipt.proposalId);
-        if (proposal)
-          return {
-            kind: 'proposal',
-            proposalId: proposal.id,
-            patchDigest: proposal.patchDigest,
-            diff: proposal.diff,
-          };
+        try {
+          const proposals =
+            await this.request<{ id: string; patchDigest: string; diff: FieldDiff[] }[]>('/api/proposals');
+          const proposal = proposals.find((p) => p.id === receipt.proposalId);
+          if (proposal)
+            return {
+              kind: 'proposal',
+              proposalId: proposal.id,
+              patchDigest: proposal.patchDigest,
+              diff: proposal.diff,
+            };
+        } catch {
+          throw new ApiError(
+            'OUTCOME_UNKNOWN',
+            'The proposal receipt exists, but its exact stored diff could not be read. Keep this operation identity until readback succeeds.',
+          );
+        }
       }
+      if ((receipt.status as string) === 'retired')
+        throw new ApiError(
+          'MUTATION_RETIRED',
+          'This uncommitted attempt was explicitly retired. Your input is retained. Compare the current source and submit a fresh checked change with a new identity.',
+        );
       if (receipt.status === 'not-found') {
         try {
           return await this.request(path, body);

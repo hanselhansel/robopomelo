@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, useId } from 'react';
+import { useEffect, useRef, useState, useId, createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
+export const ModalSuspensionContext = createContext(false);
 export function Modal({
   title,
   children,
@@ -9,16 +10,25 @@ export function Modal({
   children: ReactNode;
   onClose: () => void;
 }) {
+  const suspended = useContext(ModalSuspensionContext);
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     const d = ref.current;
+    if (suspended) {
+      if (d?.open && d.close) d.close();
+      else d?.removeAttribute('open');
+      return;
+    }
     if (d?.showModal) d.showModal();
     else d?.setAttribute('open', '');
     d?.querySelector<HTMLElement>('h2')?.focus();
-    return () => previous?.focus();
-  }, []);
+    return () => {
+      if (d?.open && d.close) d.close();
+      previous?.focus();
+    };
+  }, [suspended]);
   return (
     <dialog
       ref={ref}
