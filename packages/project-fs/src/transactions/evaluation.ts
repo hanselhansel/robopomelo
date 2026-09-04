@@ -12,6 +12,7 @@ import { evaluateReview } from '../../../core/src/reviews.js';
 import { ProjectFsError } from '../errors.js';
 import type { CommitInput, SessionOptions } from '../contracts.js';
 import { isId } from './journal.js';
+import { closed } from './metadata.js';
 
 /** Keeps only core-emitted observations from this running session. */
 export class EvaluationState {
@@ -20,6 +21,11 @@ export class EvaluationState {
   validate(input: CommitInput): void {
     const command = input.mutation.kind === 'patch' ? input.mutation.patch : input.mutation.review;
     if (
+      !closed(
+        input,
+        ['expected', 'idempotencyKey', 'authorization', 'actor', 'mutation'],
+        ['approvedPatchDigest', 'supersedesProposalId', 'stagedEvidence', 'operation'],
+      ) ||
       !isId(input.idempotencyKey) ||
       command.id !== input.idempotencyKey ||
       command.projectId !== this.options.projectId ||

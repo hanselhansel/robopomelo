@@ -32,6 +32,7 @@ export async function prepareExternalReconciliation(
   actor: Actor,
   authorization: Authorization,
   last?: ProjectSnapshot,
+  mutationId?: string,
 ): Promise<{ input: CommitInput; evaluate: Evaluation }> {
   const current = await snapshotBytes(await options.root.readFile('deployment.yaml'), options);
   if (current.sourceHash !== expectedHash)
@@ -47,7 +48,7 @@ export async function prepareExternalReconciliation(
     );
   const baseline = structuredClone(previous.deployment);
   baseline.meta = structuredClone(current.deployment.meta);
-  const id = options.id();
+  const id = mutationId ?? options.id();
   // Preserve the recorder's identity so agent delegation checks remain active.
   // The operation and history origin separately record the external-source fact.
   const externalActor = { ...actor };

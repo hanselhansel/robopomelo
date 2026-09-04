@@ -4,7 +4,6 @@ import {
   type PatchEvaluation,
   type ProjectSnapshot,
 } from '@robopomelo/spec';
-import { evaluateRestore } from '../../core/src/restore.js';
 import { acquireLock } from './fs/lock.js';
 import type {
   CommitInput,
@@ -28,6 +27,11 @@ import { historyList, historyRead } from './history.js';
 import { cumulative, proposalRead, saveProposal, allProposals } from './proposals/store.js';
 import { missing } from './transactions/io.js';
 import { prepareExternalReconciliation, knownBaseline } from './external-edits.js';
+import { prepareRestore } from './transactions/restore.js';
+import { listProposals } from './proposals/list.js';
+import { retirePrepared, type RetirementInput } from './transactions/retire.js';
+import type { Authorization, SourceIdentity } from './contracts.js';
+import { isDeepStrictEqual } from 'node:util';
 
 export class ProjectSession {
   #last: ProjectSnapshot | undefined;
@@ -183,6 +187,8 @@ export class ProjectSession {
           receiptDigest: digest,
         };
       }
+      if (receipt.status === 'retired')
+        throw new ProjectFsError('MUTATION_RETIRED', 'This mutation ID was retired and cannot be reused.');
       if (receipt.status === 'pending' || receipt.status === 'indeterminate')
         throw new ProjectFsError(
           'RECOVERY_REQUIRED',
@@ -292,24 +298,7 @@ export class ProjectSession {
   }
   async proposalList() {
     await this.#inspectAuthority();
-    const proposals = await allProposals(this.options);
-    return Promise.all(
-      proposals.map(async (proposal) => {
-        const supersededBy =
-          proposals.findLast((item) => item.supersedes === proposal.proposalId)?.proposalId ?? null;
-        const receipt = await mutationStatus(this.options, proposal.proposalId, proposal.requestDigest);
-        return {
-          ...proposal,
-          supersededBy,
-          status:
-            receipt.status === 'committed'
-              ? ('applied' as const)
-              : supersededBy
-                ? ('superseded' as const)
-                : ('pending' as const),
-        };
-      }),
-    );
+    return listProposals(this.options);
   }
   async recover() {
     await this.#inspectAuthority();
@@ -324,33 +313,57 @@ export class ProjectSession {
     return historyRead(this.options.root, revision, this.options);
   }
   async restore(revision: string, input: RestoreInput): Promise<CommitResult> {
-    const historical = await this.historyRead(revision);
+    await this.#inspectAuthority();
+    const plan = await prepareRestore(this.options, revision, input);
+    return this.#commitEvaluated(plan.input, plan.evaluate);
+  }
+  async retirePrepared(id: string, digest: string, input: RetirementInput) {
+    await this.#inspectAuthority();
+    return retirePrepared(this.options, id, digest, input);
+  }
+  async applyStoredProposal(
+    id: string,
+    input: { expected: SourceIdentity; authorization: Authorization; approvedPatchDigest: string },
+  ): Promise<CommitResult> {
+    await this.#inspectAuthority();
+    const stored = await proposalRead(this.options, id);
     if (
-      historical.snapshot.evidenceObservations.some((item) =>
-        ['missing', 'unreadable', 'mismatch'].includes(item.state),
-      )
+      stored.digest !== input.approvedPatchDigest ||
+      !isDeepStrictEqual(stored.request.expected, input.expected)
     )
       throw new ProjectFsError(
-        'MISSING_HISTORY_EVIDENCE',
-        'Restore requires the historical attachment bytes to be available and intact.',
+        'PROPOSAL_DIGEST_MISMATCH',
+        'Approval must match the stored proposal and its source base.',
       );
-    const mutation: Mutation = {
-      kind: 'patch',
-      patch: {
-        formatVersion: '1.0.0',
-        id: input.idempotencyKey,
-        projectId: this.options.projectId,
-        baseRevision: input.expected.sourceRevision,
-        baseHash: input.expected.sourceHash,
-        actor: input.actor,
-        purpose: input.purpose,
-        operations: [],
-      },
+    const request = {
+      ...stored.request,
+      authorization: input.authorization,
+      approvedPatchDigest: input.approvedPatchDigest,
     };
-    return this.#commitEvaluated(
-      { ...input, mutation, operation: { kind: 'restore', revision } },
-      (current, context) => evaluateRestore(current, historical.snapshot.deployment, mutation.patch, context),
-    );
+    const status = await mutationStatus(this.options, id, stored.requestDigest);
+    if (status.status === 'committed') return this.#commitEvaluated(request);
+    if ((await allProposals(this.options)).some((proposal) => proposal.supersedes === id))
+      throw new ProjectFsError('PROPOSAL_SUPERSEDED', 'Apply the current cumulative proposal instead.');
+    if (request.operation?.kind === 'restore') {
+      const command = request.mutation.kind === 'patch' ? request.mutation.patch : request.mutation.review;
+      const plan = await prepareRestore(this.options, request.operation.revision, {
+        ...request,
+        purpose: command.purpose,
+      });
+      return this.#commitEvaluated(request, plan.evaluate);
+    }
+    if (request.operation?.kind === 'reconcile') {
+      const plan = await prepareExternalReconciliation(
+        this.options,
+        request.operation.sourceHash,
+        request.actor,
+        input.authorization,
+        this.#baseline,
+        id,
+      );
+      return this.#commitEvaluated(request, plan.evaluate);
+    }
+    return this.#commitEvaluated(request);
   }
   async reconcileExternal(
     expectedHash: string,

@@ -74,5 +74,6 @@ export interface RestoreInput {
   authorization: Authorization;
   actor: Actor;
   purpose: string;
+  approvedPatchDigest?: string;
 }
 export type Evaluation = (source: Deployment, context: PatchContext) => PatchEvaluation;

@@ -8,9 +8,10 @@ import type { Journal } from './journal.js';
 import { deploymentBytes } from './snapshot.js';
 import { bindsEvidence, verifyFile } from './evidence.js';
 import { finalizeHistory, historyRead } from '../history.js';
+import { readRetirement } from './retire.js';
 export type RecoveryResult = {
   mutationId: string;
-  kind: 'finalized' | 'uncommitted' | 'indeterminate';
+  kind: 'finalized' | 'uncommitted' | 'indeterminate' | 'retired';
   reason?: string;
 };
 export async function verifiedSnapshots(
@@ -35,6 +36,7 @@ export async function verifiedSnapshots(
 }
 export async function recoverJournal(options: SessionOptions, journal: Journal): Promise<RecoveryResult> {
   const { oldBytes, newBytes } = await verifiedSnapshots(options, journal);
+  if (await readRetirement(options.root, journal)) return { mutationId: journal.mutationId, kind: 'retired' };
   try {
     const marker = (await jsonRead(
       options.root,

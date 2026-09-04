@@ -8,6 +8,7 @@ import { verifiedSnapshots } from './recover.js';
 import { verifyFile } from './evidence.js';
 import { historyRead } from '../history.js';
 import { proposalRead } from '../proposals/store.js';
+import { readRetirement } from './retire.js';
 export async function mutationStatus(
   options: SessionOptions,
   id: string,
@@ -28,6 +29,15 @@ export async function mutationStatus(
       if (journal.digest !== digest)
         throw new ProjectFsError('IDEMPOTENCY_CONFLICT', 'Mutation ID was used with a different digest.');
       await verifiedSnapshots(options, journal);
+      const retired = await readRetirement(options.root, journal);
+      if (retired)
+        return {
+          status: 'retired',
+          mutationId: id,
+          digest,
+          retiredAt: retired.retiredAt,
+          reason: retired.reason,
+        };
       const current = byteHash(await options.root.readFile('deployment.yaml'));
       if (current === journal.next.sourceHash) {
         for (const item of journal.evidence)

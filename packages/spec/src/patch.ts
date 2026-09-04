@@ -64,6 +64,7 @@ export interface ReviewCommand {
 export type Mutation = {kind:'patch'; patch:PatchEnvelope} | {kind:'review'; review:ReviewCommand};
 
 export type MutationReceipt =
+  | { status: 'retired'; mutationId: Id; digest: string; retiredAt: string; reason: string }
   | {status:'pending'; mutationId:Id; digest:string}
   | {status:'proposed'; mutationId:Id; digest:string; proposalId:Id; supersedes:Id|null}
   | {status:'committed'; mutationId:Id; digest:string; sourceRevision:Id; sourceHash:string}
