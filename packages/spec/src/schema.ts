@@ -6,17 +6,23 @@ import { schemas } from './schema-registry.js';
 export { schemas } from './schema-registry.js';
 
 export type SchemaKind = 'deployment' | 'patch' | 'review';
-const ajv = new Ajv2020({strict:true, allErrors:true, ownProperties:true});
-addFormats(ajv,{mode:'full',formats:['date-time']});
+const ajv = new Ajv2020({ strict: true, allErrors: true, ownProperties: true });
+addFormats(ajv, { mode: 'full', formats: ['date-time'] });
 for (const schema of schemas) ajv.addSchema(schema);
 const schemaNames: Record<SchemaKind, string> = {
-  deployment:'deployment-1.0.0', patch:'patch-1.0.0', review:'review-command-1.0.0',
+  deployment: 'deployment-1.0.0',
+  patch: 'patch-1.0.0',
+  review: 'review-command-1.0.0',
 };
-const validators = Object.fromEntries(Object.entries(schemaNames).map(([kind,name]) => {
-  const validate = ajv.getSchema(`https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/${name}.schema.json`);
-  if (!validate) throw new Error(`Bundled schema unavailable: ${name}`);
-  return [kind,validate];
-})) as Record<SchemaKind, ValidateFunction>;
+const validators = Object.fromEntries(
+  Object.entries(schemaNames).map(([kind, name]) => {
+    const validate = ajv.getSchema(
+      `https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/${name}.schema.json`,
+    );
+    if (!validate) throw new Error(`Bundled schema unavailable: ${name}`);
+    return [kind, validate];
+  }),
+) as Record<SchemaKind, ValidateFunction>;
 
 /** Structural validation only. All references are preloaded, with no remote resolver. */
 export function checkSchema(input: unknown, kind: SchemaKind = 'deployment'): ErrorObject[] {
@@ -24,5 +30,5 @@ export function checkSchema(input: unknown, kind: SchemaKind = 'deployment'): Er
   if (limitError) return [limitError];
   const validate = validators[kind];
   if (validate(input)) return [];
-  return (validate.errors ?? []).map(error => ({...error,params:{...error.params}}));
+  return (validate.errors ?? []).map((error) => ({ ...error, params: { ...error.params } }));
 }

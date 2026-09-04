@@ -50,3 +50,9 @@ describe('knowledge and canonical primitives', () => {
     expect(() => buildReferenceIndex({needs:[{id:'same'}],workflows:[{id:'same'}]} as never)).toThrow(/Duplicate/);
   });
 });
+it('binds ordinary receipt digests and proposal supersession separately', async()=>{
+ const { mutationDigest }=await import('../src/mutation-digest.js');
+ const mutation={kind:'patch',patch:{id:'change'}} as never;
+ expect(mutationDigest(mutation)).toBe(sha256(canonicalJson(mutation)));
+ expect(mutationDigest(mutation,'proposal-1')).not.toBe(mutationDigest(mutation));
+});

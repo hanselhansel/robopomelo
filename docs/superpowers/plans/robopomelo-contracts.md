@@ -177,6 +177,7 @@ export interface PatchEnvelope {
 }
 export interface PatchContext extends ValidationContext {
   scopes: Scope[]; nextRevision: Id; timestamp: string;
+  observedApprovalInvalidations?: {approvalId:Id;reason:'planning-content-changed'|'required-evidence-changed'|'rule-context-changed'}[];
 }
 export interface FieldDiff { collection: string; id: Id; field: string; before: Json; after: Json }
 export interface PatchEvaluation {

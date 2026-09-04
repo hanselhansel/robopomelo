@@ -7,5 +7,8 @@ export function canonicalJson(value: Json): string {
   }
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
   if (typeof value !== 'object') throw new Error('Unsupported canonical JSON value');
-  return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonicalJson(value[key]!)}`).join(',')}}`;
+  return `{${Object.keys(value)
+    .sort()
+    .map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key]!)}`)
+    .join(',')}}`;
 }
