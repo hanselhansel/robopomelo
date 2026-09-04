@@ -1,0 +1,17 @@
+import type { ProjectSnapshot, PatchEnvelope, Scope, Json } from '@robopomelo/spec';
+import type { WriteResult } from './draft.js';
+export interface Session {credential?:string;csrf?:string;projectEpoch:string;toolVersion:string;projectOpen:boolean;root?:string;mode?:'autonomous'|'review';scopes?:Scope[]}
+export type ProjectRead={kind:'readable';snapshot:ProjectSnapshot;externalEdit:boolean}|{kind:'inspection';rawText:string;problems:{code:string;message:string}[];lastReadable?:{sourceRevision:string;sourceHash:string}};
+export class ApiError extends Error {constructor(public code:string,message:string,public details?:Json,public status=0){super(message);}}
+export class LocalApi {
+ session:Session|null=null;private credential='';private csrf='';
+ async bootstrap():Promise<Session>{const params=new URLSearchParams(location.hash.slice(1));const secret=params.get('secret')??params.get('token')??(location.hash.length>1&&!location.hash.includes('=')?location.hash.slice(1):null);history.replaceState(null,'',location.pathname+location.search);this.credential=sessionStorage.getItem('rp.credential')??'';this.csrf=sessionStorage.getItem('rp.csrf')??'';const session=secret?await this.request<Session>('/api/session',{secret},false):await this.request<Session>('/api/session',undefined,false);this.setSession(session);return session;}
+ setSession(session:Session){this.session=session;if(session.credential){this.credential=session.credential;sessionStorage.setItem('rp.credential',this.credential);}if(session.csrf){this.csrf=session.csrf;sessionStorage.setItem('rp.csrf',this.csrf);}}
+ async request<T>(path:string,body?:unknown,project=true,method?:string):Promise<T>{const response=await this.raw(path,body,project,method);const envelope=await response.json() as {ok:true;data:T}|{ok:false;error:{code:string;message:string;details?:Json;action?:string}};if(!envelope.ok)throw new ApiError(envelope.error.code,envelope.error.message+(envelope.error.action?' '+envelope.error.action:''),envelope.error.details,response.status);return envelope.data;}
+ async raw(path:string,body?:unknown,project=true,method?:string):Promise<Response>{if(!path.startsWith('/api/')||path.startsWith('//'))throw new Error('Only the current local API is allowed.');const headers:Record<string,string>={Authorization:`Bearer ${this.credential}`};if(body!==undefined){headers['X-RP-CSRF']=this.csrf;headers['Content-Type']=body instanceof Blob?'application/octet-stream':'application/json';}if(project&&this.session)headers['X-RP-Project-Epoch']=this.session.projectEpoch;return fetch(path,{method:method??(body===undefined?'GET':'POST'),headers,credentials:'omit',...(body!==undefined?{body:body instanceof Blob?body:JSON.stringify(body)}:{})});}
+ async patch(patch:PatchEnvelope,supersedes?:string):Promise<WriteResult>{return this.request('/api/patch/apply',{patch,...(supersedes?{supersedes}:{})});}
+ async open(path:string,name?:string,example=false){const status=await this.request<Session>(name===undefined?'/api/projects/open':'/api/projects/create',name===undefined?{path}:{path,name,...(example?{example:'inbound-pallet'}:{})},false);this.setSession(status);return this.request<ProjectRead>('/api/project');}
+}
+export const api=new LocalApi();
+export const expected=(snapshot:ProjectSnapshot)=>({sourceRevision:snapshot.sourceRevision,sourceHash:snapshot.sourceHash});
+export const errorMessage=(error:unknown)=>error instanceof Error?error.message:String(error);
