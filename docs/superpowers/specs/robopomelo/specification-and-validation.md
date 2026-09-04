@@ -1,6 +1,6 @@
 # Specification, validation, and approval contracts
 
-Part of the [RoboPomelo v1 design](../2026-09-05-robopomelo-design.md). Written-spec review pending.
+Part of the [RoboPomelo v1 design](../2026-09-05-robopomelo-design.md). Implementation authorized by Hansel on 2026-09-05; changes remain subject to the recorded execution/release gates.
 
 ## Contract ownership
 
@@ -78,26 +78,30 @@ These IDs are reserved by this written specification. They are never reused for 
 | RP-010 | Project problem, intended outcome or scope is missing | Blocker | No |
 | RP-011 | Required responsibility or final approver is absent | Blocker | No |
 | RP-012 | A need has no coverage link or explicit disposition | Warning | No |
-| RP-020 | Intended flow lacks a defined load subject or origin/destination | Blocker | No |
+| RP-013 | No explicit need with an outcome and declared beneficiary is recorded | Blocker | No |
+| RP-020 | No intended flow exists, or an intended flow lacks a defined load subject or origin/destination | Blocker | No |
 | RP-021 | Applicable exception/handoff challenge is unanswered | Warning | No |
 | RP-022 | A relevant peak/volume assumption is explicitly unresolved | Warning | No |
-| RP-030 | KPI target cannot be interpreted with its units/method/window | Blocker | No |
+| RP-030 | No KPI exists, or a target cannot be interpreted with its units/method/window | Blocker | No |
 | RP-031 | KPI baseline is unknown or unverified | Warning | Yes |
 | RP-032 | Compared quantities have incompatible or unsupported units/subjects | Blocker | No |
 | RP-040 | Requirement lacks rationale/coverage or has no verification disposition | Warning | No |
 | RP-041 | A record explicitly requires resolution before review and remains unresolved | Blocker | No |
-| RP-050 | An acceptance test lacks a typed pass criterion, procedure or measurement method | Blocker | No |
+| RP-042 | No AMR requirement with an interpretable capability statement is recorded | Blocker | No |
+| RP-050 | No acceptance test exists, or a test lacks a typed pass criterion, procedure or measurement method | Blocker | No |
 | RP-051 | An acceptance test lacks a subject, evidence requirement or approver | Blocker | No |
 | RP-060 | Declared required planning attachment is missing, unreadable or hash-mismatched | Blocker | No |
 | RP-061 | Supporting planning evidence is external or unavailable for local inspection | Warning | Yes |
 | RP-062 | A claim lacks its declared required verification support | Blocker | No |
-| RP-070 | Review-relevant open issue lacks an owner or next action | Blocker | No |
+| RP-070 | Review-relevant open issue lacks a statement, owner or next action | Blocker | No |
 | RP-071 | Owned open issue remains unresolved without a stronger blocking rule | Warning | No |
 | RP-080 | Review decision targets stale planning content, rule context or required evidence | Warning; approval invalid | No |
 | RP-081 | Review record lacks actor, decision, scope, reason or required provenance | Blocker | No |
 | RP-090 | Extension semantics are not evaluated by the installed core | Warning | Yes |
 
 Applicability matters. Do not emit RP-060 for a future acceptance-evidence requirement with no result file. Do not treat every external URL as a missing required attachment. Do not require every proposed idea to have an acceptance test until its disposition makes verification necessary.
+
+Autoplan refinement, 2026-09-05: RP-013/RP-042 and explicit empty-container cases prevent vacuous readiness. A schema-valid blank draft remains saveable/exportable but blocked. The integration-contract plan defines exact applicability and permitted dispositions; no already published schema or rule set is changed by this pre-implementation refinement.
 
 A finding includes rule ID/version, severity, record IDs, field locations, explanation, suggested next action, waiver eligibility, acknowledgment requirements and a deterministic fingerprint. Suggestions identify what is missing; they do not fabricate the answer.
 
@@ -160,3 +164,7 @@ Use namespaced extension keys with opaque values validated by the extension's de
 Supported public interfaces are schema/YAML, CLI JSON contracts, patch format and Skills. The TypeScript implementation is public source without a supported embedding API in v1. A public SDK requires separate API design and tests before a compatibility promise is made.
 
 The single capability registry records ID, description, stage, implementation availability, supported spec/CLI ranges, dependencies and activation policy. Stage is one of experimental, beta, stable, deprecated or removed. Registry presence alone never activates a capability. Deprecated data remains readable within declared compatibility ranges; removed/unsupported functionality returns an explicit result without deleting its source data.
+
+## Preimplementation contract refinements from engineering review
+
+The integration contract defines per-record verification declarations and attributed attestations for RP-062, without adding acceptance-test execution or result assessment. Required obligations and supplied attestations are protected from author-only changes. Core-owned append-only approval invalidations prevent a material source edit followed by a revert/restore from reactivating an old decision. Read-only observation does not write YAML or claim to detect unobserved changes. New approval gating uses the candidate selection so a historical stale-decision warning cannot demand acknowledgment of itself. These refinements close initial-schema gaps before any public specification release.

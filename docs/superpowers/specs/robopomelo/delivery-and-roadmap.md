@@ -1,6 +1,6 @@
 # Delivery, governance, quality, and roadmap
 
-Part of the [RoboPomelo v1 design](../2026-09-05-robopomelo-design.md). Written-spec review pending.
+Part of the [RoboPomelo v1 design](../2026-09-05-robopomelo-design.md). Implementation authorized by Hansel on 2026-09-05; changes remain subject to the recorded execution/release gates.
 
 ## Governance and contributions
 
