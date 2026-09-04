@@ -1,5 +1,6 @@
 import { constants } from 'node:fs';
-import { lstat, realpath, readdir, open, mkdir, rename, link, unlink, statfs } from 'node:fs/promises';
+import { lstat, realpath, readdir, open, mkdir, rename, link, unlink, rmdir, statfs } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import type { FileHandle } from 'node:fs/promises';
 import type { BigIntStats } from 'node:fs';
 import { join, relative, isAbsolute } from 'node:path';
@@ -189,6 +190,32 @@ export class SafeRoot {
   }
 
   async stat(value:string):Promise<SafeStat> {const result = await this.#checked(value); return info(result.stat!);}
+
+  /** @internal Lock/settings cleanup only. Never expose through a project route. */
+  async removeOwnedEntry(value:string,expected:SafeStat):Promise<void> {
+    const current = await this.#checked(value);
+    if (!current.stat || String(current.stat.dev) !== expected.device || String(current.stat.ino) !== expected.fileId) fail('PATH_CHANGED','Refusing to remove a replaced entry.');
+    if (current.stat!.isDirectory()) await rmdir(current.path);
+    else await unlink(current.path);
+    await this.#checkRoot();
+  }
+
+  /** @internal Called only under the matching exclusive recovery claim. */
+  async quarantineLock(kind:'project'|'settings',expected:SafeStat,claim:SafeStat):Promise<string> {
+    if (kind !== 'project' && kind !== 'settings') fail('INVALID_LOCK','Only fixed lock namespaces may be quarantined.');
+    const from = await this.#checked(`.robopomelo-${kind}.lock`);
+    const recovery = await this.#checked(`.robopomelo-${kind}.recovery`);
+    if (!from.stat?.isDirectory() || !recovery.stat?.isDirectory() || String(from.stat.dev) !== expected.device || String(from.stat.ino) !== expected.fileId || String(recovery.stat.dev) !== claim.device || String(recovery.stat.ino) !== claim.fileId) fail('LOCK_CHANGED','Lock or recovery claim changed.');
+    const destination = `.robopomelo-${kind}.quarantine-${randomUUID()}`;
+    const to = await this.#checked(destination,true);
+    if (to.stat) fail('PATH_COLLISION','Generated quarantine path already exists.');
+    // This is a coarse-lock guarded generated destination, not a portable
+    // general-purpose atomic no-clobber directory rename.
+    await rename(from.path,to.path);
+    const moved = await this.#checked(destination);
+    if (!moved.stat || !same(from.stat!,moved.stat)) fail('LOCK_CHANGED','Quarantined directory identity changed.');
+    return destination;
+  }
 
   async list(value?:string):Promise<string[]> {
     await this.#checkRoot();
