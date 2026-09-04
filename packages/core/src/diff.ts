@@ -7,6 +7,7 @@ export function semanticDiff(before:Deployment,after:Deployment):FieldDiff[] {
   for(const field of [...new Set([...Object.keys(a),...Object.keys(b)])].sort())if(field!=='id'&&!same(a[field],b[field]))diff.push({collection,id,field,before:(a[field]??null) as Json,after:(b[field]??null) as Json});
  };
  fields('project',before.project.id,{...before.project},{...after.project});
+ fields('root',before.project.id,{extensions:before.extensions},{extensions:after.extensions});
  for(const collection of collections) {
   const old=new Map(before[collection].map(r=>[r.id,r]));const next=new Map(after[collection].map(r=>[r.id,r]));
   for(const id of [...new Set([...old.keys(),...next.keys()])].sort()) {
