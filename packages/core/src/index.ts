@@ -5,3 +5,4 @@ export { canonicalJson } from './canonical.js';
 export { sha256 } from './hash.js';
 export { planningHash } from './planning-hash.js';
 export { buildReferenceIndex } from './references.js';
+export { createBlankProject } from './factory.js';

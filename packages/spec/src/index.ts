@@ -8,3 +8,6 @@ export * from './documents.js';
 export * from './schema.js';
 export * from './verification.js';
 export * from './units.js';
+export * from './fields.js';
+export * from './questions.js';
+export * from './capabilities.js';
