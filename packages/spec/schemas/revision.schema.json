@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robopomelo.dev/schemas/revision.schema.json",
+  "type": "object",
+  "properties": {
+    "revisionId": {"$ref": "common.schema.json#/$defs/id"},
+    "parentRevisionId": {"anyOf": [{"type": "null"},{"$ref": "common.schema.json#/$defs/id"}]},
+    "createdAt": {"$ref": "common.schema.json#/$defs/datetime"},
+    "updatedAt": {"$ref": "common.schema.json#/$defs/datetime"}
+  },
+  "required": ["revisionId","parentRevisionId","createdAt","updatedAt"],
+  "additionalProperties": false
+}

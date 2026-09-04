@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robopomelo.dev/schemas/patch-evidence.schema.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {"op": {"const": "add"},"collection": {"const": "evidence"},"record": {"$ref": "evidence.schema.json"}},
+      "required": ["op","collection","record"],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "op": {"const": "update"},
+        "collection": {"const": "evidence"},
+        "id": {"$ref": "common.schema.json#/$defs/id"},
+        "fields": {
+          "type": "object",
+          "properties": {
+            "title": {"type": "string"},
+            "description": {"$ref": "knowledge-text.schema.json"},
+            "ownerId": {"$ref": "knowledge-id.schema.json"},
+            "sourceEvidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "extensions": {"$ref": "common.schema.json#/$defs/extensions"},
+            "purpose": {"enum": ["planning","acceptance-requirement","decision"]},
+            "location": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {"const": "attachment"},
+                    "path": {"type": "string"},
+                    "sha256": {"$ref": "common.schema.json#/$defs/hash"},
+                    "size": {"type": "integer","minimum": 0,"maximum": 9007199254740991}
+                  },
+                  "required": ["kind","path","sha256","size"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {"kind": {"const": "external"},"uri": {"type": "string"}},
+                  "required": ["kind","uri"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {"kind": {"const": "future"},"description": {"type": "string"}},
+                  "required": ["kind","description"],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "required": {"type": "boolean"},
+            "relatedIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "provenance": {"$ref": "knowledge-text.schema.json"},
+            "verification": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {"$ref": "common.schema.json#/$defs/id"},
+                  "claimPath": {"enum": ["title","description","provenance","location"]},
+                  "required": {"type": "boolean"},
+                  "evidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+                  "attestation": {"anyOf": [{"type": "null"},{"$ref": "attestation.schema.json"}]}
+                },
+                "required": ["id","claimPath","required","evidenceIds","attestation"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": ["op","collection","id","fields"],
+      "additionalProperties": false
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robopomelo.dev/schemas/review-command-1.0.0.schema.json",
+  "type": "object",
+  "properties": {
+    "formatVersion": {"const": "1.0.0"},
+    "id": {"$ref": "common.schema.json#/$defs/id"},
+    "projectId": {"$ref": "common.schema.json#/$defs/id"},
+    "baseRevision": {"$ref": "common.schema.json#/$defs/id"},
+    "baseHash": {"$ref": "common.schema.json#/$defs/hash"},
+    "actor": {"$ref": "common.schema.json#/$defs/actor"},
+    "purpose": {"type": "string"},
+    "input": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {"action": {"const": "acknowledge"},"records": {"type": "array","items": {"$ref": "acknowledgment.schema.json"}}},
+          "required": ["action","records"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {"action": {"const": "waive"},"record": {"$ref": "waiver.schema.json"}},
+          "required": ["action","record"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {"action": {"const": "approve"},"record": {"$ref": "approval.schema.json"}},
+          "required": ["action","record"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {"action": {"const": "revoke"},"record": {"$ref": "revocation.schema.json"}},
+          "required": ["action","record"],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "required": ["formatVersion","id","projectId","baseRevision","baseHash","actor","purpose","input"],
+  "additionalProperties": false
+}

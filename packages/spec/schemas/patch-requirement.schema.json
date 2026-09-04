@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robopomelo.dev/schemas/patch-requirement.schema.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {"op": {"const": "add"},"collection": {"const": "requirements"},"record": {"$ref": "requirement.schema.json"}},
+      "required": ["op","collection","record"],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "op": {"const": "update"},
+        "collection": {"const": "requirements"},
+        "id": {"$ref": "common.schema.json#/$defs/id"},
+        "fields": {
+          "type": "object",
+          "properties": {
+            "title": {"type": "string"},
+            "description": {"$ref": "knowledge-text.schema.json"},
+            "ownerId": {"$ref": "knowledge-id.schema.json"},
+            "sourceEvidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "extensions": {"$ref": "common.schema.json#/$defs/extensions"},
+            "capability": {"$ref": "knowledge-text.schema.json"},
+            "rationale": {"$ref": "knowledge-text.schema.json"},
+            "constraints": {"type": "array","items": {"type": "string"}},
+            "needIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "workflowIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "kpiIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "testIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "verificationDisposition": {"$ref": "knowledge-text.schema.json"},
+            "verification": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {"$ref": "common.schema.json#/$defs/id"},
+                  "claimPath": {"enum": ["title","description","capability","rationale","constraints","verificationDisposition"]},
+                  "required": {"type": "boolean"},
+                  "evidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+                  "attestation": {"anyOf": [{"type": "null"},{"$ref": "attestation.schema.json"}]}
+                },
+                "required": ["id","claimPath","required","evidenceIds","attestation"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": ["op","collection","id","fields"],
+      "additionalProperties": false
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robopomelo.dev/schemas/waiver.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {"$ref": "common.schema.json#/$defs/id"},
+    "findingFingerprint": {"$ref": "common.schema.json#/$defs/hash"},
+    "planningHash": {"$ref": "common.schema.json#/$defs/hash"},
+    "actor": {"$ref": "common.schema.json#/$defs/actor"},
+    "reason": {"type": "string"},
+    "recordedAt": {"$ref": "common.schema.json#/$defs/datetime"},
+    "source": {"type": "string"},
+    "ruleId": {"type": "string"},
+    "evidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}}
+  },
+  "required": ["id","findingFingerprint","planningHash","actor","reason","recordedAt","source","ruleId","evidenceIds"],
+  "additionalProperties": false
+}

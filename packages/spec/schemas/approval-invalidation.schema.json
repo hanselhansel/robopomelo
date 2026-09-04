@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robopomelo.dev/schemas/approval-invalidation.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {"$ref": "common.schema.json#/$defs/id"},
+    "approvalId": {"$ref": "common.schema.json#/$defs/id"},
+    "revisionId": {"$ref": "common.schema.json#/$defs/id"},
+    "recordedAt": {"$ref": "common.schema.json#/$defs/datetime"},
+    "reason": {"enum": ["planning-content-changed","required-evidence-changed","rule-context-changed"]}
+  },
+  "required": ["id","approvalId","revisionId","recordedAt","reason"],
+  "additionalProperties": false
+}
