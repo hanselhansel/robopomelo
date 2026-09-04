@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://robopomelo.dev/schemas/patch-acceptance-test.schema.json",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/patch-acceptance-test.schema.json",
   "oneOf": [
     {
       "type": "object",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://robopomelo.dev/schemas/attestation.schema.json",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/attestation.schema.json",
   "type": "object",
   "properties": {
     "actor": {"$ref": "common.schema.json#/$defs/actor"},
