@@ -8,8 +8,8 @@ it('uses browser open as the primary launch path',()=>{
  expect(parseCommand([]).name).toBe('open');
  expect(parseCommand(['open','demo','--no-browser']).flags['no-browser']).toBe(true);
 });
-it.each([['unknown'],['show','--unexpected'],['show','--authorize','admin'],['export','--all-evidence','--no-evidence']])('rejects ambiguous or unsupported command input %j',(args)=>{
- expect(()=>parseCommand(args)).toThrow();
+it.each([{args:['unknown'],message:/Unknown command/},{args:['show','--unexpected'],message:/Unknown option/},{args:['show','--authorize','admin'],message:/authorization scope/},{args:['export','--all-evidence','--no-evidence'],message:/selection mode/}])('rejects ambiguous or unsupported input $args',({args,message})=>{
+ expect(()=>parseCommand(args)).toThrow(message);
 });
 it('does not confuse input stdin with interactive wizard use',()=>{
  expect(parseCommand(['patch','check','-','--json']).positionals).toEqual(['-']);
