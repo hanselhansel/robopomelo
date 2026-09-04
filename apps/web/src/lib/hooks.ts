@@ -1,5 +1,47 @@
-import {useEffect,useState,useCallback} from 'react';
-import {api,errorMessage} from './api.js';
-export function useResource<T>(path:string){const[data,setData]=useState<T|null>(null);const[error,setError]=useState<string|null>(null);const[loading,setLoading]=useState(true);const reload=useCallback(async()=>{setLoading(true);try{setData(await api.request<T>(path));setError(null);}catch(e){setError(errorMessage(e));}finally{setLoading(false);}},[path]);useEffect(()=>{void reload();},[reload]);return {data,error,loading,reload};}
-export function useAction(){const[error,setError]=useState<string|null>(null);const[busy,setBusy]=useState(false);const[notice,setNotice]=useState('');const run=async(action:()=>Promise<void>)=>{setBusy(true);setError(null);try{await action();}catch(e){setError(errorMessage(e));}finally{setBusy(false);}};return {error,busy,notice,setNotice,run};}
-export function download(blob:Blob,name:string){const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=name;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+import { useEffect, useState, useCallback } from 'react';
+import { api, errorMessage } from './api.js';
+export function useResource<T>(path: string, revision?: string) {
+  const [data, setData] = useState<T | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const reload = useCallback(async () => {
+    setLoading(true);
+    try {
+      setData(await api.request<T>(path));
+      setError(null);
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setLoading(false);
+    }
+  }, [path, revision]);
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+  return { data, error, loading, reload };
+}
+export function useAction() {
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState('');
+  const run = async (action: () => Promise<void>) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await action();
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return { error, busy, notice, setNotice, run };
+}
+export function download(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = name;
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
