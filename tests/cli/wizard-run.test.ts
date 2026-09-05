@@ -141,7 +141,7 @@ it('keeps a saved proposal distinct from an applied source change', async () => 
   expect(result.data).toMatchObject({ saved: false, proposed: true, pending: false });
   expect(await readFile(join(f.path, 'deployment.yaml'))).toEqual(before);
 });
-import { writeFile, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { writeFile as writeAsync } from 'node:fs/promises';
 it('preserves a conflicting candidate and exports its original-base patch without changing source', async () => {
   const f = await fixture(),
@@ -151,10 +151,9 @@ it('preserves a conflicting candidate and exports its original-base patch withou
   f.setHook((text) => {
     if (!changed && text.includes('Purpose of this authored change')) {
       changed = true;
-      writeFileSync(
-        join(f.path, 'deployment.yaml'),
-        bytes.replace('Inbound pallet transfer (fictional example)', 'Externally renamed fictional example'),
-      );
+      const external = bytes.replace('name: Planning', 'name: Externally renamed fictional example');
+      expect(external).not.toBe(bytes);
+      writeFileSync(join(f.path, 'deployment.yaml'), external);
     }
   });
   const result = await f.run(
