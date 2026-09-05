@@ -11,6 +11,8 @@ export default defineConfig({
   outputDir: 'test-results/browser-run',
   timeout: 60000,
   retries: 0,
+  // Hosted durable filesystem operations can exceed the default 5-second assertion wait.
+  expect: { timeout: process.env.CI ? 15000 : 5000 },
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'test-results/browser-report' }]],
   use: { viewport: { width: 1440, height: 1000 }, trace: 'retain-on-failure', screenshot: 'only-on-failure' },
   projects: [
