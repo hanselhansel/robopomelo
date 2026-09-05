@@ -1,5 +1,19 @@
 import type { ReviewDocument, TraceabilityRow, Deployment, FieldDiff } from '@robopomelo/spec';
 import { findRecord } from '../lib/records.js';
+import { PagedList } from './ui.js';
+const renderRecord = (record: ReviewDocument['sections'][number]['records'][number]) => (
+  <div className="document-record" key={record.id}>
+    <h4>{record.title}</h4>
+    <dl>
+      {record.fields.map((field, index) => (
+        <div key={`${field.label}-${index}`}>
+          <dt>{field.label}</dt>
+          <dd>{field.value}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+);
 export function DocumentView({ document }: { document: ReviewDocument }) {
   return (
     <article className="review-document">
@@ -11,19 +25,18 @@ export function DocumentView({ document }: { document: ReviewDocument }) {
       {document.sections.map((section) => (
         <section key={section.id} id={`document-${section.id}`}>
           <h3>{section.title}</h3>
-          {section.records.map((record) => (
-            <div className="document-record" key={record.id}>
-              <h4>{record.title}</h4>
-              <dl>
-                {record.fields.map((field, index) => (
-                  <div key={`${field.label}-${index}`}>
-                    <dt>{field.label}</dt>
-                    <dd>{field.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          ))}
+          {section.records.length > 50 ? (
+            <PagedList
+              printAll
+              items={section.records}
+              label={section.title.toLowerCase()}
+              searchText={(record) => `${record.title} ${record.id}`}
+            >
+              {renderRecord}
+            </PagedList>
+          ) : (
+            section.records.map(renderRecord)
+          )}
         </section>
       ))}
     </article>

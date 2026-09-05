@@ -18,7 +18,7 @@ export function FlowSteps({
       <legend>Ordered flow steps</legend>
       {value.map((step, i) => (
         <div className="nested-record" key={step.id}>
-          <h4>Step {i + 1}</h4>
+          <h3 className="nested-title">Step {i + 1}</h3>
           <TextInput
             id={`${id}-${step.id}-title`}
             label="Step name"
@@ -91,7 +91,7 @@ export function FlowExceptions({
       <legend>Flow exceptions</legend>
       {value.map((row, i) => (
         <div className="nested-record" key={row.id}>
-          <h4>Exception {i + 1}</h4>
+          <h3 className="nested-title">Exception {i + 1}</h3>
           <KnowledgeField
             id={`${id}-${row.id}-trigger`}
             label="Trigger"

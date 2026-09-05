@@ -95,6 +95,7 @@ nav button:nth-child(6), nav button:nth-child(7), nav button:nth-child(10) { mar
 .line-input input { min-width: 0; }
 .composite { margin-top: 16px; }
 .nested-record { padding: 20px; border-left: 3px solid var(--border); margin: 16px 0; background: var(--subtle); }
+ .nested-title { font-size: 1rem; line-height: inherit; }
 .section-title { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
 .section-title h2 { margin: 0; }
 .record { border-bottom: 1px solid var(--border); background: white; }
@@ -220,6 +221,7 @@ dialog > select { margin-bottom: 24px; }
   .content-layout:has(.review-document) > .inspector { display: none; }
   .inspector input, .inspector label { display: none; }
   .review-document { border: 0; padding: 0; }
+  .review-document .paged-list > .field { display: none; }
   .findings .text-link { display: block !important; color: black; text-decoration: none; }
   .print-provenance { color: black; }
   h1,h2,h3,h4 { break-after: avoid; break-inside: avoid; }

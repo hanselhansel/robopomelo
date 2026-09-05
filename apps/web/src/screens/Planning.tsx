@@ -121,7 +121,9 @@ export function Planning({
         {questions
           .filter((q) => q.step === step)
           .map((q) => {
-            const answer = deployment.challengeAnswers.find((a) => a.promptId === q.id);
+            const answer = deployment.challengeAnswers.find(
+              (a) => a.promptId === q.id && a.promptVersion === q.version,
+            );
             const applicable = applies(q.appliesWhen, deployment);
             const update = (path: string, v: Json) => {
               if (answer)
