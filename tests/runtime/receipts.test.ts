@@ -42,7 +42,8 @@ describe('digest-bound mutation receipts and immutable proposals', () => {
       commitInput(next, 'later', authorization, [{ op: 'project', fields: { name: 'Later' } }]),
     );
     const replay = await session.commit(input);
-    expect(replay).toEqual(first);
+    expect(first).toMatchObject({alreadyApplied:false});
+    expect(replay).toEqual({...first,alreadyApplied:true});
     expect(await session.mutationStatus('once', mutationDigest(input))).toMatchObject({
       status: 'committed',
       mutationId: 'once',

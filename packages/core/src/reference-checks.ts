@@ -34,17 +34,28 @@ const authorCollections = new Set([
   'decisions',
   'challengeAnswers',
 ]);
+export function isReferenceTarget(
+  index: ReadonlyMap<string, ReferenceEntry>,
+  id: string,
+  key: string,
+  path: string,
+): boolean {
+  const entry = index.get(id),
+    allowed = targets[key];
+  return (
+    !!entry &&
+    entry.path.split('/').length === 3 &&
+    authorCollections.has(entry.collection) &&
+    (!allowed || allowed.includes(entry.collection)) &&
+    (key !== 'subjectIds' || entry.collection !== 'workflows' || entry.record.mode === 'intended') &&
+    (key !== 'evidenceRequirementIds' || entry.record.purpose === 'acceptance-requirement') &&
+    (key !== 'evidenceIds' || !path.includes('/verification/') || entry.record.purpose === 'planning')
+  );
+}
 export function checkReferences(d: Deployment, index: Map<string, ReferenceEntry>, emit: Emit): void {
   function check(id: string, key: string, path: string, owner: string): void {
-    const entry = index.get(id),
-      allowed = targets[key];
-    const top = entry && entry.path.split('/').length === 3 && authorCollections.has(entry.collection);
-    const valid =
-      top &&
-      (!allowed || allowed.includes(entry.collection)) &&
-      (key !== 'subjectIds' || entry.collection !== 'workflows' || entry.record.mode === 'intended') &&
-      (key !== 'evidenceRequirementIds' || entry.record.purpose === 'acceptance-requirement') &&
-      (key !== 'evidenceIds' || !path.includes('/verification/') || entry.record.purpose === 'planning');
+    const allowed = targets[key];
+    const valid = isReferenceTarget(index, id, key, path);
     if (!valid)
       emit('RP-003', [owner, id], [path], `Expected ${allowed?.join(' or ') ?? 'an authoring record'}`);
   }

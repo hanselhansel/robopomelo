@@ -11,3 +11,4 @@ export * from './units.js';
 export * from './fields.js';
 export * from './questions.js';
 export * from './capabilities.js';
+export { checkInputLimits, INPUT_LIMITS } from './input-limits.js';

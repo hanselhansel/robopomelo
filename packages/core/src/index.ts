@@ -32,3 +32,6 @@ export { DomainError } from './errors.js';
 export { catalogue, RULE_SET_VERSION } from './rules/catalogue.js';
 export { mutationDigest } from './mutation-digest.js';
 export { createInboundExample } from './example.js';
+export { semanticDiff } from './diff.js';
+export { promptApplies } from './rules/flows.js';
+export { isReferenceTarget } from './reference-checks.js';

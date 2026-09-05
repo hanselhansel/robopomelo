@@ -48,7 +48,7 @@ export interface CommitInput {
   operation?: { kind: 'restore'; revision: string } | { kind: 'reconcile'; sourceHash: string };
 }
 export type CommitResult =
-  | { kind: 'committed'; snapshot: ProjectSnapshot; diff: FieldDiff[]; receiptDigest: string }
+  | { kind: 'committed'; snapshot: ProjectSnapshot; diff: FieldDiff[]; receiptDigest: string; alreadyApplied?: boolean }
   | {
       kind: 'proposal';
       proposalId: string;
