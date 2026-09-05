@@ -1,0 +1,121 @@
+{
+  "contractVersion": "1.0.0",
+  "id": "plan-amr-deployment",
+  "kind": "orchestrator",
+  "trigger": "Use when coordinating the full five-step AMR planning workflow, resuming it after a dependency change or preparing a traceable planning handoff.",
+  "requiredInputs": [
+    "User-selected project folder and current source snapshot",
+    "Supplied project facts and available narrow Skill contracts",
+    "Bundled patch and deployment schemas matching the installed CLI",
+    "Existing project authority or exact scopes explicitly supplied by the caller"
+  ],
+  "specRange": "^1.0.0",
+  "cliRange": ">=1.0.0-rc.1 <2.0.0",
+  "patchRange": "^1.0.0",
+  "fieldsRead": ["*"],
+  "fieldsWritten": [
+    "project.*",
+    "stakeholders.*",
+    "needs.*",
+    "problems.*",
+    "workflows.*",
+    "kpis.*",
+    "requirements.*",
+    "acceptanceTests.*",
+    "evidence.*",
+    "risks.*",
+    "assumptions.*",
+    "challenges.*",
+    "decisions.*",
+    "challengeAnswers.*"
+  ],
+  "dependencies": [
+    "frame-robot-deployment",
+    "specify-material-flow",
+    "define-deployment-kpis",
+    "specify-amr-requirements",
+    "design-acceptance-plan"
+  ],
+  "commands": [
+    {
+      "command": "capabilities",
+      "args": ["--json", "--offline"]
+    },
+    {
+      "command": "show",
+      "args": ["--project", "${project}", "--json", "--offline"]
+    },
+    {
+      "command": "patch check",
+      "args": ["patch.json", "--project", "${project}", "--json", "--offline"]
+    },
+    {
+      "command": "patch diff",
+      "args": ["patch.json", "--project", "${project}", "--json", "--offline"]
+    },
+    {
+      "command": "patch apply",
+      "args": ["patch.json", "--project", "${project}", "--json", "--offline"]
+    },
+    {
+      "command": "validate",
+      "args": ["--project", "${project}", "--json", "--offline"]
+    }
+  ],
+  "validation": [
+    "schema",
+    "capability-fields",
+    "source-identity",
+    "references",
+    "permissions",
+    "readiness-report"
+  ],
+  "stopConditions": [
+    "unsupported",
+    "missing-authority",
+    "stale-base",
+    "invalid-input",
+    "missing-facts",
+    "indeterminate-receipt"
+  ],
+  "authority": {
+    "grantsPermissions": false,
+    "actorKind": "agent",
+    "capabilityIdRequired": true,
+    "protectedDecisions": "separate-supplied-workflow"
+  },
+  "output": {
+    "formatVersion": "1.0.0",
+    "required": [
+      "status",
+      "capabilityId",
+      "changeId",
+      "baseRevision",
+      "baseHash",
+      "sourceRevision",
+      "sourceHash",
+      "receiptDigest",
+      "proposalId",
+      "patchDigest",
+      "diff",
+      "readiness",
+      "findings",
+      "questions",
+      "nextAction"
+    ],
+    "statuses": ["unchanged", "checked", "proposed", "applied", "conflict", "blocked"]
+  },
+  "orchestration": {
+    "order": [
+      "frame-robot-deployment",
+      "specify-material-flow",
+      "define-deployment-kpis",
+      "specify-amr-requirements",
+      "design-acceptance-plan"
+    ],
+    "committedBasesOnly": true,
+    "revisitDependents": true,
+    "proposalPolicy": "pause-dependent-writes",
+    "authorityExpansion": false
+  }
+}
