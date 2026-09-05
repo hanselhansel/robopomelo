@@ -89,7 +89,7 @@ export class DraftController {
   #listeners = new Set<() => void>();
   #timer: ReturnType<typeof setTimeout> | undefined;
   #active: Promise<boolean> | null = null;
-  #applyingProposal = false;
+  #applyingProposal: Promise<boolean> | null = null;
   #generation = 0;
   #actor: Actor = { kind: 'human', name: 'Local browser author' };
   setActor(actor: Actor) {
@@ -193,7 +193,11 @@ export class DraftController {
       before.committed.sourceRevision !== base.sourceRevision
     )
       throw new Error('Retain current input and resolve it before applying this proposal.');
-    this.#applyingProposal = true;
+    let finish!: (success: boolean) => void;
+    let success = false;
+    this.#applyingProposal = new Promise<boolean>((resolve) => {
+      finish = resolve;
+    });
     try {
       const committed = await commit();
       if (this.view !== before) {
@@ -204,13 +208,19 @@ export class DraftController {
         throw new Error(error);
       }
       this.replace(committed);
+      success = true;
     } finally {
-      this.#applyingProposal = false;
+      this.#applyingProposal = null;
+      finish(success);
     }
   }
   async flush(): Promise<boolean> {
     clearTimeout(this.#timer);
-    if (this.#applyingProposal) return false;
+    while (this.#applyingProposal) {
+      const applied = await this.#applyingProposal;
+      if (!applied || this.view.dirty || ['Changes conflict', 'Outcome unknown'].includes(this.view.state))
+        return false;
+    }
     if (this.#active) return this.#active;
     this.#active = this.#save();
     try {

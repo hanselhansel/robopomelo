@@ -39,9 +39,10 @@ it('retains newer input and its original base when a proposal commits during edi
       }),
   );
   draft.edit({ op: 'project', fields: { name: 'Newer unsaved input' } });
-  expect(await draft.flush()).toBe(false);
+  const flushing = draft.flush();
   finish(committed);
   await expect(applying).rejects.toThrow('committed');
+  expect(await flushing).toBe(false);
   expect(draft.view.deployment.project.name).toBe('Newer unsaved input');
   expect(draft.view.committed.sourceHash).toBe(snapshot.sourceHash);
   expect(draft.view).toMatchObject({ dirty: true, state: 'Changes conflict' });
@@ -69,5 +70,55 @@ it('retains the proposal after a rejected write and permits an explicit retry', 
   expect(draft.view).toBe(before);
   await draft.applyProposal('proposal', snapshot, async () => committed);
   expect(draft.view.state).toBe('Saved');
+  draft.dispose();
+});
+
+it('navigation flush waits for the in-flight proposal and adopts its saved result', async () => {
+  const { draft, committed } = await proposed();
+  let finish!: (value: ProjectSnapshot) => void;
+  const applying = draft.applyProposal(
+    'proposal',
+    snapshot,
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  let settled = false;
+  const flushing = draft.flush().then((result) => {
+    settled = true;
+    return result;
+  });
+  await Promise.resolve();
+  expect(settled).toBe(false);
+  expect(draft.view.state).toBe('Proposed');
+  finish(committed);
+  await applying;
+  expect(await flushing).toBe(true);
+  expect(draft.view).toMatchObject({ state: 'Saved', dirty: false, proposalId: null, committed });
+  draft.dispose();
+});
+
+it('retains waiting navigation after a failed application without swallowing its error or overlapping writes', async () => {
+  const { draft, committed } = await proposed();
+  const before = draft.view;
+  let fail!: (error: Error) => void;
+  const applying = draft.applyProposal(
+    'proposal',
+    snapshot,
+    () =>
+      new Promise((_resolve, reject) => {
+        fail = reject;
+      }),
+  );
+  const outcome = applying.catch((error) => error);
+  const overlapping = vi.fn(async () => committed);
+  await expect(draft.applyProposal('proposal', snapshot, overlapping)).rejects.toThrow();
+  expect(overlapping).not.toHaveBeenCalled();
+  const flushing = draft.flush();
+  fail(new Error('Denied'));
+  expect(await outcome).toMatchObject({ message: 'Denied' });
+  expect(await flushing).toBe(false);
+  expect(draft.view).toBe(before);
   draft.dispose();
 });
