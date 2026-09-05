@@ -186,7 +186,12 @@ export function Workspace({
     </nav>
   );
   return (
-    <div className="app-shell">
+    <div
+      className="app-shell"
+      onClickCapture={(event) => {
+        if (event.target instanceof Element) event.target.closest<HTMLButtonElement>('button')?.focus();
+      }}
+    >
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>

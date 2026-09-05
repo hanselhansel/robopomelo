@@ -35,7 +35,9 @@ export function Modal({
       ref={ref}
       aria-labelledby={id}
       onKeyDown={(event) => {
-        if (event.key !== 'Tab') return;
+        if (event.key !== 'Tab' || event.ctrlKey || event.metaKey) return;
+        event.preventDefault();
+        event.stopPropagation();
         const controls = [
           ...event.currentTarget.querySelectorAll<HTMLElement>(
             'a[href],button,input,select,textarea,summary,[tabindex]',
@@ -47,18 +49,19 @@ export function Modal({
         const first = controls[0],
           last = controls.at(-1);
         if (!first || !last) {
-          event.preventDefault();
           event.currentTarget.querySelector<HTMLElement>('h2')?.focus();
           return;
         }
         const active = document.activeElement as HTMLElement | null;
-        if (event.shiftKey && (active === first || !active || !controls.includes(active))) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && active === last) {
-          event.preventDefault();
-          first.focus();
-        }
+        const index = active ? controls.indexOf(active) : -1;
+        const next = event.shiftKey
+          ? index <= 0
+            ? controls.length - 1
+            : index - 1
+          : index < 0 || index === controls.length - 1
+            ? 0
+            : index + 1;
+        controls[next]?.focus();
       }}
       onCancel={(e) => {
         e.preventDefault();
