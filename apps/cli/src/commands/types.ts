@@ -1,4 +1,4 @@
-import type { Readable } from 'node:stream';
+import type { Readable, Writable } from 'node:stream';
 import type { Finding, ProjectSnapshot } from '@robopomelo/spec';
 import type { ParsedCommand } from '../arguments.js';
 import type { ProjectService } from '../services/project.js';
@@ -19,6 +19,7 @@ export interface CommandContext {
   launcherVersion?: string;
   bundledRuntimeVersion?: string;
   stdin: Readable;
+  stdout?: Writable;
   isTTY: boolean;
   cwd?: string;
   updater?: UpdateService;
