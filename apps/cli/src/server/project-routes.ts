@@ -94,7 +94,7 @@ export function projectRoutes(service: ProjectService, onStatus: () => void): Ro
       path: '/api/trust',
       handler: () =>
         service.withProject(async (project) => ({
-          root: project.root.identity(),
+          root: project.root.identity().canonicalPath,
           grant: project.writeGrant,
           effectiveScopes: service.status().scopes,
           mode: project.writeGrant?.mode ?? 'autonomous',
