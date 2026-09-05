@@ -286,6 +286,11 @@ export class UpdateService {
     run: RunPolicy & { version?: string } = {},
     authority: SettingsAuthority,
   ): Promise<UpdateOutcome> {
+    if (run.sourceCheckout)
+      throw new RuntimeError(
+        'RUNTIME_UNMANAGED',
+        'Source checkout execution does not manage installed runtimes.',
+      );
     const pointer = await this.options.cache.pointer(),
       version = run.version ?? pointer.previous?.version ?? this.options.bundle.manifest.version;
     const runtime =

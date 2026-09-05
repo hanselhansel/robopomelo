@@ -16,7 +16,7 @@ An update must match the expected npm package, source repository and main releas
 Prereleases, major upgrades, specification migrations and experimental capabilities are never activated automatically. Running sessions retain their original runtime. A policy change during verification prevents stale policy from promoting a runtime.
 
 ```sh
-robopomelo update status --json
+robopomelo --version --json
 robopomelo update configure --mode notify --authorize manage-settings
 robopomelo update install --target VERSION --authorize manage-settings
 robopomelo update configure --pin VERSION --authorize manage-settings

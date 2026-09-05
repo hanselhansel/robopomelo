@@ -3,6 +3,7 @@ import { updateRoutes } from '../../apps/cli/src/server/update-routes.js';
 import { appFixture } from './helpers/app.js';
 it('maps update identity and explicit settings through the authenticated API', async () => {
   let configured: unknown;
+  let resumed = 0;
   const updater = {
     status: async () => ({
       policy: { mode: 'auto', pinnedVersion: null, rollbackHold: null, offline: false },
@@ -14,7 +15,10 @@ it('maps update identity and explicit settings through the authenticated API', a
       configured = value;
       return value;
     },
-    resume: async () => ({}),
+    resume: async () => {
+      resumed++;
+      return {};
+    },
     check: async () => ({ status: 'current' }),
     install: async () => ({ status: 'installed' }),
     rollback: async () => ({ status: 'rolled-back' }),
@@ -33,6 +37,8 @@ it('maps update identity and explicit settings through the authenticated API', a
     expect(status.body.data.versions.currentRuntimeVersion).toBe('1.1.0');
     expect((await app.call('/api/updates/configure', { mode: 'off', pin: null })).status).toBe(200);
     expect(configured).toEqual({ mode: 'off', pinnedVersion: null });
+    expect((await app.call('/api/updates/configure', { resume: true, mode: 'auto' })).status).toBe(400);
+    expect(resumed).toBe(0);
   } finally {
     await app.close();
   }

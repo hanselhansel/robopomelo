@@ -46,6 +46,7 @@ async function main() {
         code: 'INVALID_ARGUMENTS',
       });
     const run: RunPolicy = {
+      ...(runtime.identity.sourceCheckout ? { sourceCheckout: true } : {}),
       ...(command.flags.offline ? { offline: true } : {}),
       ...(mode ? { mode: mode as 'auto' | 'notify' | 'off' } : {}),
       ...(typeof command.flags['runtime-version'] === 'string'

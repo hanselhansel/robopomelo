@@ -8,13 +8,13 @@ robopomelo plan demo --offline
 robopomelo validate --project demo --json --offline
 ```
 
-`--offline` disables release-network access for that invocation. It does not rewrite the saved update preference. To persist offline operation, use Settings or:
+`--offline` disables release-network access for that invocation. It does not rewrite the saved update preference. Persist offline operation in Settings. To suppress automatic startup checks through the CLI, use:
 
 ```sh
-robopomelo update configure --offline --authorize manage-settings --json
+robopomelo update configure --mode off --authorize manage-settings --json
 ```
 
-An invocation started offline remains offline even if a later preference change enables future online launches. Clear the stored preference explicitly with `update configure --online --authorize manage-settings` when wanted.
+Keep using `--offline` to also block explicitly requested network operations. An invocation started offline remains offline even if a later preference change enables future online launches. Clear a stored offline preference explicitly with `update configure --online --authorize manage-settings` when wanted.
 
 Fonts, styles, scripts, schemas and signature trust material ship with the application. An attachment's remote links and Markdown images are inert project data. RoboPomelo does not fetch those URLs. External Agent Skills run in the host you choose; that host's own model/network behavior is outside this local application's transport.
 

@@ -80,7 +80,15 @@ export function updateRoutes(updater: UpdaterApi, identity: RuntimeIdentity): Ro
       projectScoped: false,
       handler: async (context) => {
         const body = requestBody(context);
-        if (body.resume === true) return updater.resume(authority);
+        if (body.resume === true) {
+          if (Object.keys(body).some((key) => key !== 'resume'))
+            throw new HttpError(
+              400,
+              'INVALID_INPUT',
+              'Resume the rollback hold separately from explicit policy edits.',
+            );
+          return updater.resume(authority);
+        }
         const changes: Partial<UpdatePolicy> = {};
         if (body.mode !== undefined) {
           if (!['auto', 'notify', 'off'].includes(String(body.mode)))

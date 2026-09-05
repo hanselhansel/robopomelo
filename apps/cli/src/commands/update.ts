@@ -10,6 +10,7 @@ export const update: CommandHandler = async (command, context) => {
     throw new DomainError('INVALID_ARGUMENTS', '--update-mode must be auto, notify or off.');
   const version = text(command, 'runtime-version'),
     run: RunPolicy = {
+      ...(context.bundledRuntimeVersion === '0.0.0' ? { sourceCheckout: true } : {}),
       ...(command.flags.offline ? { offline: true } : {}),
       ...(mode ? { mode: mode as UpdatePolicy['mode'] } : {}),
       ...(version ? { explicitVersion: version } : {}),
