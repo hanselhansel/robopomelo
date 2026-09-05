@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { cleanupFor } from '../../scripts/test-process-cleanup.mjs';
 import { mkdtemp, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -26,7 +27,7 @@ export async function localApp(existingProject?: string) {
   );
   let stderr = '';
   child.stderr.on('data', (chunk) => (stderr += chunk));
-  const exit = new Promise((resolve) => child.once('exit', resolve));
+  const close = cleanupFor(child);
   const url = await new Promise<string>((resolve, reject) => {
     let output = '';
     const timer = setTimeout(() => {
@@ -60,10 +61,7 @@ export async function localApp(existingProject?: string) {
     directory,
     project: join(directory, 'project'),
     close: async () => {
-      child.kill('SIGTERM');
-      const timer = setTimeout(() => child.kill('SIGKILL'), 5000);
-      await exit;
-      clearTimeout(timer);
+      await close();
       await rm(directory, { recursive: true, force: true });
     },
   };
