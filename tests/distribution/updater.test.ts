@@ -10,10 +10,14 @@ it('allows only fixed public package endpoints and validates every redirect', as
     code: 'UPDATE_URL_DENIED',
   });
   expect(requests).toEqual(['https://registry.npmjs.org/robopomelo/latest']);
+  // Synthetic userinfo exercises rejection without a credential-shaped URL literal.
+  const credentialUrl = new URL('https://registry.npmjs.org/robopomelo');
+  credentialUrl.username = 'fixture-user';
+  credentialUrl.password = 'fixture-password';
   for (const url of [
     'http://registry.npmjs.org/robopomelo',
     'https://registry.npmjs.org:444/robopomelo',
-    'https://user:secret@registry.npmjs.org/robopomelo',
+    credentialUrl.href,
     'https://registry.npmjs.org/other',
     'https://registry.npmjs.org/robopomelo?project=secret',
   ])
