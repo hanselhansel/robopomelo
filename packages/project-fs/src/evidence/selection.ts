@@ -8,6 +8,7 @@ export const ATTACHMENT_LIMIT = 256 * 1024 * 1024;
 /** Construct only from an explicit CLI argument or native file-picker selection. */
 export class FileSelection {
   #closed = false;
+  #sha256: string | undefined;
   private constructor(
     private readonly handle: FileHandle,
     private readonly pinned: BigIntStats,
@@ -28,7 +29,11 @@ export class FileSelection {
       const after = await handle.stat({ bigint: true });
       if (after.dev !== before.dev || after.ino !== before.ino)
         throw new ProjectFsError('SELECTION_CHANGED', 'Selected file identity changed while opening.');
-      return new FileSelection(handle, before, basename(path));
+      const selection = new FileSelection(handle, before, basename(path));
+      // Windows can defer timestamp changes while this handle remains open.
+      // Bind the selection to its bytes rather than relying only on metadata.
+      selection.#sha256 = (await selection.inspect()).sha256;
+      return selection;
     } catch (error) {
       await handle.close();
       throw error;
@@ -48,6 +53,7 @@ export class FileSelection {
   }
   async *stream(): AsyncGenerator<Uint8Array> {
     await this.#check();
+    const hash = createHash('sha256');
     let position = 0;
     try {
       for (;;) {
@@ -57,8 +63,12 @@ export class FileSelection {
         position += bytesRead;
         if (position > ATTACHMENT_LIMIT)
           throw new ProjectFsError('LIMIT_EXCEEDED', 'Attachment exceeds its limit.');
-        yield buffer.subarray(0, bytesRead);
+        const bytes = buffer.subarray(0, bytesRead);
+        hash.update(bytes);
+        yield bytes;
       }
+      if (this.#sha256 !== undefined && hash.digest('hex') !== this.#sha256)
+        throw new ProjectFsError('SELECTION_CHANGED', 'Selected file changed. Select its current bytes again.');
     } finally {
       await this.#check();
     }
