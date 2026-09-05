@@ -20,6 +20,7 @@ import { Modal, ErrorNotice } from './components/ui.js';
 import { AuthorContext } from './components/SuppliedRecorder.js';
 import { EditorPane } from './EditorPane.js';
 import { NavigationGuard } from './components/NavigationGuard.js';
+import { ExternalSourceNotice, canRefreshSource } from './components/ExternalSourceNotice.js';
 import { ConflictDialog } from './components/ConflictDialog.js';
 type Screen = StepId | 'review' | 'changes' | 'evidence' | 'history' | 'settings';
 const sections: [Screen, string][] = [
@@ -34,7 +35,15 @@ const sections: [Screen, string][] = [
   ['history', 'History'],
   ['settings', 'Settings & updates'],
 ];
-export function Workspace({ initial, onSwitch }: { initial: ProjectSnapshot; onSwitch: () => void }) {
+export function Workspace({
+  initial,
+  onSwitch,
+  onInspection,
+}: {
+  initial: ProjectSnapshot;
+  onSwitch: () => void;
+  onInspection: (read: ProjectRead) => void;
+}) {
   const [draft] = useState(
     () => new DraftController(initial, (patch, supersedes) => api.patch(patch, supersedes)),
   );
@@ -90,14 +99,14 @@ export function Workspace({ initial, onSwitch }: { initial: ProjectSnapshot; onS
     } else setGuard(next);
   };
   const refresh = async () => {
+    const before = draft.getSnapshot();
+    if (!canRefreshSource(before))
+      throw new Error('Keep pending input and compare the current source before refreshing.');
     const result = await api.request<ProjectRead>('/api/project');
-    if (result.kind !== 'readable')
-      throw new Error('The external source is not readable. Preserve your draft and inspect the source.');
-    if (view.dirty)
-      throw new Error(
-        'Unsaved local edits remain. Save or resolve them before refreshing the committed view.',
-      );
-    draft.replace(result.snapshot);
+    if (draft.getSnapshot() !== before || !canRefreshSource(draft.getSnapshot()))
+      throw new Error('Your input changed during the recheck. It is retained. Compare the current source.');
+    if (result.kind === 'inspection') onInspection(result);
+    else draft.replace(result.snapshot);
   };
   const settings = () => {
     setParked(screen);
@@ -244,6 +253,7 @@ export function Workspace({ initial, onSwitch }: { initial: ProjectSnapshot; onS
                 void draft.flush();
               }}
             >
+              <ExternalSourceNotice view={view} onRefresh={refresh} onCompare={() => setConflict(true)} />
               <ErrorNotice message={error ?? view.error} />
               {view.error && (
                 <div className="actions">

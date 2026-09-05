@@ -7,6 +7,7 @@ import {
   type PatchEnvelope,
   type Scope,
 } from '@robopomelo/spec';
+import { sourceIdentity } from './source-identity.js';
 import { reviewDocument, traceability } from '@robopomelo/core';
 import type { ProjectService } from '../services/project.js';
 import type { Route } from './contracts.js';
@@ -52,6 +53,11 @@ export function projectRoutes(service: ProjectService, onStatus: () => void): Ro
       },
     },
     { method: 'GET', path: '/api/project', handler: () => service.read() },
+    {
+      method: 'GET',
+      path: '/api/project/source-identity',
+      handler: (context) => sourceIdentity(service, context.projectEpoch),
+    },
     { method: 'GET', path: '/api/validate', handler: async () => (await service.snapshot()).validation },
     {
       method: 'GET',

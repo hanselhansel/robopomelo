@@ -67,8 +67,14 @@ export class LocalApi {
       sessionStorage.setItem('rp.csrf', this.csrf);
     }
   }
-  async request<T>(path: string, body?: unknown, project = true, method?: string): Promise<T> {
-    const response = await this.raw(path, body, project, method);
+  async request<T>(
+    path: string,
+    body?: unknown,
+    project = true,
+    method?: string,
+    signal?: AbortSignal,
+  ): Promise<T> {
+    const response = await this.raw(path, body, project, method, signal);
     const envelope = (await response.json()) as
       | { ok: true; data: T }
       | { ok: false; error: { code: string; message: string; details?: Json; action?: string } };
@@ -84,7 +90,13 @@ export class LocalApi {
       );
     return envelope.data;
   }
-  async raw(path: string, body?: unknown, project = true, method?: string): Promise<Response> {
+  async raw(
+    path: string,
+    body?: unknown,
+    project = true,
+    method?: string,
+    signal?: AbortSignal,
+  ): Promise<Response> {
     if (!path.startsWith('/api/') || path.startsWith('//'))
       throw new Error('Only the current local API is allowed.');
     const headers: Record<string, string> = { Authorization: `Bearer ${this.credential}` };
@@ -97,6 +109,7 @@ export class LocalApi {
       method: method ?? (body === undefined ? 'GET' : 'POST'),
       headers,
       credentials: 'omit',
+      ...(signal ? { signal } : {}),
       ...(body !== undefined ? { body: body instanceof Blob ? body : JSON.stringify(body) } : {}),
     });
   }

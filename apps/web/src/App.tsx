@@ -96,5 +96,12 @@ export function App() {
         <button onClick={() => setRead(null)}>Switch project</button>
       </main>
     );
-  return <Workspace key={session.projectEpoch} initial={read.snapshot} onSwitch={() => setRead(null)} />;
+  return (
+    <Workspace
+      key={session.projectEpoch}
+      initial={read.snapshot}
+      onSwitch={() => setRead(null)}
+      onInspection={setRead}
+    />
+  );
 }
