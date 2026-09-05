@@ -15,9 +15,7 @@ const media: Record<string, string> = {
   png: 'image/png',
   ico: 'image/x-icon',
 };
-export async function startServer(
-  options: ServerOptions,
-): Promise<{
+export async function startServer(options: ServerOptions): Promise<{
   url: string;
   bootstrapUrl: string;
   setProjectStatus: (value: ProjectStatus) => void;
@@ -86,6 +84,12 @@ export async function startServer(
             );
           const projectEpoch = status.projectEpoch;
           const body = mutation && !match.route.rawBody ? await jsonBody(request) : undefined;
+          if (match.route.projectScoped !== false && projectEpoch !== status.projectEpoch)
+            throw new HttpError(
+              409,
+              'PROJECT_CHANGED',
+              'The selected project changed while the request was arriving. Refresh before continuing.',
+            );
           const data = await match.route.handler({
             request,
             response,
