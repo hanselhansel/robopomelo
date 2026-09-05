@@ -39,6 +39,8 @@ async function fixture(mode = 'autonomous') {
       const child = spawn(process.execPath, [driver, ...args, '--json', '--offline'], {
         env: { ...process.env, ROBOPOMELO_SKILL_TEST_CONFIG: join(root, 'config') },
         stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15_000,
+        killSignal: 'SIGKILL',
       });
       let stdout = '',
         stderr = '';
@@ -49,7 +51,11 @@ async function fixture(mode = 'autonomous') {
         stderr += s;
       });
       child.on('error', reject);
-      child.on('close', (code) => {
+      child.on('close', (code, signal) => {
+        if (signal) {
+          reject(new Error(`CLI ${args[0]} terminated before completing (${signal}).`));
+          return;
+        }
         try {
           const envelope = JSON.parse(stdout);
           resolve({ code: code ?? 1, data: envelope.data, envelope });
@@ -132,7 +138,9 @@ describe('deterministic Skill CLI conformance (not an agent-host test)', () => {
     const result = await f.run(['validate', '--project', f.project]);
     expect(result.code).toBe(3);
     expect(result.data.readiness).toBe('blocked');
-  }, 30_000);
+  // Functional replay launches many isolated processes and durable writes on hosted runners.
+  // Each command is independently bounded above; performance has a separate benchmark.
+  }, 120_000);
   it('keeps review-each-change source unchanged until an explicit fixture approval', async () => {
     const f = await fixture('review-each-change');
     const base = await f.show();
@@ -158,7 +166,7 @@ describe('deterministic Skill CLI conformance (not an agent-host test)', () => {
     expect(applied.code).toBe(0);
     expect(applied.data.status).toBe('applied');
     expect((await f.show()).deployment.review.approvals).toEqual([]);
-  }, 15_000);
+  }, 60_000);
   it('rejects narrow-scope expansion and unsupplied human decisions through the actual CLI', async () => {
     const f = await fixture();
     const source = await f.show();
@@ -171,5 +179,5 @@ describe('deterministic Skill CLI conformance (not an agent-host test)', () => {
     ]);
     expect((await f.run(['patch', 'apply', '-', '--project', f.project], reviewWrite)).code).not.toBe(0);
     expect((await f.show()).sourceHash).toBe(source.sourceHash);
-  }, 15_000);
+  }, 60_000);
 });
