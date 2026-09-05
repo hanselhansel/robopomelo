@@ -184,6 +184,7 @@ export class ProjectSession {
         const { newBytes } = await verifiedSnapshots(this.options, journal);
         return {
           kind: 'committed',
+          alreadyApplied: true,
           snapshot: await snapshotBytes(newBytes, this.options),
           diff: journal.diff,
           receiptDigest: digest,
@@ -284,6 +285,7 @@ export class ProjectSession {
       this.#baseline = committed;
       return {
         kind: 'committed',
+        alreadyApplied: false,
         snapshot: committed,
         diff: evaluated.evaluation.diff,
         receiptDigest: digest,
@@ -357,6 +359,7 @@ export class ProjectSession {
       return this.#commitEvaluated(request, plan.evaluate);
     }
     if (request.operation?.kind === 'reconcile') {
+      const command = request.mutation.kind === 'patch' ? request.mutation.patch : request.mutation.review;
       const plan = await prepareExternalReconciliation(
         this.options,
         request.operation.sourceHash,
@@ -364,6 +367,7 @@ export class ProjectSession {
         input.authorization,
         this.#baseline,
         id,
+        command.purpose,
       );
       return this.#commitEvaluated(request, plan.evaluate);
     }
@@ -374,6 +378,7 @@ export class ProjectSession {
     actor: RestoreInput['actor'],
     authorization = this.options.authorization,
     mutationId = this.options.id(),
+    purpose = 'Reconcile explicitly observed external source edits',
   ): Promise<CommitResult> {
     await this.#inspectAuthority();
     const plan = await prepareExternalReconciliation(
@@ -383,6 +388,7 @@ export class ProjectSession {
       authorization,
       this.#baseline,
       mutationId,
+      purpose,
     );
     return this.#commitEvaluated(plan.input, plan.evaluate);
   }

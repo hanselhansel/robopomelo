@@ -48,6 +48,7 @@ export async function prepareExternalReconciliation(
   authorization: Authorization,
   last?: ProjectSnapshot,
   mutationId?: string,
+  purpose = 'Reconcile explicitly observed external source edits',
 ): Promise<{ input: CommitInput; evaluate: Evaluation }> {
   const current = await snapshotBytes(await options.root.readFile('deployment.yaml'), options);
   if (current.sourceHash !== expectedHash)
@@ -76,7 +77,7 @@ export async function prepareExternalReconciliation(
       baseRevision: current.sourceRevision,
       baseHash: current.sourceHash,
       actor: externalActor,
-      purpose: 'Reconcile explicitly observed external source edits',
+      purpose,
       operations: [],
     },
   };

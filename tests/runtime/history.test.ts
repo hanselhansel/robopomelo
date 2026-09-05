@@ -63,6 +63,30 @@ async function reviewedFixture() {
   return { ...f, before };
 }
 describe('immutable history and explicit external reconciliation', () => {
+  it('retains an explicitly supplied reconciliation reason with its change ID', async () => {
+    const f = await fixture();
+    await snapshot(f.session);
+    const bytes = (await readFile(join(f.path, 'deployment.yaml'), 'utf8')).replace(
+      'name: Original',
+      'name: Field note',
+    );
+    await writeFile(join(f.path, 'deployment.yaml'), bytes);
+    const external = await snapshot(f.session);
+    const result = await f.session.reconcileExternal(
+      external.sourceHash,
+      actor,
+      f.authorization,
+      'reconcile-with-reason',
+      'Record the operator-supplied scope correction',
+    );
+    if (result.kind !== 'committed') throw new Error('Expected commit');
+    const journal = (await jsonRead(
+      f.root,
+      `.robopomelo/recovery/${byteHash('reconcile-with-reason')}/journal.json`,
+    )) as { mutation: { patch: { purpose: string; actor: unknown } } };
+    expect(journal.mutation.patch.purpose).toBe('Record the operator-supplied scope correction');
+    expect(journal.mutation.patch.actor).toEqual(actor);
+  });
   it('uses the known history head for protected reconciliation after an external revision edit and reopen', async () => {
     const f = await fixture();
     const source = parse(await readFile(join(f.path, 'deployment.yaml'), 'utf8'));
