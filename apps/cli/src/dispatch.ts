@@ -88,7 +88,7 @@ export async function executeCommand(
       throw new DomainError('INVALID_ARGUMENTS', 'Choose --example inbound-pallet.');
     await context.project.create(
       resolve(cwd, command.positionals[0]!),
-      text(command, 'name') ?? basename(command.positionals[0]!),
+      text(command, 'name') ?? (example ? undefined : basename(command.positionals[0]!)),
       !!example,
       command.scopes,
     );

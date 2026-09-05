@@ -114,9 +114,11 @@ export class ProjectService {
       id: this.id,
     });
   }
-  async create(path: string, name: string, example = false, scopes: Scope[] = []) {
+  async create(path: string, name: string | undefined, example = false, scopes: Scope[] = []) {
     const metadata = { id: this.id(), revision: this.id(), timestamp: this.clock() };
-    const deployment = example ? createInboundExample(metadata) : createBlankProject({ ...metadata, name });
+    const deployment = example
+      ? createInboundExample({ ...metadata, ...(name === undefined ? {} : { name }) })
+      : createBlankProject({ ...metadata, name: name ?? 'Deployment plan' });
     await initializeProject(path, deployment, ['author']);
     return this.open(path, scopes);
   }

@@ -9,8 +9,16 @@ const base = (id: string, title: string): RecordBase => ({
   sourceEvidenceIds: [],
   extensions: {},
 });
-export function createInboundExample(input: { id: string; revision: string; timestamp: string }): Deployment {
-  const d = createBlankProject({ ...input, name: 'Inbound pallet transfer (fictional example)' });
+export function createInboundExample(input: {
+  id: string;
+  revision: string;
+  timestamp: string;
+  name?: string;
+}): Deployment {
+  const d = createBlankProject({
+    ...input,
+    name: input.name ?? 'Inbound pallet transfer (fictional example)',
+  });
   d.extensions['robopomelo.example'] = { fictional: true };
   d.project.problem = provided(
     'Manual transfers from receiving to staging interrupt receiving work and have unclear exception ownership. This is a fictional discovery scenario.',
