@@ -284,7 +284,7 @@ export function Workspace({ initial, onSwitch }: { initial: ProjectSnapshot; onS
               />
             </AuthorContext.Provider>
           </main>
-          <aside className="inspector" aria-label="Validation findings">
+          <aside className="inspector" aria-label="Validation findings" tabIndex={0}>
             <Findings report={view.committed.validation} onFinding={onFinding} />
           </aside>
         </div>
