@@ -5,8 +5,13 @@ import { join } from 'node:path';
 import { localApp } from './local-app.js';
 test('real packaged application creates and edits a project and renders every screen offline', async ({
   page,
+  browser,
 }, testInfo) => {
   test.setTimeout(120000);
+  await testInfo.attach('browser-runtime', {
+    body: JSON.stringify({ name: testInfo.project.name, version: browser.version() }),
+    contentType: 'application/json',
+  });
   const app = await localApp(),
     errors: string[] = [],
     outbound: string[] = [];
@@ -69,13 +74,11 @@ test('real packaged application creates and edits a project and renders every sc
     await page.getByRole('button', { name: 'Add evidence', exact: true }).click();
     const modal = page.getByRole('dialog', { name: 'Add evidence', exact: true });
     await modal.getByLabel('Evidence title').fill('Fictional receiving notes');
-    await modal
-      .getByLabel('Local file')
-      .setInputFiles({
-        name: 'receiving-notes.txt',
-        mimeType: 'text/plain',
-        buffer: Buffer.from('Fictional receiving observations for test only.'),
-      });
+    await modal.getByLabel('Local file').setInputFiles({
+      name: 'receiving-notes.txt',
+      mimeType: 'text/plain',
+      buffer: Buffer.from('Fictional receiving observations for test only.'),
+    });
     await modal.getByRole('button', { name: 'Add evidence', exact: true }).click();
     await expect(modal).toHaveCount(0);
     await expect(page.getByText('Fictional receiving notes', { exact: true })).toBeVisible();

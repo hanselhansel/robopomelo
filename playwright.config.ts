@@ -1,4 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
+const native = (process.env.ROBOPOMELO_NATIVE_BROWSERS ?? '').split(',').filter(Boolean);
+for (const channel of native)
+  if (!['chrome', 'msedge'].includes(channel))
+    throw new Error('Choose chrome or msedge for native browser checks.');
 export default defineConfig({
   testDir: 'tests/browser',
   testMatch: 'packaged-*.spec.ts',
@@ -13,5 +17,6 @@ export default defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+    ...native.map((channel) => ({ name: channel, use: { ...devices['Desktop Chrome'], channel } })),
   ],
 });

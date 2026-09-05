@@ -210,17 +210,24 @@ dialog > select { margin-bottom: 24px; }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { transition: none !important; scroll-behavior: auto !important; } }
 @media print {
   @page { margin: 17mm; }
+  :root, #root { background: white; }
+  body { font-size: 10.5pt; line-height: 1.35; }
   body, .app-shell, .workspace, .content-layout { display: block; background: white; padding: 0; margin: 0; }
   .navigation, button, .skip-link, .header-actions, .revision-details, .view-switch, dialog, .review-toolbar, .page-intro { display: none !important; }
   .project-header { padding: 0 0 16px; background: white; }
   .content-layout > main { max-width: none; }
   .inspector { display: block; border: 0; padding: 0; }
+  .content-layout:has(.review-document) > .inspector { display: none; }
   .inspector input, .inspector label { display: none; }
   .review-document { border: 0; padding: 0; }
   .findings .text-link { display: block !important; color: black; text-decoration: none; }
   .print-provenance { color: black; }
-  h1,h2,h3,h4 { break-after: avoid; }
-  tr, .document-record > dl > div, .finding { break-inside: avoid; }
+  h1,h2,h3,h4 { break-after: avoid; break-inside: avoid; }
+  tr, .finding { break-inside: avoid; }
+  .document-record { margin-top: 5mm; }
+  .document-record > dl > div { display: grid; grid-template-columns: 40mm minmax(0,1fr); column-gap: 4mm; margin-bottom: 2mm; break-inside: auto; }
+  .document-record dt { font-size: 9.5pt; margin: 0; }
+  .document-record dd { orphans: 3; widows: 3; }
   thead { display: table-header-group; }
   .table-scroll { overflow: visible; }
   th,td { min-width: 0; }

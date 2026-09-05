@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useId, createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
+import { usePrintMode } from '../lib/print.js';
 export const ModalSuspensionContext = createContext(false);
 export function Modal({
   title,
@@ -151,15 +152,20 @@ export function PagedList<T>({
   label,
   searchText,
   children,
+  printAll = false,
 }: {
   items: readonly T[];
   label: string;
   searchText: (v: T) => string;
   children: (v: T) => ReactNode;
+  printAll?: boolean;
 }) {
+  const printing = usePrintMode(printAll);
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(0);
-  const filtered = items.filter((v) => searchText(v).toLocaleLowerCase().includes(query.toLocaleLowerCase()));
+  const filtered = printing
+    ? items
+    : items.filter((v) => searchText(v).toLocaleLowerCase().includes(query.toLocaleLowerCase()));
   const current = Math.min(page, Math.max(0, Math.ceil(filtered.length / 50) - 1));
   return (
     <div className="paged-list">
@@ -174,10 +180,12 @@ export function PagedList<T>({
       />
       <p className="meta">
         {filtered.length} {label}
-        {filtered.length > 50 ? `. Page ${current + 1} of ${Math.ceil(filtered.length / 50)}` : ''}
+        {!printing && filtered.length > 50
+          ? `. Page ${current + 1} of ${Math.ceil(filtered.length / 50)}`
+          : ''}
       </p>
-      {filtered.slice(current * 50, current * 50 + 50).map(children)}
-      {filtered.length > 50 && (
+      {(printing ? filtered : filtered.slice(current * 50, current * 50 + 50)).map(children)}
+      {!printing && filtered.length > 50 && (
         <div className="actions">
           <button disabled={!current} onClick={() => setPage(current - 1)}>
             Previous page

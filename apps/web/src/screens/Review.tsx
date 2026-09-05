@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { flushSync } from 'react-dom';
 import type { ProjectSnapshot, ReviewDocument, TraceabilityRow, Scope, Json } from '@robopomelo/spec';
 import { api, expected, ApiError } from '../lib/api.js';
 import { useResource, useAction, download } from '../lib/hooks.js';
@@ -56,7 +57,15 @@ export function Review({
           Download handoff package
         </button>
         <button onClick={() => setDecision(true)}>Record operator decision</button>
-        <button onClick={() => window.print()}>Print document</button>
+        <button
+          disabled={!doc.data}
+          onClick={() => {
+            flushSync(() => setTab('document'));
+            window.print();
+          }}
+        >
+          Print document
+        </button>
       </div>
       <div className="view-switch" aria-label="Review view">
         {['document', 'traceability', 'open issues & decisions'].map((t) => (

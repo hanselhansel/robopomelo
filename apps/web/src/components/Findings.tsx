@@ -18,6 +18,7 @@ export function Findings({
         These checks assess the specification. They do not certify a physical deployment.
       </p>
       <PagedList
+        printAll
         items={report.findings}
         label="findings"
         searchText={(f) => `${f.message} ${f.ruleId} ${f.recordIds.join(' ')}`}
