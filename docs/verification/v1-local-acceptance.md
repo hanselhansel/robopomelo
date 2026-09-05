@@ -2,6 +2,8 @@
 
 Recorded 2026-09-05 against product source `374f1235f2389e94c91c59ddfafec9e1084b922b`. This record establishes local results, not hosted CI, registry publication or customer validation.
 
+The later [native CI repair checkpoint](native-ci-repair.md) records the first hosted run and subsequent runtime fixes. The measurements below retain their original source identity.
+
 ## Verified locally
 
 - Node 24.20.0 on macOS arm64: 588 Vitest source tests passed, with two platform-specific skips; 25 Node tooling tests passed. Strict types, dependency boundaries, source-size limits, documentation links, six Skill contracts and plan-coverage presence checks passed.

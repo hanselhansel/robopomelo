@@ -13,6 +13,8 @@ A project is a portable folder. `deployment.yaml` is its source of truth. Move o
 
 Project locks exist only while an operation owns them. A timestamp alone never authorizes stealing a lock. A live or uncertain owner blocks a conflicting write. Preserve lock/recovery files when an operation reports uncertainty.
 
+Evidence selection records the file's initial SHA-256 through its open handle. Later inspection and copying check those same bytes as well as file identity and metadata. If the file changes, including when its timestamps remain unchanged, the operation reports `SELECTION_CHANGED`. Select the current file again before retrying.
+
 Machine-local settings hold remembered trust and update preferences. The verified runtime cache is also machine-local. These are not project content and are not copied into a handoff. Trust binds the canonical folder, filesystem identity and project ID. Moving or restoring a folder requires fresh authorization.
 
 ## Inspect a lost response
