@@ -2,6 +2,8 @@ import { planningHash, reviewDocument, sha256 } from '@robopomelo/core';
 import type { ArtifactInput, ArtifactMember, ArtifactPlan, AttachmentMember } from './contracts.js';
 import { brief, acceptance, handoff } from './documents/markdown.js';
 import { renderHtml } from './html.js';
+import { ArtifactError } from './errors.js';
+export { ArtifactError } from './errors.js';
 export type { ArtifactInput, ArtifactMember, ArtifactPlan, AttachmentMember } from './contracts.js';
 export { printStyles } from './styles.js';
 const encode = (path: string, mediaType: string, text: string): ArtifactMember => ({
@@ -17,7 +19,10 @@ export function generateArtifacts({ source, snapshot: s, selectedEvidenceIds }: 
     s.deployment.meta.revisionId !== s.sourceRevision ||
     planningHash(s.deployment) !== s.planningHash
   )
-    throw new Error('Export source identity is stale or inconsistent.');
+    throw new ArtifactError(
+      'EXPORT_SOURCE_STALE',
+      'Export source identity is stale or inconsistent. Refresh the source before previewing the package.',
+    );
   const selected = new Set(selectedEvidenceIds);
   const attachments: AttachmentMember[] = [];
   const paths = new Set<string>();
@@ -31,7 +36,11 @@ export function generateArtifacts({ source, snapshot: s, selectedEvidenceIds }: 
       observation.sha256 !== evidence.location.sha256 ||
       observation.size !== evidence.location.size
     )
-      throw new Error(`Selected evidence is unavailable or changed: ${id}`);
+      throw new ArtifactError(
+        'EXPORT_EVIDENCE_CHANGED',
+        `Selected evidence "${evidence?.title ?? id}" is unavailable or changed. Open Evidence and use Check evidence after restoring the expected file, or remove it from this export selection.`,
+        { evidenceId: id },
+      );
     const path = evidence.location.path;
     const segments = path.split('/');
     const unsafe = segments.some(
@@ -45,7 +54,9 @@ export function generateArtifacts({ source, snapshot: s, selectedEvidenceIds }: 
     );
     const key = path.normalize('NFC').toLowerCase();
     if (!path.startsWith('evidence/') || unsafe || paths.has(key))
-      throw new Error(`Unsafe or duplicate evidence export path: ${path}`);
+      throw new ArtifactError('EXPORT_PATH_UNSAFE', `Unsafe or duplicate evidence export path: ${path}`, {
+        evidenceId: id,
+      });
     paths.add(key);
     attachments.push({
       path: evidence.location.path,

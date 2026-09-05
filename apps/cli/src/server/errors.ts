@@ -1,9 +1,16 @@
 import { DomainError } from '@robopomelo/core';
+import { ArtifactError } from '@robopomelo/artifacts';
+import { RuntimeError } from '../runtime/errors.js';
 import { ProjectFsError } from '../../../../packages/project-fs/src/errors.js';
 import { HttpError } from './security.js';
 export function httpError(error: unknown): HttpError {
   if (error instanceof HttpError) return error;
-  if (error instanceof DomainError || error instanceof ProjectFsError) {
+  if (
+    error instanceof DomainError ||
+    error instanceof ProjectFsError ||
+    error instanceof ArtifactError ||
+    error instanceof RuntimeError
+  ) {
     const code = error.code;
     const status = /SCOPE|GRANT|AUTHORITY/.test(code)
       ? 403
