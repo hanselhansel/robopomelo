@@ -21,6 +21,8 @@ RoboPomelo product and package release notes. Specification versions are recorde
 
 ### Fixed
 
+- Retry transient Windows source-file contention with bounded attempts that preserve external edits and recovery evidence.
+
 - Include limited filesystem error identifiers in local failure responses without exposing paths, project content or credentials.
 
 - Verify shutdown across launcher and runtime processes before removing temporary test projects, and allow pending durable operations to complete before asserting their UI results in hosted verification.
