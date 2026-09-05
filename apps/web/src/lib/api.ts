@@ -75,7 +75,10 @@ export class LocalApi {
     if (!envelope.ok)
       throw new ApiError(
         envelope.error.code,
-        envelope.error.message + (envelope.error.action ? ' ' + envelope.error.action : ''),
+        envelope.error.message +
+          (envelope.error.action?.trim() && envelope.error.action.trim() !== envelope.error.message.trim()
+            ? ' ' + envelope.error.action
+            : ''),
         envelope.error.details,
         response.status,
       );
