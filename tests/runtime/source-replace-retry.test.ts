@@ -36,8 +36,18 @@ it('bounds persistent denial and preserves both original and prepared bytes', as
   const f = await fixture();
   const error = denied();
   const call = vi.spyOn(f.root, 'renameReplace').mockRejectedValue(error);
-  await expect(replaceSource(f.root, 'replacement.yaml', f.hashes, windows)).rejects.toBe(error);
+  const waits: number[] = [];
+  await expect(
+    replaceSource(f.root, 'replacement.yaml', f.hashes, {
+      ...windows,
+      delay: async (ms) => {
+        waits.push(ms);
+      },
+    }),
+  ).rejects.toBe(error);
   expect(call).toHaveBeenCalledTimes(8);
+  expect(waits).toHaveLength(7);
+  expect(waits.reduce((total, ms) => total + ms, 0)).toBeLessThanOrEqual(775);
   expect(await readFile(join(f.path, 'deployment.yaml'))).toEqual(f.prior);
   expect(await readFile(join(f.path, 'replacement.yaml'))).toEqual(f.next);
 });
@@ -170,3 +180,32 @@ it.runIf(process.platform === 'win32')(
     expect((await snapshot(f.session)).sourceHash).toBe(before.sourceHash);
   },
 );
+
+it('revalidates source changes made during awaited backoff', async () => {
+  const f = await fixture();
+  const call = vi.spyOn(f.root, 'renameReplace').mockRejectedValueOnce(denied());
+  await expect(
+    replaceSource(f.root, 'replacement.yaml', f.hashes, {
+      platform: 'win32',
+      delay: async () => {
+        await writeFile(join(f.path, 'deployment.yaml'), 'edited during wait');
+      },
+    }),
+  ).rejects.toMatchObject({ code: 'STALE_BASE' });
+  expect(call).toHaveBeenCalledTimes(1);
+  expect(await readFile(join(f.path, 'deployment.yaml'), 'utf8')).toBe('edited during wait');
+});
+it('does not recreate staging removed during backoff', async () => {
+  const f = await fixture();
+  const call = vi.spyOn(f.root, 'renameReplace').mockRejectedValueOnce(denied());
+  await expect(
+    replaceSource(f.root, 'replacement.yaml', f.hashes, {
+      platform: 'win32',
+      delay: async () => {
+        await unlink(join(f.path, 'replacement.yaml'));
+      },
+    }),
+  ).rejects.toMatchObject({ code: 'ENOENT' });
+  expect(call).toHaveBeenCalledTimes(1);
+  expect(await readFile(join(f.path, 'deployment.yaml'))).toEqual(f.prior);
+});
