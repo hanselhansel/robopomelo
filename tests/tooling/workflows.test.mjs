@@ -3,6 +3,13 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { parse } from 'yaml';
 const workflow = async (name) => parse(await readFile(`.github/workflows/${name}.yml`, 'utf8'));
+test('Changesets receives complete ancestry and an available remote base in detached CI checkouts', async () => {
+  const source = (await workflow('ci')).jobs.source;
+  const checkout = source.steps.find((step) => step.uses?.startsWith('actions/checkout'));
+  assert.equal(checkout.with['fetch-depth'], 0);
+  const changesets = source.steps.find((step) => step.run?.includes('changeset status'));
+  assert.match(changesets.run, /--since=origin\/main/);
+});
 test('CI always aggregates the complete required job set without path filtering', async () => {
   const ci = await workflow('ci');
   assert.deepEqual(ci.jobs['required-ci'].needs, ['source', 'native', 'browser']);

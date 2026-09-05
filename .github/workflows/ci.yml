@@ -21,6 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -36,7 +37,7 @@ jobs:
       - run: npm run check:plan-coverage
       - run: node scripts/verify-versions.mjs
       - run: node -e 'require("node:fs").mkdirSync("test-results",{recursive:true})'
-      - run: npx --no-install changeset status --output test-results/changesets.json
+      - run: npx --no-install changeset status --since=origin/main --output test-results/changesets.json
       - run: npm run test:coverage
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ always() }}
