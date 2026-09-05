@@ -36,7 +36,14 @@ async function release(root:SafeRoot,path:string,record:Record):Promise<void> {
   await root.removeOwnedEntry(path,record.directory);
 }
 async function initialize(root:SafeRoot,path:string):Promise<Record> {
-  await root.mkdir(path);
+  try {await root.mkdir(path);}
+  catch (error) {
+    // A cooperative owner may release the inspected entry before mkdir's
+    // path checks finish. Recheck the pinned root and exact fixed entry;
+    // only its disappearance enters acquireLock's bounded retry loop.
+    if (missing(error) && !(await exists(root,path))) return locked();
+    throw error;
+  }
   const owner = await currentOwner(root.identity());
   const file = await root.createExclusive(`${path}/owner.json`);
   try {await file.write(Buffer.from(JSON.stringify(owner))); await file.sync();}
