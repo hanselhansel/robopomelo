@@ -21,6 +21,7 @@ RoboPomelo product and package release notes. Specification versions are recorde
 
 ### Fixed
 
+- Keep selected evidence bound to its original bytes even when file timestamps are delayed. Wait for failed runtime processes to close and retry a lock entry released during acquisition.
 - Retain newer input when a reviewed proposal commits, distinguish committed retries from pending changes, and preserve drafts through lost responses, external edits, and navigation.
 - Preserve explicitly named examples, current engineering-question versions, actionable errors, and exact runtime identities and saved offline preferences.
 - Keep modal keyboard navigation contained, retain parked forms, and preserve ordered headings and readable A4/Letter review layouts.
