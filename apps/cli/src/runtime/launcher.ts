@@ -4,6 +4,7 @@ import semver from 'semver';
 import type { Readable } from 'node:stream';
 import type { RuntimeDescriptor } from './contracts.js';
 import { RuntimeError } from './errors.js';
+export const DEFAULT_HANDSHAKE_TIMEOUT_MS = 5000;
 export type RuntimeSpawn = (
   entryPoint: string,
   options: { cwd: string; env: NodeJS.ProcessEnv },
@@ -49,7 +50,9 @@ export async function launchRuntime(
     !semver.valid(bundledRuntimeVersion) ||
     bundledRuntimeVersion.length > 40
   )
-    throw new RuntimeError('RUNTIME_HANDSHAKE', 'Original launcher identity is invalid.');
+    throw new RuntimeError('RUNTIME_HANDSHAKE', 'Original launcher identity is invalid.', {
+      phase: 'launcher-identity',
+    });
   const env = { ...(options.env ?? process.env) };
   delete env.NODE_OPTIONS;
   delete env.NODE_PATH;
@@ -70,19 +73,40 @@ export async function launchRuntime(
   });
   try {
     await new Promise<void>((resolve, reject) => {
-      const fail = () => {
+      const started = performance.now();
+      const timeoutMs = options.timeoutMs ?? DEFAULT_HANDSHAKE_TIMEOUT_MS;
+      const fail = (
+        phase: 'timeout' | 'identity' | 'spawn-error' | 'child-exit',
+        code?: number | null,
+        signal?: string | null,
+      ) => {
         cleanup();
+        const reasons = {
+          timeout: 'Runtime identity verification timed out.',
+          identity: 'Selected runtime sent an invalid identity.',
+          'spawn-error': 'Selected runtime process could not start.',
+          'child-exit': 'Selected runtime exited before identity verification.',
+        };
         reject(
-          new RuntimeError(
-            'RUNTIME_HANDSHAKE',
-            'Selected runtime did not confirm its exact version and complete asset manifest. The project was not supplied.',
-          ),
+          new RuntimeError('RUNTIME_HANDSHAKE', `${reasons[phase]} The project was not supplied.`, {
+            phase,
+            timeoutMs,
+            elapsedMs: Math.round(performance.now() - started),
+            ...(typeof code === 'number' && Number.isSafeInteger(code) ? { exitCode: code } : {}),
+            ...(['SIGTERM', 'SIGKILL', 'SIGSEGV', 'SIGABRT', 'SIGBUS', 'SIGILL', 'SIGTRAP'].includes(
+              signal ?? '',
+            )
+              ? { signal }
+              : {}),
+          }),
         );
       };
-      const timer = setTimeout(fail, options.timeoutMs ?? 5000);
+      const timer = setTimeout(() => fail('timeout'), timeoutMs);
+      const spawnFailed = () => fail('spawn-error');
+      const exited = (code: number | null, signal: string | null) => fail('child-exit', code, signal);
       const ready = (message: unknown) => {
         if (!message || typeof message !== 'object') {
-          fail();
+          fail('identity');
           return;
         }
         const m = message as Record<string, unknown>;
@@ -92,7 +116,7 @@ export async function launchRuntime(
           m.launcherProtocol !== runtime.manifest.launcherProtocol ||
           m.manifestDigest !== runtime.manifestDigest
         ) {
-          fail();
+          fail('identity');
           return;
         }
         cleanup();
@@ -101,12 +125,12 @@ export async function launchRuntime(
       function cleanup() {
         clearTimeout(timer);
         child.removeListener('message', ready);
-        child.removeListener('error', fail);
-        child.removeListener('exit', fail);
+        child.removeListener('error', spawnFailed);
+        child.removeListener('exit', exited);
       }
       child.once('message', ready);
-      child.once('error', fail);
-      child.once('exit', fail);
+      child.once('error', spawnFailed);
+      child.once('exit', exited);
     });
     await new Promise<void>((resolve, reject) => {
       child.send(
@@ -121,7 +145,11 @@ export async function launchRuntime(
         },
         (error) => {
           if (error) {
-            reject(new RuntimeError('RUNTIME_START_FAILED', 'Runtime closed before accepting the command.'));
+            reject(
+              new RuntimeError('RUNTIME_START_FAILED', 'Runtime closed before accepting the command.', {
+                phase: 'command-transfer',
+              }),
+            );
           } else resolve();
         },
       );
@@ -138,7 +166,9 @@ export async function launchRuntime(
     }
     throw error instanceof RuntimeError
       ? error
-      : new RuntimeError('RUNTIME_START_FAILED', 'Runtime closed before accepting the command.');
+      : new RuntimeError('RUNTIME_START_FAILED', 'Runtime closed before accepting the command.', {
+          phase: 'command-transfer',
+        });
   }
   const input = options.input ?? process.stdin;
   if (child.stdin) {
