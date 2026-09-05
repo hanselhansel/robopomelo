@@ -21,6 +21,8 @@ RoboPomelo product and package release notes. Specification versions are recorde
 
 ### Fixed
 
+- Verify shutdown across launcher and runtime processes before removing temporary test projects, and allow pending durable saves to complete before asserting navigation.
+
 - Keep selected evidence bound to its original bytes even when file timestamps are delayed. Wait for failed runtime processes to close and retry a lock entry released during acquisition.
 - Retain newer input when a reviewed proposal commits, distinguish committed retries from pending changes, and preserve drafts through lost responses, external edits, and navigation.
 - Preserve explicitly named examples, current engineering-question versions, actionable errors, and exact runtime identities and saved offline preferences.

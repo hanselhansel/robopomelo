@@ -1,0 +1,24 @@
+# Post-merge verification repair
+
+Evidence recorded on 2026-09-05. This record does not assert npm publication.
+
+PR #1 passed its full required CI and merged as `7360506342ef175920bcc70210694b46f02c51dd`. Main run `33953698743` subsequently failed two Windows browser jobs. Bootstrap run `33953840519` failed a Windows browser job and Intel macOS 22.22.2 package startup. Signing and publication remained blocked.
+
+## Observed failures and bounded changes
+
+- Windows browser journeys completed but teardown could fail with `EBUSY` while removing their temporary root. The harness awaited the launcher's `exit`, which does not prove inherited streams have closed. A real parent/descendant regression reproduced premature completion. Verification now waits for `close`; Windows teardown targets the live test-owned process tree by PID rather than killing only its parent. Repeated cleanup and cleanup after parent exit are tested.
+- In the Windows 22 trace, a patch request took 4,974 ms, then another save remained pending when the navigation assertion's 5-second deadline expired. The acceptance helper now waits up to 15 seconds for the actual destination. It still requires durable saves and the destination's `aria-current` state; the 180-second journey deadline and zero retries remain.
+- Intel macOS package verification received a failed launcher envelope before any HTTP checks. The original assertion omitted its error details. The verifier now includes only the failed envelope's errors and command in the assertion, excluding successful bootstrap credentials. The underlying startup failure is not yet diagnosed. Fresh hosted verification must provide the missing evidence.
+
+## Current local evidence
+
+The product suite passed 605 tests with two platform-specific skips. V8 coverage was 77.23% lines, 74.88% statements, 68.09% branches and 69.09% functions. Tooling, type and source checks passed. The affected acceptance and save-recovery journeys passed in local Chromium. The installed candidate passed all nine package checks on macOS arm64 with Node 24.20.0.
+
+These checks do not substitute for Windows, Intel macOS, signed publication or actual registry-install verification. Manual screen-reader testing remains the previously approved, explicitly unverified exception.
+
+## Primary references
+
+Retrieved 2026-09-05:
+
+- [Node child process events](https://github.com/nodejs/node/blob/main/doc/api/child_process.md): `close` follows process termination and closure of child stdio.
+- [Microsoft taskkill](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/taskkill), updated 2024-11-01: `/pid` selects the process and `/t` includes its children. The verifier uses no image-name wildcard or unrelated PID.
