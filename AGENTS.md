@@ -14,6 +14,7 @@ Never read or index unrelated private repositories. Never import another physica
 - Use writing-plans, autoplan, an isolated worktree, design-shotgun, plan-design-review, frontend QA and appropriate security review.
 - At most three agents run concurrently, including the coordinating agent. Delegate only independent bounded work.
 - Use one whole-branch implementation review and at most two global repair cycles. Do not duplicate release-owned reviews.
+- On 2026-09-05 Hansel authorized one additional focused repair cycle for the proposal-application refresh regression, including its verification. Other release gates remain in force.
 - Run gstack ship, then land-and-deploy exactly. Routine green proceed gates are authorized.
 - Stop for failing CI, unresolved security, merge conflict, unexpected scope, an unresolved release-semantic version choice, destructive recovery or unhealthy deployment.
 

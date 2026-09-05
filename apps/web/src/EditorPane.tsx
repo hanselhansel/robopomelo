@@ -59,7 +59,7 @@ export function EditorPane({
               onSettings={onSettings}
             />
           ) : active === 'changes' ? (
-            <Changes snapshot={view.committed} onRefresh={onRefresh} onResume={onResume} />
+            <Changes snapshot={view.committed} draft={draft} onResume={onResume} />
           ) : active === 'evidence' ? (
             <Evidence
               snapshot={view.committed}

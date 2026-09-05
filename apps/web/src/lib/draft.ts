@@ -89,6 +89,7 @@ export class DraftController {
   #listeners = new Set<() => void>();
   #timer: ReturnType<typeof setTimeout> | undefined;
   #active: Promise<boolean> | null = null;
+  #applyingProposal = false;
   #generation = 0;
   #actor: Actor = { kind: 'human', name: 'Local browser author' };
   setActor(actor: Actor) {
@@ -176,8 +177,40 @@ export class DraftController {
       proposalId: null,
     });
   }
+  async applyProposal(
+    proposalId: string,
+    base: Pick<ProjectSnapshot, 'sourceRevision' | 'sourceHash'>,
+    commit: () => Promise<ProjectSnapshot>,
+  ): Promise<void> {
+    const before = this.view;
+    if (
+      this.#active ||
+      this.#applyingProposal ||
+      before.dirty ||
+      !['Saved', 'Proposed'].includes(before.state) ||
+      (before.proposalId !== null && before.proposalId !== proposalId) ||
+      before.committed.sourceHash !== base.sourceHash ||
+      before.committed.sourceRevision !== base.sourceRevision
+    )
+      throw new Error('Retain current input and resolve it before applying this proposal.');
+    this.#applyingProposal = true;
+    try {
+      const committed = await commit();
+      if (this.view !== before) {
+        clearTimeout(this.#timer);
+        const error =
+          'The proposal committed. Newer input is retained; compare it with the current source before saving.';
+        this.#publish({ state: 'Changes conflict', error });
+        throw new Error(error);
+      }
+      this.replace(committed);
+    } finally {
+      this.#applyingProposal = false;
+    }
+  }
   async flush(): Promise<boolean> {
     clearTimeout(this.#timer);
+    if (this.#applyingProposal) return false;
     if (this.#active) return this.#active;
     this.#active = this.#save();
     try {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { PatchEnvelope, FieldDiff, ProjectSnapshot, Mutation, Actor } from '@robopomelo/spec';
-import type { WriteResult } from '../lib/draft.js';
+import type { WriteResult, DraftController } from '../lib/draft.js';
 import { api, expected } from '../lib/api.js';
 import { useResource, useAction } from '../lib/hooks.js';
 import { PagedList, ErrorNotice } from '../components/ui.js';
@@ -21,11 +21,11 @@ export interface ProposalSummary {
 }
 export function Changes({
   snapshot,
-  onRefresh,
+  draft,
   onResume,
 }: {
   snapshot: ProjectSnapshot;
-  onRefresh: () => Promise<void>;
+  draft: DraftController;
   onResume: (proposal: ProposalSummary) => void;
 }) {
   const resource = useResource<ProposalSummary[]>('/api/proposals');
@@ -89,19 +89,29 @@ export function Changes({
                         disabled={action.busy}
                         onClick={() =>
                           void action.run(async () => {
-                            const result = await api.request<WriteResult>(
-                              `/api/proposals/${encodeURIComponent(p.id)}/apply`,
+                            await draft.applyProposal(
+                              p.id,
                               {
-                                expected: expected(snapshot),
-                                approvedPatchDigest: p.patchDigest,
+                                sourceRevision: p.baseRevision,
+                                sourceHash: p.baseHash,
+                              },
+                              async () => {
+                                const result = await api.request<WriteResult>(
+                                  `/api/proposals/${encodeURIComponent(p.id)}/apply`,
+                                  {
+                                    expected: expected(snapshot),
+                                    approvedPatchDigest: p.patchDigest,
+                                  },
+                                );
+                                if (result.kind !== 'committed')
+                                  throw new Error(
+                                    'The proposal has not been committed. Its original diff is retained.',
+                                  );
+                                return result.snapshot;
                               },
                             );
-                            if (result.kind !== 'committed')
-                              throw new Error(
-                                'The proposal has not been committed. Its original diff is retained.',
-                              );
-                            await onRefresh();
                             await resource.reload();
+                            await history.reload();
                             action.setNotice(`Proposal ${p.id} applied to a committed revision.`);
                           })
                         }
