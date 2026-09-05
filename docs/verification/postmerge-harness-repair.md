@@ -32,3 +32,11 @@ After PR #2, main run `33955697974` failed Windows UI assertions in evidence upl
 The CI browser configuration now permits 15 seconds for an assertion to reach its expected state. Local defaults remain five seconds. Every assertion, zero retries, the 60-second test deadline and explicit 180-second complete-journey deadline remain. This is functional acceptance tolerance for hosted execution, not a claim that long interactive latency is desirable or that performance has improved. No runtime deadline, project-write logic or approval rule changes.
 
 [Playwright timeout documentation](https://playwright.dev/docs/test-timeouts), retrieved 2026-09-05, distinguishes assertion timeouts from overall test deadlines. Fresh hosted acceptance remains required; earlier failures are retained as failures.
+
+## Unix verifier process-group ownership
+
+Candidate run `33957358967` passed the proposal journey's functional assertions, then its Linux teardown failed because streams remained open for ten seconds. Main run `33957341201` passed all required checks. Candidate publication remained blocked.
+
+The Unix cleanup escalation previously targeted only the launcher. A deterministic fixture reproduced the same timeout by exiting the launcher while retaining a runtime descendant that ignored SIGTERM and held inherited streams. Test launchers now create their own Unix process group. Normal shutdown still signals the launcher first; bounded escalation can terminate that owned group even after its launcher exits. Windows keeps its PID-scoped taskkill tree behavior. Stream closure remains required before temporary roots are removed. This is verifier containment, not a change to product shutdown or project transaction semantics.
+
+The regression failed before the change and passed after it. All six cleanup tests and strict types passed locally. Fresh hosted verification remains required. The isolation uses [Node's documented detached process-group behavior](https://nodejs.org/api/child_process.html#optionsdetached), retrieved 2026-09-05. Test process-group ownership is explicit at both launch sites; there is no system-wide process search or image-name kill.

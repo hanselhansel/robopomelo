@@ -23,11 +23,12 @@ export async function localApp(existingProject?: string) {
         ROBOPOMELO_CACHE_DIR: join(directory, 'cache'),
       },
       stdio: ['ignore', 'pipe', 'pipe'],
+      detached: process.platform !== 'win32',
     },
   );
   let stderr = '';
   child.stderr.on('data', (chunk) => (stderr += chunk));
-  const close = cleanupFor(child);
+  const close = cleanupFor(child, process.platform !== 'win32');
   const url = await new Promise<string>((resolve, reject) => {
     let output = '';
     const timer = setTimeout(() => {
