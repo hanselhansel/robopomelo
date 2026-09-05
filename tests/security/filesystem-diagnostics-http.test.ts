@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { startServer } from '../../apps/cli/src/server/start.js';
-async function responseFor(error: Error) {
+async function responseFor(error: unknown) {
   const server = await startServer({
     toolVersion: 'test',
     routes: [
@@ -56,4 +56,19 @@ it.each([
   expect(result.body.error).not.toHaveProperty('details');
   expect(result.body.error).not.toHaveProperty('stack');
   expect(result.body.error.cause).toBeNull();
+});
+
+it.each([
+  null,
+  'private thrown value',
+  { code: 'EPERM', syscall: 'rename' },
+  Object.assign(new Error('private message'), { syscall: 'rename' }),
+  Object.assign(new Error('private message'), { code: 123, syscall: 'rename' }),
+  Object.assign(new Error('private message'), { code: { secret: true }, syscall: 'rename' }),
+  Object.assign(new Error('private message'), { code: 'EPERM' }),
+])('keeps unsupported thrown values and field types private', async (error) => {
+  const result = await responseFor(error);
+  expect(result.status).toBe(500);
+  expect(result.body.error).not.toHaveProperty('details');
+  expect(JSON.stringify(result.body)).not.toContain('private');
 });
