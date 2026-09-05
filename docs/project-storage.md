@@ -19,6 +19,8 @@ Machine-local settings hold remembered trust and update preferences. The verifie
 
 ## Inspect a lost response
 
+Some local HTTP `500` responses with code `INTERNAL_ERROR` include `error.details.systemCode` and `error.details.operation`, for example `EPERM` and `rename`. Both fields appear only when the thrown value is an `Error` with a recognized filesystem code and operation; unsupported values omit these details. These diagnostic fields exclude raw messages, paths, stacks and nested causes. They identify the failed operation, not whether a source change committed, so inspect the receipt before retrying.
+
 Keep the original change ID and receipt digest. `show` accepts both without replaying a different operation:
 
 ```sh
