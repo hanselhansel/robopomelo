@@ -59,69 +59,87 @@ export async function launchRuntime(
     cwd: runtime.directory,
     env,
   });
+  let closed = false;
   const completed = new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolve) => {
-    child.once('exit', (code, signal) => resolve({ code, signal }));
-    child.once('error', () => resolve({ code: 1, signal: null }));
+    child.once('close', (code, signal) => {
+      closed = true;
+      resolve({ code, signal });
+    });
+    // Spawn/IPC errors are handled below; close remains the resource-release boundary.
+    child.on('error', () => {});
   });
-  await new Promise<void>((resolve, reject) => {
-    const fail = () => {
-      cleanup();
-      child.kill();
-      reject(
-        new RuntimeError(
-          'RUNTIME_HANDSHAKE',
-          'Selected runtime did not confirm its exact version and complete asset manifest. The project was not supplied.',
-        ),
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const fail = () => {
+        cleanup();
+        reject(
+          new RuntimeError(
+            'RUNTIME_HANDSHAKE',
+            'Selected runtime did not confirm its exact version and complete asset manifest. The project was not supplied.',
+          ),
+        );
+      };
+      const timer = setTimeout(fail, options.timeoutMs ?? 5000);
+      const ready = (message: unknown) => {
+        if (!message || typeof message !== 'object') {
+          fail();
+          return;
+        }
+        const m = message as Record<string, unknown>;
+        if (
+          m.type !== 'robopomelo:ready' ||
+          m.version !== runtime.manifest.version ||
+          m.launcherProtocol !== runtime.manifest.launcherProtocol ||
+          m.manifestDigest !== runtime.manifestDigest
+        ) {
+          fail();
+          return;
+        }
+        cleanup();
+        resolve();
+      };
+      function cleanup() {
+        clearTimeout(timer);
+        child.removeListener('message', ready);
+        child.removeListener('error', fail);
+        child.removeListener('exit', fail);
+      }
+      child.once('message', ready);
+      child.once('error', fail);
+      child.once('exit', fail);
+    });
+    await new Promise<void>((resolve, reject) => {
+      child.send(
+        {
+          type: 'robopomelo:start',
+          argv: [...argv],
+          cwd: options.cwd ?? process.cwd(),
+          stdinIsTTY: process.stdin.isTTY === true,
+          launcherDirectory,
+          launcherVersion,
+          bundledRuntimeVersion,
+        },
+        (error) => {
+          if (error) {
+            reject(new RuntimeError('RUNTIME_START_FAILED', 'Runtime closed before accepting the command.'));
+          } else resolve();
+        },
       );
-    };
-    const timer = setTimeout(fail, options.timeoutMs ?? 5000);
-    const ready = (message: unknown) => {
-      if (!message || typeof message !== 'object') {
-        fail();
-        return;
+    });
+  } catch (error) {
+    if (!closed) {
+      child.kill();
+      const escalation = setTimeout(() => child.kill('SIGKILL'), 1000);
+      try {
+        await completed;
+      } finally {
+        clearTimeout(escalation);
       }
-      const m = message as Record<string, unknown>;
-      if (
-        m.type !== 'robopomelo:ready' ||
-        m.version !== runtime.manifest.version ||
-        m.launcherProtocol !== runtime.manifest.launcherProtocol ||
-        m.manifestDigest !== runtime.manifestDigest
-      ) {
-        fail();
-        return;
-      }
-      cleanup();
-      resolve();
-    };
-    function cleanup() {
-      clearTimeout(timer);
-      child.removeListener('message', ready);
-      child.removeListener('error', fail);
-      child.removeListener('exit', fail);
     }
-    child.once('message', ready);
-    child.once('error', fail);
-    child.once('exit', fail);
-  });
-  await new Promise<void>((resolve, reject) => {
-    child.send(
-      {
-        type: 'robopomelo:start',
-        argv: [...argv],
-        cwd: options.cwd ?? process.cwd(),
-        stdinIsTTY: process.stdin.isTTY === true,
-        launcherDirectory,
-        launcherVersion,
-        bundledRuntimeVersion,
-      },
-      (error) => {
-        if (error) {
-          child.kill();
-          reject(new RuntimeError('RUNTIME_START_FAILED', 'Runtime closed before accepting the command.'));
-        } else resolve();
-      },
-    );
-  });
+    throw error instanceof RuntimeError
+      ? error
+      : new RuntimeError('RUNTIME_START_FAILED', 'Runtime closed before accepting the command.');
+  }
   const input = options.input ?? process.stdin;
   if (child.stdin) {
     child.stdin.on('error', () => {});
