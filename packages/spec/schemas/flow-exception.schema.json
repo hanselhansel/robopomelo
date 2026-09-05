@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/flow-exception.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {"$ref": "common.schema.json#/$defs/id"},
+    "trigger": {"$ref": "knowledge-text.schema.json"},
+    "response": {"$ref": "knowledge-text.schema.json"},
+    "ownerId": {"$ref": "knowledge-id.schema.json"},
+    "testIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}}
+  },
+  "required": ["id","trigger","response","ownerId","testIds"],
+  "additionalProperties": false
+}

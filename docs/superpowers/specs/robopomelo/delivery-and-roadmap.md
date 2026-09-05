@@ -1,6 +1,6 @@
 # Delivery, governance, quality, and roadmap
 
-Part of the [RoboPomelo v1 design](../2026-09-05-robopomelo-design.md). Written-spec review pending.
+Part of the [RoboPomelo v1 design](../2026-09-05-robopomelo-design.md). Implementation authorized by Hansel on 2026-09-05; changes remain subject to the recorded execution/release gates.
 
 ## Governance and contributions
 
@@ -84,6 +84,8 @@ Cover current stable Chrome, Edge, Firefox and Safari where available on support
 | Performance | Record cold/warm launch, editing, validation and export timings on stated hardware with reference and expanded fixtures; investigate regressions before release |
 
 Actual unverified required coverage remains a release gap. The implementation agent attempts the tests itself and reports tool/platform constraints if encountered; it does not create a standing personal PR-review task for Hansel.
+
+V1 acceptance amendment, approved by Hansel on 2026-09-05: manual screen-reader testing is deferred and must be reported as unverified. VoiceOver activation was attempted through three available routes, but observable reader output and navigation could not be verified. This exception permits continuing the release; it does not waive automated accessibility, keyboard, browser, package, CI or publication checks, and does not establish WCAG conformance. Track the remaining test in TODOS.md and the release evidence.
 
 ## First release and update channel
 

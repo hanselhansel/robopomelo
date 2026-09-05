@@ -1,0 +1,133 @@
+import {
+  fields,
+  type Deployment,
+  type ReviewDocument,
+  type ReviewSection,
+  type ValidationReport,
+} from '@robopomelo/spec';
+import { buildReferenceIndex } from './references.js';
+import { displayValue, words } from './display.js';
+const collections = [
+  'stakeholders',
+  'needs',
+  'problems',
+  'workflows',
+  'kpis',
+  'requirements',
+  'challenges',
+  'risks',
+  'assumptions',
+  'acceptanceTests',
+  'evidence',
+  'decisions',
+  'challengeAnswers',
+] as const;
+const titles: Record<(typeof collections)[number], string> = {
+  stakeholders: 'People and responsibilities',
+  needs: 'Needs and intended outcomes',
+  problems: 'Problems to solve',
+  workflows: 'Current and intended material flow',
+  kpis: 'Measures of success',
+  requirements: 'AMR requirements',
+  challenges: 'Open challenges',
+  risks: 'Risks and proposed treatments',
+  assumptions: 'Assumptions to check',
+  acceptanceTests: 'Acceptance plan',
+  evidence: 'Evidence and future requirements',
+  decisions: 'Planning decisions',
+  challengeAnswers: 'Engineering questions',
+};
+export function reviewDocument(d: Deployment, report: ValidationReport): ReviewDocument {
+  const names = new Map(
+    [...buildReferenceIndex(d)].map(([id, entry]) => [
+      id,
+      String(entry.record.title ?? entry.record.name ?? id),
+    ]),
+  );
+  const sections: ReviewSection[] = [
+    {
+      id: 'project',
+      title: 'Deployment brief',
+      records: [
+        {
+          id: d.project.id,
+          title: d.project.name,
+          fields: fields
+            .filter((field) => field.collection === 'project')
+            .map((field) => ({
+              label: field.label,
+              value: displayValue(d.project[field.path as keyof typeof d.project], names),
+            })),
+        },
+      ],
+    },
+  ];
+  for (const collection of collections)
+    sections.push({
+      id: collection,
+      title: titles[collection],
+      records: d[collection].map((record) => ({
+        id: record.id,
+        title: record.title,
+        fields: Object.entries(record)
+          .filter(([key]) => !['id', 'title'].includes(key))
+          .map(([key, value]) => ({
+            label:
+              fields.find((field) => field.collection === collection && field.path === key)?.label ??
+              words(key),
+            value: key === 'extensions' ? JSON.stringify(value) : displayValue(value, names),
+          })),
+      })),
+    });
+  sections.push({
+    id: 'readiness',
+    title: 'Specification review status',
+    records: [
+      {
+        id: 'readiness-summary',
+        title: report.label,
+        fields: [
+          {
+            label: 'Meaning',
+            value:
+              'This describes specification completeness. Human reviewers decide whether to approve the specification.',
+          },
+        ],
+      },
+      ...report.findings.map((finding) => ({
+        id: finding.fingerprint,
+        title: `${finding.ruleId}: ${finding.message}`,
+        fields: [
+          { label: 'Severity', value: finding.severity },
+          { label: 'Next action', value: finding.nextAction },
+          { label: 'Acknowledgment', value: finding.acknowledged ? 'Recorded' : 'Not recorded' },
+          { label: 'Status', value: finding.status },
+        ],
+      })),
+    ],
+  });
+  sections.push({
+    id: 'review',
+    title: 'Recorded operator decisions',
+    records: d.review.approvals.map((approval) => ({
+      id: approval.id,
+      title: `${approval.reviewerName}: ${approval.decision}`,
+      fields: Object.entries(approval)
+        .filter(([key]) => key !== 'id')
+        .map(([key, value]) => ({ label: words(key), value: displayValue(value, names) })),
+    })),
+  });
+  for (const kind of ['acknowledgments', 'waivers', 'revocations', 'invalidations'] as const)
+    sections.push({
+      id: `review-${kind}`,
+      title: words(kind),
+      records: d.review[kind].map((record) => ({
+        id: record.id,
+        title: record.id,
+        fields: Object.entries(record)
+          .filter(([key]) => key !== 'id')
+          .map(([key, value]) => ({ label: words(key), value: displayValue(value, names) })),
+      })),
+    });
+  return { title: d.project.name, sourceRevision: d.meta.revisionId, sections };
+}

@@ -1,0 +1,120 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Sign first-package bootstrap artifact or publish using trusted publishing
+        required: true
+        type: choice
+        options: [bootstrap, publish]
+        default: bootstrap
+      channel:
+        description: Candidate tag or stable verification tag, never latest
+        required: true
+        type: choice
+        options: [candidate, stable]
+        default: candidate
+      version:
+        description: Exact artifact version derived from committed VERSION
+        required: true
+        type: string
+      commit:
+        description: Full 40-character main commit to release
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: release
+  cancel-in-progress: false
+jobs:
+  guard:
+    runs-on: ubuntu-24.04
+    outputs:
+      target: ${{ steps.target.outputs.value }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - name: Check exact committed release source
+        run: node scripts/verify-versions.mjs --release --version "$VERSION" --commit "$COMMIT" --channel "$CHANNEL" --mode "$MODE"
+        env:
+          VERSION: ${{ inputs.version }}
+          COMMIT: ${{ inputs.commit }}
+          CHANNEL: ${{ inputs.channel }}
+          MODE: ${{ inputs.mode }}
+      - id: target
+        run: echo "value=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+  verification:
+    needs: [guard]
+    uses: ./.github/workflows/ci.yml
+    with:
+      target: ${{ needs.guard.outputs.target }}
+      channel: ${{ inputs.channel }}
+  deliver:
+    needs: [guard, verification]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - run: npm ci --ignore-scripts
+      - run: node scripts/build.mjs --target "$TARGET" --channel "$CHANNEL"
+        env:
+          TARGET: ${{ needs.guard.outputs.target }}
+          CHANNEL: ${{ inputs.channel }}
+      - run: node scripts/verify-package.mjs --report test-results/package-release.json
+      - name: Recheck source immediately before signing or publication
+        run: node scripts/verify-versions.mjs --release --version "$VERSION" --commit "$COMMIT" --channel "$CHANNEL" --mode "$MODE"
+        env:
+          VERSION: ${{ inputs.version }}
+          COMMIT: ${{ inputs.commit }}
+          CHANNEL: ${{ inputs.channel }}
+          MODE: ${{ inputs.mode }}
+      - name: Deliver the selected release operation
+        run: |
+          if [ "$MODE" = bootstrap ]; then
+            node scripts/prepare-bootstrap.mjs --version "$VERSION" --commit "$COMMIT" --output dist/bootstrap
+          else
+            if [ "$CHANNEL" = candidate ]; then TAG=candidate; else TAG=verification; fi
+            npm publish ./dist/package --provenance --access public --tag "$TAG"
+            node scripts/verify-release.mjs --version "$VERSION" --commit "$COMMIT" --report test-results/published-release.json
+          fi
+        env:
+          MODE: ${{ inputs.mode }}
+          VERSION: ${{ inputs.version }}
+          COMMIT: ${{ inputs.commit }}
+          CHANNEL: ${{ inputs.channel }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() }}
+        with:
+          name: release-${{ inputs.version }}-${{ inputs.mode }}
+          path: |
+            test-results/
+            dist/bootstrap/
+          if-no-files-found: error
+  required-release:
+    if: ${{ always() }}
+    needs: [guard, verification, deliver]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - run: node scripts/check-plan-coverage.mjs --results "$RESULTS" --expected guard,verification,deliver
+        env:
+          RESULTS: ${{ toJSON(needs) }}

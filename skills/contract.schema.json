@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/main/skills/contract.schema.json",
+  "title": "RoboPomelo Agent Skill contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "id",
+    "kind",
+    "trigger",
+    "requiredInputs",
+    "specRange",
+    "cliRange",
+    "patchRange",
+    "fieldsRead",
+    "fieldsWritten",
+    "dependencies",
+    "commands",
+    "validation",
+    "stopConditions",
+    "authority",
+    "output"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "1.0.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "maxLength": 64
+    },
+    "kind": {
+      "enum": ["narrow", "orchestrator"]
+    },
+    "trigger": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 1024
+    },
+    "requiredInputs": {
+      "$ref": "#/$defs/strings",
+      "minItems": 4,
+      "type": "array"
+    },
+    "specRange": {
+      "const": "^1.0.0"
+    },
+    "cliRange": {
+      "const": ">=1.0.0-rc.1 <2.0.0"
+    },
+    "patchRange": {
+      "const": "^1.0.0"
+    },
+    "fieldsRead": {
+      "$ref": "#/$defs/strings",
+      "minItems": 1,
+      "type": "array"
+    },
+    "fieldsWritten": {
+      "$ref": "#/$defs/strings",
+      "minItems": 1,
+      "type": "array"
+    },
+    "dependencies": {
+      "$ref": "#/$defs/strings"
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["command", "args"],
+        "properties": {
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "args": {
+            "type": "array",
+            "maxItems": 24,
+            "items": {
+              "type": "string",
+              "maxLength": 256
+            }
+          }
+        }
+      }
+    },
+    "validation": {
+      "$ref": "#/$defs/strings",
+      "minItems": 6,
+      "type": "array"
+    },
+    "stopConditions": {
+      "$ref": "#/$defs/strings",
+      "minItems": 6,
+      "type": "array"
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["grantsPermissions", "actorKind", "capabilityIdRequired", "protectedDecisions"],
+      "properties": {
+        "grantsPermissions": {
+          "const": false
+        },
+        "actorKind": {
+          "const": "agent"
+        },
+        "capabilityIdRequired": {
+          "const": true
+        },
+        "protectedDecisions": {
+          "const": "separate-supplied-workflow"
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["formatVersion", "required", "statuses"],
+      "properties": {
+        "formatVersion": {
+          "const": "1.0.0"
+        },
+        "required": {
+          "$ref": "#/$defs/strings"
+        },
+        "statuses": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["unchanged", "checked", "proposed", "applied", "conflict", "blocked"]
+          },
+          "minItems": 6,
+          "maxItems": 6
+        }
+      }
+    },
+    "orchestration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "order",
+        "committedBasesOnly",
+        "revisitDependents",
+        "proposalPolicy",
+        "authorityExpansion"
+      ],
+      "properties": {
+        "order": {
+          "$ref": "#/$defs/strings",
+          "minItems": 5,
+          "maxItems": 5,
+          "type": "array"
+        },
+        "committedBasesOnly": {
+          "const": true
+        },
+        "revisitDependents": {
+          "const": true
+        },
+        "proposalPolicy": {
+          "const": "pause-dependent-writes"
+        },
+        "authorityExpansion": {
+          "const": false
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "orchestrator"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "orchestration": {}
+        },
+        "required": ["orchestration"]
+      },
+      "else": {
+        "not": {
+          "properties": {
+            "orchestration": {}
+          },
+          "required": ["orchestration"]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "strings": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 64,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      }
+    }
+  }
+}

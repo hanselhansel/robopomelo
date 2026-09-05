@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/project.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {"$ref": "common.schema.json#/$defs/id"},
+    "name": {"type": "string"},
+    "problem": {"$ref": "knowledge-text.schema.json"},
+    "outcome": {"$ref": "knowledge-text.schema.json"},
+    "scope": {"$ref": "knowledge-text.schema.json"},
+    "exclusions": {"type": "array","items": {"type": "string"}},
+    "approverId": {"$ref": "knowledge-id.schema.json"}
+  },
+  "required": ["id","name","problem","outcome","scope","exclusions","approverId"],
+  "additionalProperties": false
+}

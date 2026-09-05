@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/knowledge-quantity.schema.json",
+  "oneOf": [
+    {"type": "null"},
+    {
+      "type": "object",
+      "properties": {
+        "state": {"enum": ["provided","unverified"]},
+        "value": {"$ref": "common.schema.json#/$defs/quantity"},
+        "note": {"type": "string"},
+        "sourceEvidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}}
+      },
+      "required": ["state","value"],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "state": {"const": "unknown"},
+        "note": {"type": "string"},
+        "ownerId": {"$ref": "common.schema.json#/$defs/id"},
+        "nextAction": {"type": "string"}
+      },
+      "required": ["state","note"],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {"state": {"const": "not-applicable"},"reason": {"type": "string"}},
+      "required": ["state","reason"],
+      "additionalProperties": false
+    }
+  ]
+}

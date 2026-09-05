@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/common.schema.json",
+  "$defs": {
+    "id": {"type": "string","pattern": "^[A-Za-z0-9][A-Za-z0-9.:_-]{0,127}$"},
+    "hash": {"type": "string","pattern": "^[a-f0-9]{64}$"},
+    "datetime": {"type": "string","format": "date-time"},
+    "json": {
+      "anyOf": [
+        {"type": "null"},
+        {"type": "boolean"},
+        {"type": "number"},
+        {"type": "string"},
+        {"type": "array","items": {"$ref": "common.schema.json#/$defs/json"}},
+        {"type": "object","additionalProperties": {"$ref": "common.schema.json#/$defs/json"}}
+      ]
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {"pattern": "^[A-Za-z][A-Za-z0-9_-]*(?:[.:][A-Za-z0-9_-]+)*$"},
+      "additionalProperties": {"$ref": "common.schema.json#/$defs/json"}
+    },
+    "actor": {
+      "type": "object",
+      "properties": {
+        "kind": {"enum": ["human","agent","external"]},
+        "name": {"type": "string"},
+        "onBehalfOf": {"type": "string"},
+        "source": {"type": "string"}
+      },
+      "required": ["kind","name"],
+      "additionalProperties": false
+    },
+    "quantity": {
+      "type": "object",
+      "properties": {
+        "value": {"type": "string","maxLength": 128,"pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"},
+        "unit": {"type": "string","minLength": 1},
+        "subject": {"type": "string","minLength": 1}
+      },
+      "required": ["value","unit","subject"],
+      "additionalProperties": false
+    }
+  }
+}

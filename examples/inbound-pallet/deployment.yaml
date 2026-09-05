@@ -1,0 +1,722 @@
+specVersion: 1.0.0
+project:
+  id: example-inbound
+  name: Inbound pallet transfer (fictional example)
+  problem:
+    state: provided
+    value: Manual transfers from receiving to staging interrupt receiving work and have unclear exception ownership. This is a fictional discovery scenario.
+  outcome:
+    state: provided
+    value: Define a repeatable receiving-to-staging flow and measurable acceptance criteria before selecting detailed engineering or simulation inputs.
+  scope:
+    state: provided
+    value: Pallet movements between a receiving handoff and a staging handoff, including blocked destinations and failed pickups.
+  exclusions:
+    - Rack handling
+    - Robot control
+    - Capacity prediction
+    - Safety certification
+    - Executed acceptance results
+  approverId:
+    state: provided
+    value: stakeholder-operator
+meta:
+  revisionId: example-inbound-v1
+  parentRevisionId: null
+  createdAt: 2026-09-05T00:00:00Z
+  updatedAt: 2026-09-05T00:00:00Z
+stakeholders:
+  - id: stakeholder-operator
+    title: Warehouse operations lead (example)
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-operator
+    sourceEvidenceIds: []
+    extensions: {}
+    role:
+      state: provided
+      value: Warehouse operator
+    responsibilities:
+      - Confirm the problem and intended flow
+      - Review assumptions and approve the specification
+  - id: stakeholder-integrator
+    title: Integrator solutions engineer (example)
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    role:
+      state: provided
+      value: Solutions engineer
+    responsibilities:
+      - Author the planning specification
+      - Collect site inputs and prepare the engineering handoff
+needs:
+  - id: need-transfer
+    title: Predictable inbound transfers
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    beneficiaryIds:
+      - stakeholder-operator
+    outcome:
+      state: provided
+      value: Receiving staff know how material moves and who resolves exceptions.
+    workflowIds:
+      - flow-intended
+    requirementIds:
+      - requirement-transfer
+      - requirement-recovery
+    disposition: null
+problems:
+  - id: problem-interruption
+    title: Unclear transfer and exception ownership
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    affectedStakeholderIds:
+      - stakeholder-operator
+    workflowIds:
+      - flow-current
+    observation:
+      state: unverified
+      value: The example assumes transfer work interrupts receiving. Confirm this through observation before treating it as a site fact.
+workflows:
+  - id: flow-current
+    title: Current manual transfer
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    loadSubject:
+      state: provided
+      value: Loaded pallets
+    origin:
+      state: provided
+      value: Receiving handoff
+    destination:
+      state: provided
+      value: Staging handoff
+    needIds:
+      - need-transfer
+    assumptionIds:
+      - assumption-volume
+    mode: current
+    volume:
+      state: unknown
+      note: Current volume has not been measured.
+    steps:
+      - id: step-current-pickup
+        title: Receiving worker prepares a pallet
+        location:
+          state: provided
+          value: Receiving
+        handoffToId:
+          state: provided
+          value: stakeholder-operator
+      - id: step-current-deliver
+        title: Worker transfers the pallet to staging
+        location:
+          state: provided
+          value: Staging
+        handoffToId:
+          state: provided
+          value: stakeholder-operator
+    exceptions: []
+  - id: flow-intended
+    title: Intended AMR transfer
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    loadSubject:
+      state: provided
+      value: Loaded pallets
+    origin:
+      state: provided
+      value: Receiving handoff
+    destination:
+      state: provided
+      value: Staging handoff
+    needIds:
+      - need-transfer
+    assumptionIds:
+      - assumption-volume
+    mode: intended
+    volume:
+      state: unverified
+      value:
+        value: "60"
+        unit: count/h
+        subject: pallet
+      note: Fictional planning assumption, not a capacity calculation.
+    steps:
+      - id: step-intended-ready
+        title: Operator releases a prepared pallet
+        location:
+          state: provided
+          value: Receiving handoff
+        handoffToId:
+          state: provided
+          value: stakeholder-integrator
+      - id: step-intended-accept
+        title: Receiver confirms the staging handoff
+        location:
+          state: provided
+          value: Staging handoff
+        handoffToId:
+          state: provided
+          value: stakeholder-operator
+    exceptions:
+      - id: exception-occupied
+        trigger:
+          state: provided
+          value: The destination is occupied or the load cannot be picked up.
+        response:
+          state: provided
+          value: Pause the planned transfer and notify the designated operator for the agreed recovery procedure.
+        ownerId:
+          state: provided
+          value: stakeholder-operator
+        testIds:
+          - test-recovery
+challenges: []
+risks:
+  - id: risk-destination
+    title: Occupied destination delays transfer
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    statement:
+      state: provided
+      value: Staging may be occupied when a pallet arrives.
+    nextAction:
+      state: provided
+      value: Confirm an operator-owned holding and escalation procedure.
+    status: open
+    resolution: null
+    relatedIds:
+      - flow-intended
+      - requirement-recovery
+    requiredBeforeReview: false
+    consequence:
+      state: provided
+      value: Transfers can be delayed and receiving can queue.
+    mitigation:
+      state: provided
+      value: Define explicit destination readiness and exception ownership.
+    testIds:
+      - test-recovery
+assumptions:
+  - id: assumption-volume
+    title: Peak volume remains unverified
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    statement:
+      state: provided
+      value: The fictional target of 60 pallets per hour is a planning input, not measured site demand.
+    nextAction:
+      state: provided
+      value: Collect representative and peak receiving volumes.
+    status: open
+    resolution: null
+    relatedIds:
+      - flow-intended
+      - kpi-transfer-rate
+    requiredBeforeReview: false
+    verificationAction:
+      state: provided
+      value: Compare the assumption with observed volumes and revise the target if needed.
+kpis:
+  - id: kpi-transfer-rate
+    title: Completed transfer rate
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    definition:
+      state: provided
+      value: Count completed receiving-to-staging pallet handoffs per hour.
+    baseline:
+      state: unknown
+      note: Measure current performance over representative shifts.
+      ownerId: stakeholder-integrator
+      nextAction: Observe the current process and record the measurement window.
+    target:
+      state: provided
+      value:
+        value: "60"
+        unit: count/h
+        subject: pallet
+    measurementMethod:
+      state: provided
+      value: Count confirmed destination handoffs with timestamps, preserving interrupted attempts separately.
+    measurementWindow:
+      state: provided
+      value: A representative hour including charging and interruptions; confirm the exact window with the operator.
+    needIds:
+      - need-transfer
+    workflowIds:
+      - flow-intended
+requirements:
+  - id: requirement-transfer
+    title: Move and confirm pallet handoffs
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    capability:
+      state: provided
+      value: Transport the declared pallet load between the named handoffs and expose an observable completion acknowledgment.
+    rationale:
+      state: provided
+      value: Make intended flow and handoff completion inspectable.
+    constraints:
+      - Confirm load dimensions, mass, pickup interface and facility inputs before detailed engineering.
+    needIds:
+      - need-transfer
+    workflowIds:
+      - flow-intended
+    kpiIds:
+      - kpi-transfer-rate
+    testIds:
+      - test-rate
+    verificationDisposition: null
+  - id: requirement-recovery
+    title: Support operator-led exception recovery
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    capability:
+      state: provided
+      value: Expose a blocked destination or failed pickup and support the agreed operator-led recovery workflow.
+    rationale:
+      state: provided
+      value: An exception must have a named owner and planned response.
+    constraints:
+      - Confirm the recovery procedure with warehouse operations.
+    needIds:
+      - need-transfer
+    workflowIds:
+      - flow-intended
+    kpiIds: []
+    testIds:
+      - test-recovery
+    verificationDisposition: null
+acceptanceTests:
+  - id: test-rate
+    title: Measure planned transfer-rate criterion
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    subjectIds:
+      - requirement-transfer
+      - kpi-transfer-rate
+    preconditions:
+      - Agreed load and route inputs are configured in the chosen test environment.
+    procedure:
+      - Record the agreed observation window.
+      - Count confirmed destination handoffs and record interruptions.
+      - Compare the measured rate with the declared criterion.
+    measurementMethod:
+      state: provided
+      value: Timestamped handoff count divided by the agreed observation duration.
+    criterion:
+      state: provided
+      value:
+        kind: numeric
+        operator: gte
+        threshold:
+          value: "60"
+          unit: count/h
+          subject: pallet
+    evidenceRequirementIds:
+      - evidence-rate
+    assessorId:
+      state: provided
+      value: stakeholder-integrator
+    approverId:
+      state: provided
+      value: stakeholder-operator
+  - id: test-recovery
+    title: Observe occupied-destination recovery
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    subjectIds:
+      - requirement-recovery
+    preconditions:
+      - The operator has agreed the exception procedure.
+    procedure:
+      - Present an occupied destination in the chosen test environment.
+      - Observe notification and operator-led recovery against the agreed procedure.
+    measurementMethod:
+      state: provided
+      value: Record whether the agreed notification and recovery procedure can be followed.
+    criterion:
+      state: provided
+      value:
+        kind: boolean
+        expected: true
+    evidenceRequirementIds:
+      - evidence-recovery
+    assessorId:
+      state: provided
+      value: stakeholder-integrator
+    approverId:
+      state: provided
+      value: stakeholder-operator
+evidence:
+  - id: evidence-rate
+    title: Future transfer observation log
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    purpose: acceptance-requirement
+    location:
+      kind: future
+      description: Collect during future acceptance testing in the selected environment.
+    required: true
+    relatedIds:
+      - test-rate
+    provenance:
+      state: provided
+      value: Planned evidence requirement. No result has been collected.
+  - id: evidence-recovery
+    title: Future recovery observation record
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    purpose: acceptance-requirement
+    location:
+      kind: future
+      description: Collect during future acceptance testing in the selected environment.
+    required: true
+    relatedIds:
+      - test-recovery
+    provenance:
+      state: provided
+      value: Planned evidence requirement. No result has been collected.
+decisions: []
+challengeAnswers:
+  - id: answer-problem-owner
+    title: Who experiences this problem, who benefits from solving it, and who can approve the outcome?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: problem-owner
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-uncovered-needs
+    title: Whose needs may be missing from this plan, including operators, maintenance and shift supervisors?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: uncovered-needs
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-constraints
+    title: What constraints, alternatives or unresolved risks could make this deployment unsuitable?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: constraints
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-occupied-destination
+    title: What happens at an occupied destination or when the receiving person is unavailable?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: occupied-destination
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-pickup-failure
+    title: How will people handle a failed pickup, damaged load or blocked route?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: pickup-failure
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-handoff
+    title: Who owns each handoff and how is successful transfer confirmed?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: handoff
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-peak-volume
+    title: Which peak periods, load variations and shift changes differ from normal flow?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: peak-volume
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-baseline
+    title: How was the baseline measured, and what is still unknown or unverified?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: baseline
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-measurement-window
+    title: Does the measurement window include charging, interruptions and peak periods?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: measurement-window
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-tradeoffs
+    title: Which quality or operational measure must not worsen while the target improves?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: tradeoffs
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-site-inputs
+    title: Which site inputs, load properties and human responsibilities must be confirmed before detailed engineering?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: site-inputs
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-failure-recovery
+    title: What recovery behavior is required when the robot, communication or material handoff fails?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: failure-recovery
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-vendor-neutrality
+    title: Does each requirement describe the needed capability without assuming a particular vendor?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: vendor-neutrality
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-acceptance-conditions
+    title: Which operating conditions and exceptions must the acceptance procedure cover?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: acceptance-conditions
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-acceptance-evidence
+    title: What evidence would let another engineer assess the criterion without reconstructing this discussion?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: acceptance-evidence
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+  - id: answer-acceptance-authority
+    title: Who will assess the evidence and who is authorized to approve the specification?
+    description: null
+    ownerId:
+      state: provided
+      value: stakeholder-integrator
+    sourceEvidenceIds: []
+    extensions: {}
+    promptId: acceptance-authority
+    promptVersion: 1.0.0
+    answer:
+      state: unknown
+      note: Discuss this engineering question with the operator and record the answer or a reason it does not apply.
+      ownerId: stakeholder-integrator
+      nextAction: Confirm during deployment discovery.
+    relatedIds:
+      - need-transfer
+review:
+  currentApprovalId: null
+  acknowledgments: []
+  waivers: []
+  approvals: []
+  revocations: []
+  invalidations: []
+extensions:
+  robopomelo.example:
+    fictional: true

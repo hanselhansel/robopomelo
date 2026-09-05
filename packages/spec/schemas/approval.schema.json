@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/approval.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {"$ref": "common.schema.json#/$defs/id"},
+    "reviewerId": {"$ref": "common.schema.json#/$defs/id"},
+    "reviewerName": {"type": "string"},
+    "recorder": {"$ref": "common.schema.json#/$defs/actor"},
+    "reviewerRole": {"type": "string"},
+    "decision": {"enum": ["approved","rejected","changes-requested"]},
+    "decidedAt": {"$ref": "common.schema.json#/$defs/datetime"},
+    "source": {"type": "string"},
+    "sourceRevision": {"$ref": "common.schema.json#/$defs/id"},
+    "sourceHash": {"$ref": "common.schema.json#/$defs/hash"},
+    "planningHash": {"$ref": "common.schema.json#/$defs/hash"},
+    "ruleSetVersion": {"type": "string"},
+    "acknowledgmentIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+    "waiverIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+    "evidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}}
+  },
+  "required": [
+    "id",
+    "reviewerId",
+    "reviewerName",
+    "recorder",
+    "reviewerRole",
+    "decision",
+    "decidedAt",
+    "source",
+    "sourceRevision",
+    "sourceHash",
+    "planningHash",
+    "ruleSetVersion",
+    "acknowledgmentIds",
+    "waiverIds",
+    "evidenceIds"
+  ],
+  "additionalProperties": false
+}

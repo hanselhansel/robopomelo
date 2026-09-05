@@ -1,0 +1,171 @@
+import { useState } from 'react';
+import type { Knowledge, Quantity, Criterion } from '@robopomelo/spec';
+import { Modal, TextInput } from './ui.js';
+import { QuantityInput, CriterionInput, emptyQuantity } from './QuantityCriterion.js';
+type Value = string | Quantity | Criterion;
+export function KnowledgeField<T extends Value>({
+  id,
+  label,
+  value,
+  onChange,
+  kind,
+  options = [],
+}: {
+  id: string;
+  label: string;
+  value: Knowledge<T>;
+  onChange: (v: Knowledge<T>) => void;
+  kind: 'text' | 'id' | 'quantity' | 'criterion';
+  options?: { id: string; label: string }[];
+}) {
+  const [pending, setPending] = useState<string | null>(null);
+  const state = value?.state ?? 'missing';
+  const change = (next: string) => {
+    const initial = (
+      kind === 'quantity'
+        ? emptyQuantity()
+        : kind === 'criterion'
+          ? { kind: 'numeric', operator: 'gte', threshold: emptyQuantity() }
+          : ''
+    ) as T;
+    onChange(
+      next === 'missing'
+        ? null
+        : next === 'unknown'
+          ? { state: 'unknown', note: '' }
+          : next === 'not-applicable'
+            ? { state: 'not-applicable', reason: '' }
+            : {
+                state: next as 'provided' | 'unverified',
+                value: value && 'value' in value ? value.value : initial,
+              },
+    );
+    setPending(null);
+  };
+  return (
+    <fieldset className="knowledge">
+      <legend>{label}</legend>
+      <label htmlFor={`${id}-state`}>{label} state</label>
+      <select
+        id={`${id}-state`}
+        value={state}
+        onChange={(e) => {
+          if (value && 'value' in value && !['provided', 'unverified'].includes(e.target.value))
+            setPending(e.target.value);
+          else change(e.target.value);
+        }}
+      >
+        <option value="missing">Missing</option>
+        <option value="provided">Provided</option>
+        <option value="unknown">Unknown</option>
+        <option value="unverified">Unverified</option>
+        <option value="not-applicable">Not applicable</option>
+      </select>
+      {value && 'value' in value && (
+        <>
+          {kind === 'quantity' ? (
+            <QuantityInput
+              id={id}
+              value={value.value as Quantity}
+              onChange={(v) => onChange({ ...value, value: v as T })}
+            />
+          ) : kind === 'criterion' ? (
+            <CriterionInput
+              id={id}
+              value={value.value as Criterion}
+              onChange={(v) => onChange({ ...value, value: v as T })}
+            />
+          ) : kind === 'id' ? (
+            <>
+              <label htmlFor={`${id}-value`}>{label} value</label>
+              <select
+                id={`${id}-value`}
+                value={value.value as string}
+                onChange={(e) => onChange({ ...value, value: e.target.value as T })}
+              >
+                <option value="">Select a person</option>
+                {options.map((o) => (
+                  <option value={o.id} key={o.id}>
+                    {o.label} ({o.id})
+                  </option>
+                ))}
+              </select>
+            </>
+          ) : (
+            <TextInput
+              id={`${id}-value`}
+              label={`${label} value`}
+              value={value.value as string}
+              multiline
+              onChange={(v) => onChange({ ...value, value: v as T })}
+            />
+          )}
+          <TextInput
+            id={`${id}-note`}
+            label="Source note"
+            value={value.note ?? ''}
+            onChange={(note) => onChange({ ...value, note })}
+          />
+        </>
+      )}
+      {value?.state === 'unknown' && (
+        <>
+          <TextInput
+            id={`${id}-unknown`}
+            label="What is unknown?"
+            value={value.note}
+            onChange={(note) => onChange({ ...value, note })}
+          />
+          <label htmlFor={`${id}-owner`}>Follow-up owner</label>
+          <select
+            id={`${id}-owner`}
+            value={value.ownerId ?? ''}
+            onChange={(e) => {
+              const next = { ...value };
+              if (e.target.value) next.ownerId = e.target.value;
+              else delete next.ownerId;
+              onChange(next);
+            }}
+          >
+            <option value="">Not assigned</option>
+            {options.map((o) => (
+              <option value={o.id} key={o.id}>
+                {o.label} ({o.id})
+              </option>
+            ))}
+          </select>
+          <TextInput
+            id={`${id}-action`}
+            label="Next action"
+            value={value.nextAction ?? ''}
+            onChange={(nextAction) => onChange({ ...value, nextAction })}
+          />
+        </>
+      )}
+      {value?.state === 'not-applicable' && (
+        <TextInput
+          id={`${id}-reason`}
+          label="Why does this not apply?"
+          value={value.reason}
+          onChange={(reason) => onChange({ ...value, reason })}
+        />
+      )}{' '}
+      {pending && (
+        <Modal title="Replace the current value?" onClose={() => setPending(null)}>
+          <p>The following value will be replaced by an explicit {pending.replaceAll('-', ' ')} state.</p>
+          <pre>
+            {value && 'value' in value
+              ? typeof value.value === 'string'
+                ? value.value
+                : JSON.stringify(value.value, null, 2)
+              : ''}
+          </pre>
+          <div className="actions">
+            <button onClick={() => setPending(null)}>Keep current value</button>
+            <button onClick={() => change(pending)}>Replace value</button>
+          </div>
+        </Modal>
+      )}
+    </fieldset>
+  );
+}

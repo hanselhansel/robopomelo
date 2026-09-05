@@ -1,0 +1,16 @@
+{
+  "name": "@robopomelo/project-fs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@robopomelo/core": "*",
+    "@robopomelo/spec": "*",
+    "env-paths": "4.0.0",
+    "yaml": "2.9.0",
+    "yazl": "3.3.1"
+  }
+}

@@ -1,0 +1,142 @@
+import type { Deployment, FlowStep, FlowException } from '@robopomelo/spec';
+import { KnowledgeField } from './KnowledgeField.js';
+import { TextInput } from './ui.js';
+import { References, referenceOptions } from './References.js';
+export function FlowSteps({
+  id,
+  value,
+  onChange,
+  deployment,
+}: {
+  id: string;
+  value: FlowStep[];
+  onChange: (v: FlowStep[]) => void;
+  deployment: Deployment;
+}) {
+  return (
+    <fieldset>
+      <legend>Ordered flow steps</legend>
+      {value.map((step, i) => (
+        <div className="nested-record" key={step.id}>
+          <h3 className="nested-title">Step {i + 1}</h3>
+          <TextInput
+            id={`${id}-${step.id}-title`}
+            label="Step name"
+            value={step.title}
+            onChange={(title) => onChange(value.map((s) => (s.id === step.id ? { ...s, title } : s)))}
+          />
+          <KnowledgeField
+            id={`${id}-${step.id}-location`}
+            label="Location"
+            kind="text"
+            value={step.location}
+            onChange={(location) => onChange(value.map((s) => (s.id === step.id ? { ...s, location } : s)))}
+          />
+          <KnowledgeField
+            id={`${id}-${step.id}-handoff`}
+            label="Handoff to"
+            kind="id"
+            value={step.handoffToId}
+            options={referenceOptions(deployment, 'stakeholders')}
+            onChange={(handoffToId) =>
+              onChange(value.map((s) => (s.id === step.id ? { ...s, handoffToId } : s)))
+            }
+          />
+          <div className="actions">
+            {i > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  const copy = [...value];
+                  [copy[i - 1], copy[i]] = [copy[i]!, copy[i - 1]!];
+                  onChange(copy);
+                }}
+              >
+                Move step up
+              </button>
+            )}
+            <button type="button" onClick={() => onChange(value.filter((s) => s.id !== step.id))}>
+              Remove step
+            </button>
+          </div>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() =>
+          onChange([
+            ...value,
+            { id: crypto.randomUUID(), title: 'New step', location: null, handoffToId: null },
+          ])
+        }
+      >
+        Add flow step
+      </button>
+    </fieldset>
+  );
+}
+export function FlowExceptions({
+  id,
+  value,
+  onChange,
+  deployment,
+}: {
+  id: string;
+  value: FlowException[];
+  onChange: (v: FlowException[]) => void;
+  deployment: Deployment;
+}) {
+  return (
+    <fieldset>
+      <legend>Flow exceptions</legend>
+      {value.map((row, i) => (
+        <div className="nested-record" key={row.id}>
+          <h3 className="nested-title">Exception {i + 1}</h3>
+          <KnowledgeField
+            id={`${id}-${row.id}-trigger`}
+            label="Trigger"
+            kind="text"
+            value={row.trigger}
+            onChange={(trigger) => onChange(value.map((r) => (r.id === row.id ? { ...r, trigger } : r)))}
+          />
+          <KnowledgeField
+            id={`${id}-${row.id}-response`}
+            label="Response"
+            kind="text"
+            value={row.response}
+            onChange={(response) => onChange(value.map((r) => (r.id === row.id ? { ...r, response } : r)))}
+          />
+          <KnowledgeField
+            id={`${id}-${row.id}-owner`}
+            label="Exception owner"
+            kind="id"
+            value={row.ownerId}
+            options={referenceOptions(deployment, 'stakeholders')}
+            onChange={(ownerId) => onChange(value.map((r) => (r.id === row.id ? { ...r, ownerId } : r)))}
+          />
+          <References
+            id={`${id}-${row.id}-tests`}
+            label="Exception tests"
+            value={row.testIds}
+            options={referenceOptions(deployment, 'acceptanceTests')}
+            onChange={(testIds) => onChange(value.map((r) => (r.id === row.id ? { ...r, testIds } : r)))}
+          />
+          <button type="button" onClick={() => onChange(value.filter((r) => r.id !== row.id))}>
+            Remove exception
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() =>
+          onChange([
+            ...value,
+            { id: crypto.randomUUID(), trigger: null, response: null, ownerId: null, testIds: [] },
+          ])
+        }
+      >
+        Add exception
+      </button>
+    </fieldset>
+  );
+}

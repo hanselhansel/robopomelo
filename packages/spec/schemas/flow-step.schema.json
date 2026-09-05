@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/flow-step.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {"$ref": "common.schema.json#/$defs/id"},
+    "title": {"type": "string"},
+    "location": {"$ref": "knowledge-text.schema.json"},
+    "handoffToId": {"$ref": "knowledge-id.schema.json"}
+  },
+  "required": ["id","title","location","handoffToId"],
+  "additionalProperties": false
+}

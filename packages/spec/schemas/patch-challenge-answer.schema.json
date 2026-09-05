@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/patch-challenge-answer.schema.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "op": {"const": "add"},
+        "collection": {"const": "challengeAnswers"},
+        "record": {"$ref": "challenge-answer.schema.json"}
+      },
+      "required": ["op","collection","record"],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "op": {"const": "update"},
+        "collection": {"const": "challengeAnswers"},
+        "id": {"$ref": "common.schema.json#/$defs/id"},
+        "fields": {
+          "type": "object",
+          "properties": {
+            "title": {"type": "string"},
+            "description": {"$ref": "knowledge-text.schema.json"},
+            "ownerId": {"$ref": "knowledge-id.schema.json"},
+            "sourceEvidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "extensions": {"$ref": "common.schema.json#/$defs/extensions"},
+            "promptId": {"type": "string"},
+            "promptVersion": {"type": "string"},
+            "answer": {"$ref": "knowledge-text.schema.json"},
+            "relatedIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "verification": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {"$ref": "common.schema.json#/$defs/id"},
+                  "claimPath": {"enum": ["title","description","answer"]},
+                  "required": {"type": "boolean"},
+                  "evidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+                  "attestation": {"anyOf": [{"type": "null"},{"$ref": "attestation.schema.json"}]}
+                },
+                "required": ["id","claimPath","required","evidenceIds","attestation"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": ["op","collection","id","fields"],
+      "additionalProperties": false
+    }
+  ]
+}

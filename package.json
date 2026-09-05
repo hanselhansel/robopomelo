@@ -1,0 +1,56 @@
+{
+  "name": "@robopomelo/workspace",
+  "version": "1.0.0",
+  "private": true,
+  "allowScripts": {
+    "node-pty": true,
+    "esbuild": false,
+    "fsevents": false
+  },
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:tooling": "node --test tests/tooling/*.test.mjs",
+    "test:browser": "playwright test",
+    "check:boundaries": "node scripts/check-boundaries.mjs",
+    "check:source-lines": "node scripts/check-source-lines.mjs",
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:skills": "node scripts/check-skills.mjs",
+    "check:plan-coverage": "node scripts/check-plan-coverage.mjs",
+    "verify:package": "node scripts/verify-package.mjs",
+    "verify:release": "node scripts/verify-release.mjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@changesets/cli": "3.0.2",
+    "@playwright/test": "1.62.1",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.7",
+    "@types/node": "22.20.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@types/semver": "7.8.0",
+    "@types/tar-stream": "3.1.4",
+    "@types/yazl": "3.3.1",
+    "@typescript/typescript6": "6.0.2",
+    "@vitest/coverage-v8": "5.0.0",
+    "esbuild": "0.28.2",
+    "jsdom": "30.0.1",
+    "libnpmpublish": "12.0.0",
+    "node-pty": "1.1.0",
+    "prettier": "3.9.6",
+    "typescript": "7.0.2",
+    "vite": "8.2.2",
+    "vitest": "5.0.0"
+  }
+}

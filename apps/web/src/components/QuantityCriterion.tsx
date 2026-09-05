@@ -1,0 +1,127 @@
+import type { Criterion, Quantity } from '@robopomelo/spec';
+import { TextInput, StringList } from './ui.js';
+export const emptyQuantity = (): Quantity => ({ value: '', unit: '', subject: '' });
+export function QuantityInput({
+  id,
+  value,
+  onChange,
+}: {
+  id: string;
+  value: Quantity;
+  onChange: (v: Quantity) => void;
+}) {
+  return (
+    <div className="quantity">
+      <TextInput
+        id={`${id}-value`}
+        label="Value"
+        value={value.value}
+        onChange={(v) => onChange({ ...value, value: v })}
+        help="Exact decimal, such as 12.5. Unknown is a separate state."
+      />
+      <TextInput
+        id={`${id}-unit`}
+        label="Unit"
+        value={value.unit}
+        onChange={(v) => onChange({ ...value, unit: v })}
+        help="For example, count/h or min."
+      />
+      <TextInput
+        id={`${id}-subject`}
+        label="Counted or measured subject"
+        value={value.subject}
+        onChange={(v) => onChange({ ...value, subject: v })}
+      />
+    </div>
+  );
+}
+export function CriterionInput({
+  id,
+  value,
+  onChange,
+}: {
+  id: string;
+  value: Criterion;
+  onChange: (v: Criterion) => void;
+}) {
+  return (
+    <div className="composite">
+      <label htmlFor={`${id}-kind`}>Criterion type</label>
+      <select
+        id={`${id}-kind`}
+        value={value.kind}
+        onChange={(e) =>
+          onChange(
+            e.target.value === 'numeric'
+              ? { kind: 'numeric', operator: 'gte', threshold: emptyQuantity() }
+              : e.target.value === 'boolean'
+                ? { kind: 'boolean', expected: true }
+                : { kind: 'categorical', expected: [] },
+          )
+        }
+      >
+        <option value="numeric">Numeric</option>
+        <option value="boolean">Boolean</option>
+        <option value="categorical">Categorical</option>
+      </select>
+      {value.kind === 'numeric' ? (
+        <>
+          <label htmlFor={`${id}-operator`}>Comparison</label>
+          <select
+            id={`${id}-operator`}
+            value={value.operator}
+            onChange={(e) => {
+              const operator = e.target.value as 'gte' | 'lte' | 'eq' | 'between';
+              onChange({
+                kind: 'numeric',
+                operator,
+                threshold: value.threshold,
+                ...(operator === 'between' ? { upper: value.upper ?? emptyQuantity() } : {}),
+              });
+            }}
+          >
+            <option value="gte">At least</option>
+            <option value="lte">At most</option>
+            <option value="eq">Exactly</option>
+            <option value="between">Between</option>
+          </select>
+          <QuantityInput
+            id={`${id}-threshold`}
+            value={value.threshold}
+            onChange={(threshold) => onChange({ ...value, threshold })}
+          />
+          {value.operator === 'between' && (
+            <fieldset>
+              <legend>Upper bound</legend>
+              <QuantityInput
+                id={`${id}-upper`}
+                value={value.upper ?? emptyQuantity()}
+                onChange={(upper) => onChange({ ...value, upper })}
+              />
+            </fieldset>
+          )}
+        </>
+      ) : value.kind === 'boolean' ? (
+        <>
+          <label htmlFor={`${id}-expected`}>Expected result</label>
+          <select
+            id={`${id}-expected`}
+            value={String(value.expected)}
+            onChange={(e) => onChange({ ...value, expected: e.target.value === 'true' })}
+          >
+            <option value="true">True</option>
+            <option value="false">False</option>
+          </select>
+        </>
+      ) : (
+        <StringList
+          id={`${id}-categories`}
+          label="Accepted categories"
+          value={value.expected}
+          onChange={(expected) => onChange({ ...value, expected })}
+        />
+      )}
+      <p className="help">This defines a future acceptance criterion. No test is executed here.</p>
+    </div>
+  );
+}

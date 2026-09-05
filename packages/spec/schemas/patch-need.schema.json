@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/patch-need.schema.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {"op": {"const": "add"},"collection": {"const": "needs"},"record": {"$ref": "need.schema.json"}},
+      "required": ["op","collection","record"],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "op": {"const": "update"},
+        "collection": {"const": "needs"},
+        "id": {"$ref": "common.schema.json#/$defs/id"},
+        "fields": {
+          "type": "object",
+          "properties": {
+            "title": {"type": "string"},
+            "description": {"$ref": "knowledge-text.schema.json"},
+            "ownerId": {"$ref": "knowledge-id.schema.json"},
+            "sourceEvidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "extensions": {"$ref": "common.schema.json#/$defs/extensions"},
+            "beneficiaryIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "outcome": {"$ref": "knowledge-text.schema.json"},
+            "workflowIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "requirementIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "disposition": {"$ref": "knowledge-text.schema.json"},
+            "verification": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {"$ref": "common.schema.json#/$defs/id"},
+                  "claimPath": {"enum": ["title","description","outcome","disposition"]},
+                  "required": {"type": "boolean"},
+                  "evidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+                  "attestation": {"anyOf": [{"type": "null"},{"$ref": "attestation.schema.json"}]}
+                },
+                "required": ["id","claimPath","required","evidenceIds","attestation"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": ["op","collection","id","fields"],
+      "additionalProperties": false
+    }
+  ]
+}

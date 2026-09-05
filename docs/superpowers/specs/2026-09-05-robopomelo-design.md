@@ -2,9 +2,9 @@
 
 Date: 2026-09-05
 
-Status: consolidated design approved by Hansel; this written specification awaits his review.
+Status: consolidated design approved; Hansel authorized end-to-end implementation after delivery of this written specification on 2026-09-05.
 
-This is a documentation-only review artifact. No Git repository, application scaffold, package publication, or implementation is created by this document. The next steps are written-spec review, implementation planning, then autonomous execution of the approved scope.
+This specification is the design authority for implementation. Hansel subsequently authorized the end-to-end execution workflow. Progress and actual delivery evidence live in the implementation plan; design approval alone is not a claim that application code or a published package exists.
 
 ## Purpose
 
@@ -37,7 +37,7 @@ Normal operation requires no model, API key, GPU, ROS, Docker, cloud account or 
 
 ## Specification documents
 
-All five documents below are normative parts of this written specification. They elaborate the approved design and are included in the pending written-spec review.
+All five documents below are normative parts of this written specification. They elaborate the approved design and are included in the implementation authorization and plan review.
 
 | Document | Covers |
 | --- | --- |

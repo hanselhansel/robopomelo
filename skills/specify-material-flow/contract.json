@@ -1,0 +1,87 @@
+{
+  "contractVersion": "1.0.0",
+  "id": "specify-material-flow",
+  "kind": "narrow",
+  "trigger": "Use when documenting current or intended material movements, endpoints, handoffs, volume, workflow steps or exceptions for an AMR planning project.",
+  "requiredInputs": [
+    "User-selected project folder and current source snapshot",
+    "Committed framing IDs, supplied movement observations and material subjects",
+    "Bundled patch and deployment schemas matching the installed CLI",
+    "Existing project authority or exact scopes explicitly supplied by the caller"
+  ],
+  "specRange": "^1.0.0",
+  "cliRange": ">=1.0.0-rc.1 <2.0.0",
+  "patchRange": "^1.0.0",
+  "fieldsRead": ["*"],
+  "fieldsWritten": ["workflows.*", "assumptions.*", "challenges.*", "challengeAnswers.*"],
+  "dependencies": ["frame-robot-deployment"],
+  "commands": [
+    {
+      "command": "capabilities",
+      "args": ["--json", "--offline"]
+    },
+    {
+      "command": "show",
+      "args": ["--project", "${project}", "--json", "--offline"]
+    },
+    {
+      "command": "patch check",
+      "args": ["patch.json", "--project", "${project}", "--json", "--offline"]
+    },
+    {
+      "command": "patch diff",
+      "args": ["patch.json", "--project", "${project}", "--json", "--offline"]
+    },
+    {
+      "command": "patch apply",
+      "args": ["patch.json", "--project", "${project}", "--json", "--offline"]
+    },
+    {
+      "command": "validate",
+      "args": ["--project", "${project}", "--json", "--offline"]
+    }
+  ],
+  "validation": [
+    "schema",
+    "capability-fields",
+    "source-identity",
+    "references",
+    "permissions",
+    "readiness-report"
+  ],
+  "stopConditions": [
+    "unsupported",
+    "missing-authority",
+    "stale-base",
+    "invalid-input",
+    "missing-facts",
+    "indeterminate-receipt"
+  ],
+  "authority": {
+    "grantsPermissions": false,
+    "actorKind": "agent",
+    "capabilityIdRequired": true,
+    "protectedDecisions": "separate-supplied-workflow"
+  },
+  "output": {
+    "formatVersion": "1.0.0",
+    "required": [
+      "status",
+      "capabilityId",
+      "changeId",
+      "baseRevision",
+      "baseHash",
+      "sourceRevision",
+      "sourceHash",
+      "receiptDigest",
+      "proposalId",
+      "patchDigest",
+      "diff",
+      "readiness",
+      "findings",
+      "questions",
+      "nextAction"
+    ],
+    "statuses": ["unchanged", "checked", "proposed", "applied", "conflict", "blocked"]
+  }
+}

@@ -1,0 +1,31 @@
+specVersion: 1.0.0
+project: {id: project-1, name: Draft, problem: null, outcome: null, scope: null, exclusions: [], approverId: null}
+meta: {revisionId: rev-1, parentRevisionId: null, createdAt: '2026-09-05T00:00:00Z', updatedAt: '2026-09-05T00:00:00Z'}
+stakeholders: []
+needs:
+  - id: need-1
+    title: Original # title note
+    description: null
+    ownerId: null
+    sourceEvidenceIds: []
+    extensions: {}
+    beneficiaryIds: []
+    outcome: null
+    workflowIds: []
+    requirementIds: []
+    disposition: null
+problems: []
+workflows: []
+challenges: []
+risks: []
+assumptions: []
+kpis: []
+requirements: []
+acceptanceTests: []
+evidence: []
+decisions: []
+challengeAnswers: []
+review: {currentApprovalId: null, acknowledgments: [], waivers: [], approvals: [], revocations: [], invalidations: []}
+# vendor note
+extensions:
+  acme: {code: "001", flag: false, zero: 0, missing: null}

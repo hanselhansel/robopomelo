@@ -1,0 +1,161 @@
+import type { Deployment, VerificationDeclaration } from '@robopomelo/spec';
+import { fields } from '@robopomelo/spec/browser';
+import { SuppliedRecorder } from './SuppliedRecorder.js';
+import { TextInput } from './ui.js';
+import { References, referenceOptions } from './References.js';
+export function Verification({
+  id,
+  collection,
+  value,
+  onChange,
+  deployment,
+}: {
+  id: string;
+  collection: string;
+  value: VerificationDeclaration[];
+  onChange: (v: VerificationDeclaration[]) => void;
+  deployment: Deployment;
+}) {
+  return (
+    <details className="advanced">
+      <summary>Advanced: verification support and supplied attestations</summary>
+      <p>
+        These are planning declarations. An attributed statement is not an independently verified fact or an
+        executed test. Required obligations and attestations need decision-recording authority.
+      </p>
+      {value.map((row) => (
+        <fieldset key={row.id}>
+          <legend>Verification declaration</legend>
+          <label htmlFor={`${id}-${row.id}-claim`}>Supported field</label>
+          <select
+            id={`${id}-${row.id}-claim`}
+            value={row.claimPath}
+            onChange={(e) =>
+              onChange(value.map((r) => (r.id === row.id ? { ...r, claimPath: e.target.value } : r)))
+            }
+          >
+            <option value="">Select a planning field</option>
+            {fields
+              .filter(
+                (f) => f.collection === collection && !['verification', 'sourceEvidenceIds'].includes(f.path),
+              )
+              .map((f) => (
+                <option key={f.path} value={f.path}>
+                  {f.label}
+                </option>
+              ))}
+          </select>
+          <label className="check-row">
+            <input
+              type="checkbox"
+              checked={row.required}
+              onChange={(e) =>
+                onChange(value.map((r) => (r.id === row.id ? { ...r, required: e.target.checked } : r)))
+              }
+            />
+            Support required before review
+          </label>
+          <References
+            id={`${id}-${row.id}-evidence`}
+            label="Planning evidence"
+            value={row.evidenceIds}
+            options={referenceOptions(deployment, 'evidence').filter(
+              (o) => deployment.evidence.find((e) => e.id === o.id)?.purpose === 'planning',
+            )}
+            onChange={(evidenceIds) =>
+              onChange(value.map((r) => (r.id === row.id ? { ...r, evidenceIds } : r)))
+            }
+          />
+          {row.attestation ? (
+            <>
+              <TextInput
+                id={`${id}-${row.id}-actor`}
+                label="Supplied attesting person"
+                value={row.attestation.actor.name}
+                onChange={(name) =>
+                  onChange(
+                    value.map((r) =>
+                      r.id === row.id
+                        ? {
+                            ...r,
+                            attestation: { ...row.attestation!, actor: { ...row.attestation!.actor, name } },
+                          }
+                        : r,
+                    ),
+                  )
+                }
+              />
+              {(['statement', 'recordedAt', 'source'] as const).map((key) => (
+                <TextInput
+                  key={key}
+                  id={`${id}-${row.id}-${key}`}
+                  label={
+                    key === 'recordedAt'
+                      ? 'Supplied date and time (ISO 8601)'
+                      : key === 'source'
+                        ? 'Source of supplied statement'
+                        : 'Supplied statement'
+                  }
+                  value={row.attestation![key]}
+                  onChange={(v) =>
+                    onChange(
+                      value.map((r) =>
+                        r.id === row.id ? { ...r, attestation: { ...row.attestation!, [key]: v } } : r,
+                      ),
+                    )
+                  }
+                />
+              ))}
+              <SuppliedRecorder person={row.attestation.actor.name} source={row.attestation.source} />
+              <button
+                type="button"
+                onClick={() =>
+                  onChange(value.map((r) => (r.id === row.id ? { ...r, attestation: null } : r)))
+                }
+              >
+                Remove supplied attestation
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() =>
+                onChange(
+                  value.map((r) =>
+                    r.id === row.id
+                      ? {
+                          ...r,
+                          attestation: {
+                            actor: { kind: 'human', name: '' },
+                            statement: '',
+                            recordedAt: '',
+                            source: '',
+                          },
+                        }
+                      : r,
+                  ),
+                )
+              }
+            >
+              Record supplied attestation
+            </button>
+          )}
+          <button type="button" onClick={() => onChange(value.filter((r) => r.id !== row.id))}>
+            Remove declaration
+          </button>
+        </fieldset>
+      ))}
+      <button
+        type="button"
+        onClick={() =>
+          onChange([
+            ...value,
+            { id: crypto.randomUUID(), claimPath: '', required: false, evidenceIds: [], attestation: null },
+          ])
+        }
+      >
+        Add verification declaration
+      </button>
+    </details>
+  );
+}

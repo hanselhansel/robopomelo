@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/workflow.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {"$ref": "common.schema.json#/$defs/id"},
+    "title": {"type": "string"},
+    "description": {"$ref": "knowledge-text.schema.json"},
+    "ownerId": {"$ref": "knowledge-id.schema.json"},
+    "sourceEvidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+    "extensions": {"$ref": "common.schema.json#/$defs/extensions"},
+    "mode": {"enum": ["current","intended"]},
+    "loadSubject": {"$ref": "knowledge-text.schema.json"},
+    "origin": {"$ref": "knowledge-text.schema.json"},
+    "destination": {"$ref": "knowledge-text.schema.json"},
+    "volume": {"$ref": "knowledge-quantity.schema.json"},
+    "steps": {"type": "array","items": {"$ref": "flow-step.schema.json"}},
+    "exceptions": {"type": "array","items": {"$ref": "flow-exception.schema.json"}},
+    "needIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+    "assumptionIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+    "verification": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"$ref": "common.schema.json#/$defs/id"},
+          "claimPath": {"enum": ["title","description","loadSubject","origin","destination","volume"]},
+          "required": {"type": "boolean"},
+          "evidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+          "attestation": {"anyOf": [{"type": "null"},{"$ref": "attestation.schema.json"}]}
+        },
+        "required": ["id","claimPath","required","evidenceIds","attestation"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "id",
+    "title",
+    "description",
+    "ownerId",
+    "sourceEvidenceIds",
+    "extensions",
+    "mode",
+    "loadSubject",
+    "origin",
+    "destination",
+    "volume",
+    "steps",
+    "exceptions",
+    "needIds",
+    "assumptionIds"
+  ],
+  "additionalProperties": false
+}

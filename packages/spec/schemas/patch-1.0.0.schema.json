@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/patch-1.0.0.schema.json",
+  "type": "object",
+  "properties": {
+    "formatVersion": {"const": "1.0.0"},
+    "id": {"$ref": "common.schema.json#/$defs/id"},
+    "projectId": {"$ref": "common.schema.json#/$defs/id"},
+    "baseRevision": {"$ref": "common.schema.json#/$defs/id"},
+    "baseHash": {"$ref": "common.schema.json#/$defs/hash"},
+    "actor": {"$ref": "common.schema.json#/$defs/actor"},
+    "purpose": {"type": "string"},
+    "capabilityId": {"$ref": "common.schema.json#/$defs/id"},
+    "operations": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {"$ref": "patch-stakeholder.schema.json"},
+          {"$ref": "patch-need.schema.json"},
+          {"$ref": "patch-problem.schema.json"},
+          {"$ref": "patch-workflow.schema.json"},
+          {"$ref": "patch-open-issue.schema.json"},
+          {"$ref": "patch-risk.schema.json"},
+          {"$ref": "patch-assumption.schema.json"},
+          {"$ref": "patch-kpi.schema.json"},
+          {"$ref": "patch-requirement.schema.json"},
+          {"$ref": "patch-acceptance-test.schema.json"},
+          {"$ref": "patch-evidence.schema.json"},
+          {"$ref": "patch-decision.schema.json"},
+          {"$ref": "patch-challenge-answer.schema.json"},
+          {
+            "type": "object",
+            "properties": {
+              "op": {"const": "remove"},
+              "collection": {
+                "enum": [
+                  "stakeholders",
+                  "needs",
+                  "problems",
+                  "workflows",
+                  "challenges",
+                  "risks",
+                  "assumptions",
+                  "kpis",
+                  "requirements",
+                  "acceptanceTests",
+                  "evidence",
+                  "decisions",
+                  "challengeAnswers"
+                ]
+              },
+              "id": {"$ref": "common.schema.json#/$defs/id"}
+            },
+            "required": ["op","collection","id"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": {"const": "project"},
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string"},
+                  "problem": {"$ref": "knowledge-text.schema.json"},
+                  "outcome": {"$ref": "knowledge-text.schema.json"},
+                  "scope": {"$ref": "knowledge-text.schema.json"},
+                  "exclusions": {"type": "array","items": {"type": "string"}},
+                  "approverId": {"$ref": "knowledge-id.schema.json"}
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            },
+            "required": ["op","fields"],
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  "required": ["formatVersion","id","projectId","baseRevision","baseHash","actor","purpose","operations"],
+  "additionalProperties": false
+}

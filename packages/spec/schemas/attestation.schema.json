@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/attestation.schema.json",
+  "type": "object",
+  "properties": {
+    "actor": {"$ref": "common.schema.json#/$defs/actor"},
+    "statement": {"type": "string"},
+    "recordedAt": {"$ref": "common.schema.json#/$defs/datetime"},
+    "source": {"type": "string"}
+  },
+  "required": ["actor","statement","recordedAt","source"],
+  "additionalProperties": false
+}

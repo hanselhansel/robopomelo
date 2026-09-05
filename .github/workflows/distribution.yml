@@ -1,0 +1,74 @@
+name: Distribution
+on:
+  workflow_call:
+    inputs:
+      target:
+        type: string
+        default: '1.0.0'
+      channel:
+        type: string
+        default: candidate
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025, macos-15, macos-15-intel]
+        node: ['22.22.2', '22', '24.15.0', '24']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Prepare test-only native terminal driver
+        run: npm rebuild node-pty
+      - run: node scripts/prepare-terminal.mjs
+      - name: Record native runtime
+        run: node -e 'const fs=require("node:fs");fs.mkdirSync("test-results",{recursive:true});fs.writeFileSync("test-results/runtime.json",JSON.stringify({os:process.platform,arch:process.arch,node:process.version},null,2))'
+      - run: npx --no-install vitest run tests/runtime tests/security tests/cli apps/cli/test tests/distribution tests/skills --reporter=default --reporter=json --outputFile=test-results/native-tests.json
+      - run: node scripts/build.mjs --target "$TARGET" --channel "$CHANNEL"
+        env:
+          TARGET: ${{ inputs.target || '1.0.0' }}
+          CHANNEL: ${{ inputs.channel || 'candidate' }}
+      - run: node scripts/verify-package.mjs --report test-results/package.json
+      - run: node scripts/verify-terminal.mjs --report test-results/terminal.json
+      - name: Install native Windows browser binaries
+        if: ${{ runner.os == 'Windows' }}
+        run: npx --no-install playwright install chrome msedge
+      - name: Exercise native Windows Chrome and Edge
+        if: ${{ runner.os == 'Windows' }}
+        run: npm run test:browser -- --project=chrome --project=msedge
+        env:
+          ROBOPOMELO_NATIVE_BROWSERS: chrome,msedge
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() }}
+        with:
+          name: native-${{ matrix.os }}-node${{ matrix.node }}
+          path: test-results/
+          if-no-files-found: error
+  required-distribution:
+    if: ${{ always() }}
+    needs: [native]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - run: node scripts/check-plan-coverage.mjs --results "$RESULTS" --expected native
+        env:
+          RESULTS: ${{ toJSON(needs) }}

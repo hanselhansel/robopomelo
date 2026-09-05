@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/review-state.schema.json",
+  "type": "object",
+  "properties": {
+    "currentApprovalId": {"anyOf": [{"type": "null"},{"$ref": "common.schema.json#/$defs/id"}]},
+    "acknowledgments": {"type": "array","items": {"$ref": "acknowledgment.schema.json"}},
+    "waivers": {"type": "array","items": {"$ref": "waiver.schema.json"}},
+    "approvals": {"type": "array","items": {"$ref": "approval.schema.json"}},
+    "revocations": {"type": "array","items": {"$ref": "revocation.schema.json"}},
+    "invalidations": {"type": "array","items": {"$ref": "approval-invalidation.schema.json"}}
+  },
+  "required": ["currentApprovalId","acknowledgments","waivers","approvals","revocations","invalidations"],
+  "additionalProperties": false
+}

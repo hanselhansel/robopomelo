@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/patch-acceptance-test.schema.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "op": {"const": "add"},
+        "collection": {"const": "acceptanceTests"},
+        "record": {"$ref": "acceptance-test.schema.json"}
+      },
+      "required": ["op","collection","record"],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "op": {"const": "update"},
+        "collection": {"const": "acceptanceTests"},
+        "id": {"$ref": "common.schema.json#/$defs/id"},
+        "fields": {
+          "type": "object",
+          "properties": {
+            "title": {"type": "string"},
+            "description": {"$ref": "knowledge-text.schema.json"},
+            "ownerId": {"$ref": "knowledge-id.schema.json"},
+            "sourceEvidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "extensions": {"$ref": "common.schema.json#/$defs/extensions"},
+            "subjectIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "preconditions": {"type": "array","items": {"type": "string"}},
+            "procedure": {"type": "array","items": {"type": "string"}},
+            "measurementMethod": {"$ref": "knowledge-text.schema.json"},
+            "criterion": {"$ref": "knowledge-criterion.schema.json"},
+            "evidenceRequirementIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+            "assessorId": {"$ref": "knowledge-id.schema.json"},
+            "approverId": {"$ref": "knowledge-id.schema.json"},
+            "verification": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {"$ref": "common.schema.json#/$defs/id"},
+                  "claimPath": {"enum": ["title","description","preconditions","procedure","measurementMethod","criterion"]},
+                  "required": {"type": "boolean"},
+                  "evidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+                  "attestation": {"anyOf": [{"type": "null"},{"$ref": "attestation.schema.json"}]}
+                },
+                "required": ["id","claimPath","required","evidenceIds","attestation"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": ["op","collection","id","fields"],
+      "additionalProperties": false
+    }
+  ]
+}

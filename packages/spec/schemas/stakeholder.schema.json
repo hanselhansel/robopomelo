@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/stakeholder.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {"$ref": "common.schema.json#/$defs/id"},
+    "title": {"type": "string"},
+    "description": {"$ref": "knowledge-text.schema.json"},
+    "ownerId": {"$ref": "knowledge-id.schema.json"},
+    "sourceEvidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+    "extensions": {"$ref": "common.schema.json#/$defs/extensions"},
+    "role": {"$ref": "knowledge-text.schema.json"},
+    "responsibilities": {"type": "array","items": {"type": "string"}},
+    "verification": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"$ref": "common.schema.json#/$defs/id"},
+          "claimPath": {"enum": ["title","description","role","responsibilities"]},
+          "required": {"type": "boolean"},
+          "evidenceIds": {"type": "array","items": {"$ref": "common.schema.json#/$defs/id"}},
+          "attestation": {"anyOf": [{"type": "null"},{"$ref": "attestation.schema.json"}]}
+        },
+        "required": ["id","claimPath","required","evidenceIds","attestation"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["id","title","description","ownerId","sourceEvidenceIds","extensions","role","responsibilities"],
+  "additionalProperties": false
+}

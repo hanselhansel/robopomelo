@@ -1,6 +1,6 @@
 # Design decision record
 
-Part of the [RoboPomelo v1 design](../2026-09-05-robopomelo-design.md). Written-spec review pending.
+Part of the [RoboPomelo v1 design](../2026-09-05-robopomelo-design.md). Implementation authorized by Hansel on 2026-09-05; changes remain subject to the recorded execution/release gates.
 
 These decisions summarize Hansel's direct choices in the 2026-09-05 design conversation. The consolidated design was approved before these files were written. Technical elaborations in the companion documents are subject to the written-spec review.
 

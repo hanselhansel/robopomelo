@@ -1,0 +1,92 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      target:
+        type: string
+        default: '1.0.0'
+      channel:
+        type: string
+        default: candidate
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm run test:tooling
+      - run: npm run check:boundaries
+      - run: npm run check:source-lines
+      - run: npm run check:docs
+      - run: npm run check:skills
+      - run: npm run check:plan-coverage
+      - run: node scripts/verify-versions.mjs
+      - run: node -e 'require("node:fs").mkdirSync("test-results",{recursive:true})'
+      - run: npx --no-install changeset status --since=origin/main --output test-results/changesets.json
+      - run: npm run test:coverage
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() }}
+        with:
+          name: source-evidence
+          path: |
+            coverage/
+            test-results/changesets.json
+          if-no-files-found: error
+  native:
+    uses: ./.github/workflows/distribution.yml
+    with:
+      target: ${{ inputs.target || '1.0.0' }}
+      channel: ${{ inputs.channel || 'candidate' }}
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node scripts/build.mjs --target "$TARGET" --channel "$CHANNEL"
+        env:
+          TARGET: ${{ inputs.target || '1.0.0' }}
+          CHANNEL: ${{ inputs.channel || 'candidate' }}
+      - run: npx --no-install playwright install --with-deps chromium firefox webkit
+      - run: npm run test:browser
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() }}
+        with:
+          name: browser-evidence
+          path: test-results/
+          if-no-files-found: error
+  required-ci:
+    if: ${{ always() }}
+    needs: [source, native, browser]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - run: node scripts/check-plan-coverage.mjs --results "$RESULTS" --expected source,native,browser
+        env:
+          RESULTS: ${{ toJSON(needs) }}

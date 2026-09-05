@@ -1,0 +1,217 @@
+import { useState } from 'react';
+import { flushSync } from 'react-dom';
+import type { ProjectSnapshot, ReviewDocument, TraceabilityRow, Scope, Json } from '@robopomelo/spec';
+import { api, expected, ApiError } from '../lib/api.js';
+import { useResource, useAction, download } from '../lib/hooks.js';
+import { DocumentView, Traceability } from '../components/DocumentView.js';
+import { Modal, ErrorNotice } from '../components/ui.js';
+import { DecisionDialog } from './DecisionDialog.js';
+export interface ExportPreview {
+  previewId: string;
+  sourceRevision: string;
+  sourceHash: string;
+  members: (string | { path: string })[];
+  evidence: Json;
+}
+export function Review({
+  snapshot,
+  onView,
+  onRefresh,
+  scopes,
+  onSettings,
+}: {
+  snapshot: ProjectSnapshot;
+  onView: (id: string) => void;
+  onRefresh: () => Promise<void>;
+  scopes: Scope[];
+  onSettings: () => void;
+}) {
+  const doc = useResource<ReviewDocument>('/api/project/review', snapshot.sourceRevision);
+  const trace = useResource<TraceabilityRow[]>('/api/project/traceability', snapshot.sourceRevision);
+  const [tab, setTab] = useState('document');
+  const [decision, setDecision] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [preview, setPreview] = useState<ExportPreview | null>(null);
+  const action = useAction();
+  return (
+    <>
+      <div className="page-intro">
+        <p className="eyebrow">Engineering handoff</p>
+        <h1 id="section-heading" tabIndex={-1}>
+          Review &amp; export
+        </h1>
+        <p className="lede">
+          Read the specification as one document. Inspect gaps, record a supplied decision and prepare the
+          handoff.
+        </p>
+      </div>
+      <div className="actions review-toolbar">
+        <button
+          className="primary"
+          onClick={() => {
+            setExporting(true);
+            setPreview(null);
+          }}
+        >
+          Download handoff package
+        </button>
+        <button onClick={() => setDecision(true)}>Record operator decision</button>
+        <button
+          disabled={!doc.data}
+          onClick={() => {
+            flushSync(() => setTab('document'));
+            window.print();
+          }}
+        >
+          Print document
+        </button>
+      </div>
+      <div className="view-switch" aria-label="Review view">
+        {['document', 'traceability', 'open issues & decisions'].map((t) => (
+          <button key={t} aria-pressed={tab === t} onClick={() => setTab(t)}>
+            {t[0]!.toUpperCase() + t.slice(1)}
+          </button>
+        ))}
+      </div>
+      <ErrorNotice message={doc.error ?? trace.error ?? action.error} />
+      {tab === 'document' &&
+        (doc.data ? <DocumentView document={doc.data} /> : <p>Loading review document</p>)}
+      {tab === 'traceability' && trace.data && (
+        <Traceability rows={trace.data} deployment={snapshot.deployment} onView={onView} />
+      )}{' '}
+      {tab === 'open issues & decisions' && (
+        <section>
+          <h2>Open reasoning and design decisions</h2>
+          {(['challenges', 'risks', 'assumptions', 'decisions'] as const).map((collection) => (
+            <section key={collection}>
+              <h3>{collection[0]!.toUpperCase() + collection.slice(1)}</h3>
+              {snapshot.deployment[collection].length === 0 ? (
+                <p>No records.</p>
+              ) : (
+                snapshot.deployment[collection].map((r) => (
+                  <div className="issue-row" key={r.id}>
+                    <div>
+                      <strong>{r.title}</strong>
+                      <p>
+                        {'statement' in r && r.statement && 'value' in r.statement
+                          ? r.statement.value
+                          : r.description && 'value' in r.description
+                            ? r.description.value
+                            : 'Details not supplied'}
+                      </p>
+                    </div>
+                    <button onClick={() => onView(r.id)}>Edit</button>
+                  </div>
+                ))
+              )}
+            </section>
+          ))}
+        </section>
+      )}
+      <div className="print-provenance">
+        <p>Source revision: {snapshot.sourceRevision}</p>
+        <p>Source SHA-256: {snapshot.sourceHash}</p>
+        <p>
+          Tool: {snapshot.validation.toolVersion} · Specification: {snapshot.validation.specVersion} · Rules:{' '}
+          {snapshot.validation.ruleSetVersion}
+        </p>
+        <p>
+          {snapshot.validation.label} · Operator decision: {snapshot.approvalStatus}
+        </p>
+      </div>
+      {decision && (
+        <DecisionDialog
+          snapshot={snapshot}
+          scopes={scopes}
+          onClose={() => setDecision(false)}
+          onRefresh={onRefresh}
+          onSettings={onSettings}
+        />
+      )}{' '}
+      {exporting && (
+        <Modal title="Prepare the handoff package" onClose={() => setExporting(false)}>
+          <p>
+            The package includes the exact source revision and its current findings, including blocked drafts.
+            Select which local evidence files to include.
+          </p>
+          {snapshot.deployment.evidence
+            .filter((e) => e.location.kind === 'attachment')
+            .map((e) => (
+              <label className="check-row" key={e.id}>
+                <input
+                  type="checkbox"
+                  disabled={Boolean(preview)}
+                  checked={selected.includes(e.id)}
+                  onChange={(event) =>
+                    setSelected(
+                      event.target.checked ? [...selected, e.id] : selected.filter((id) => id !== e.id),
+                    )
+                  }
+                />
+                {e.title}
+              </label>
+            ))}
+          {preview ? (
+            <>
+              <h3>Files in this package</h3>
+              <ul>
+                {preview.members.map((member, i) => (
+                  <li key={i}>{typeof member === 'string' ? member : member.path}</li>
+                ))}
+              </ul>
+              <p className="meta">Frozen source: {preview.sourceRevision}</p>
+              <details>
+                <summary>Evidence inclusion manifest</summary>
+                <pre>{JSON.stringify(preview.evidence, null, 2)}</pre>
+              </details>
+              <div className="actions">
+                <button onClick={() => setPreview(null)}>Change selection</button>
+                <button
+                  className="primary"
+                  disabled={action.busy}
+                  onClick={() =>
+                    void action.run(async () => {
+                      const response = await api.raw('/api/export', {
+                        previewId: preview.previewId,
+                        expected: { sourceRevision: preview.sourceRevision, sourceHash: preview.sourceHash },
+                      });
+                      if (!response.ok) {
+                        const body = (await response.json()) as { error: { code: string; message: string } };
+                        throw new ApiError(body.error.code, body.error.message);
+                      }
+                      download(await response.blob(), 'robopomelo-handoff.zip');
+                      action.setNotice(`Handoff package downloaded for revision ${preview.sourceRevision}.`);
+                      setExporting(false);
+                    })
+                  }
+                >
+                  {action.busy ? 'Preparing package' : 'Download ZIP'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <button
+              className="primary"
+              disabled={action.busy}
+              onClick={() =>
+                void action.run(async () =>
+                  setPreview(
+                    await api.request<ExportPreview>('/api/export/preview', {
+                      expected: expected(snapshot),
+                      selectedEvidenceIds: selected,
+                    }),
+                  ),
+                )
+              }
+            >
+              {action.busy ? 'Preparing preview' : 'Preview package files'}
+            </button>
+          )}
+          <ErrorNotice message={action.error} />
+        </Modal>
+      )}
+      <p role="status">{action.notice}</p>
+    </>
+  );
+}
