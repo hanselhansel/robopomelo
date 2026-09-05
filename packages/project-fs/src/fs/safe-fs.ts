@@ -217,6 +217,17 @@ export class SafeRoot {
     return destination;
   }
 
+  /** @internal Publish a completed export directory while holding the project
+   * lock. Generated staging and an absent destination are rechecked here. */
+  async publishExportDirectory(staged:string,destination:string,expected:SafeStat,lock:SafeStat):Promise<void> {
+    if(!/^exports\/\.incomplete-[a-f0-9-]{36}$/.test(staged)||!destination.startsWith('exports/')||destination.split('/').length!==2)fail('INVALID_PATH','Only generated export directories may be published.');
+    const from=await this.#checked(staged),to=await this.#checked(destination,true),held=await this.#checked('.robopomelo-project.lock');
+    if(to.stat)fail('PATH_COLLISION','Export destination already exists.');
+    if(!from.stat?.isDirectory()||!held.stat?.isDirectory()||String(from.stat.dev)!==expected.device||String(from.stat.ino)!==expected.fileId||String(held.stat.dev)!==lock.device||String(held.stat.ino)!==lock.fileId)fail('PATH_CHANGED','Export staging or project lock identity changed.');
+    await rename(from.path,to.path);
+    const after=await this.#checked(destination);if(!after.stat||!same(from.stat!,after.stat))fail('PATH_CHANGED','Published export identity changed.');
+  }
+
   async list(value?:string):Promise<string[]> {
     await this.#checkRoot();
     const directory = value === undefined ? {path:this.path,stat:this.pinned} : await this.#checked(value);
