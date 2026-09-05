@@ -37,3 +37,9 @@ Native run 33962540784 reproduced EPERM at the source rename on all four Windows
 `transactions/replace-source.ts` will retry only Windows EPERM with syscall rename, at most eight attempts. Each attempt rechecks the original staged/destination device and file identity, old/new byte hashes, and identity again after reads. All checks use confined SafeRoot operations. Source changes abort with STALE_BASE; prepared-file changes require recovery. Missing files and other errors abort. There is no unlink, copy-overwrite, permission change, or retry of directory sync/history. The helper remains inside existing authorization and the project lease. Backoff totals at most 775ms; I/O time is separate.
 
 Causal tests cover transient success, bounded persistent failure, other OS/error boundaries, external source edits, stage tampering, changed inode with identical bytes, and post-replacement failure. The existing native replay remains the Windows acceptance gate. Failed synthetic metadata is also retained under a visible artifact directory because upload excludes dot-directories by default.
+
+## Coordination refinement
+
+Native run 33964133472 completed the replay on two Windows versions, but two still exhausted the guarded retries while the observer repeatedly reopened the source. Retry alone is insufficient under continuous managed reads.
+
+Add a per-SafeRoot FIFO file-access coordinator used by buffered `readFile` and `renameReplace` for the same normalized destination. A buffered read keeps its slot through handle close; replacement waits behind it and ahead of later reads. Different paths remain independent, and failures release queued work. Explicit streaming handles retain their existing semantics. This coordinates RoboPomelo's own reads; it does not claim control of external processes. Keep checked retries for external transient denial, all confinement checks and existing authorization/lease ordering.

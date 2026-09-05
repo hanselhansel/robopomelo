@@ -7,6 +7,7 @@ import { join, relative, isAbsolute } from 'node:path';
 import { ProjectFsError } from '../errors.js';
 import { SOURCE_BYTE_LIMIT } from '../limits.js';
 import { portableNameKey, projectRelativePath } from './paths.js';
+import { FileAccess } from './file-access.js';
 
 export interface RootIdentity {canonicalPath:string; device:string; fileId:string}
 export interface SafeStat {kind:'file'|'directory'; size:number; mtimeMs:number; device:string; fileId:string}
@@ -23,6 +24,7 @@ const fail = (code:string,message:string):never => {throw new ProjectFsError(cod
 export class SafeRoot {
   #closed = false;
   #handles = new Set<FileHandle>();
+  #fileAccess = new FileAccess();
   private constructor(private readonly path:string, private readonly pinned:BigIntStats, private readonly rootHandle:FileHandle|null) {}
 
   static async open(selectedPath:string):Promise<SafeRoot> {
@@ -139,8 +141,10 @@ export class SafeRoot {
   }
 
   async readFile(value:string,limit = SOURCE_BYTE_LIMIT):Promise<Buffer> {
-    const handle = await this.openRead(value);
-    try {return await handle.readFile(limit);} finally {await handle.close();}
+    return this.#fileAccess.run(projectRelativePath(value), async () => {
+      const handle = await this.openRead(value);
+      try {return await handle.readFile(limit);} finally {await handle.close();}
+    });
   }
 
   async createExclusive(value:string):Promise<WriteHandle> {
@@ -168,12 +172,14 @@ export class SafeRoot {
   }
 
   async renameReplace(staged:string,destination:string):Promise<void> {
-    const from = await this.#checked(staged);
-    const to = await this.#checked(destination,true);
-    if (!from.stat?.isFile() || (to.stat && !to.stat.isFile())) fail('UNSUPPORTED_FILE','Replacement supports regular files only.');
-    await rename(from.path,to.path);
-    const after = await this.#checked(destination);
-    if (!after.stat || !same(from.stat!,after.stat)) fail('PATH_CHANGED','Replacement identity changed.');
+    return this.#fileAccess.run(projectRelativePath(destination), async () => {
+      const from = await this.#checked(staged);
+      const to = await this.#checked(destination,true);
+      if (!from.stat?.isFile() || (to.stat && !to.stat.isFile())) fail('UNSUPPORTED_FILE','Replacement supports regular files only.');
+      await rename(from.path,to.path);
+      const after = await this.#checked(destination);
+      if (!after.stat || !same(from.stat!,after.stat)) fail('PATH_CHANGED','Replacement identity changed.');
+    });
   }
 
   async renameNoReplace(fromValue:string,toValue:string):Promise<void> {
