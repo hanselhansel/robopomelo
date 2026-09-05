@@ -1,3 +1,4 @@
+import { fixtureEntry } from './helpers/entry-path.js';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -16,7 +17,7 @@ beforeAll(async () => {
   const directory = await mkdtemp(join(tmpdir(), 'rp-export-worker-'));
   executable = join(directory, 'worker.cjs');
   await build({
-    entryPoints: [new URL('./helpers/export-child.ts', import.meta.url).pathname],
+    entryPoints: [fixtureEntry('./helpers/export-child.ts', import.meta.url)],
     outfile: executable,
     bundle: true,
     platform: 'node',
