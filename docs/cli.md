@@ -24,9 +24,9 @@ The inbound-pallet example is fictional. Its unknown and unverified information 
 | `init <folder>`                  | Blank or `--example inbound-pallet` project; refuses a nonempty target                                                                  |
 | `show`                           | Snapshot, `--id <stable-id>`, `--traceability`, or `--change <id> --digest <sha256>` receipt                                            |
 | `validate`                       | Shared readiness report; blockers return exit 3                                                                                         |
-| `patch check <file               | ->`                                                                                                                                     | Predicted diff and readiness without a source write                |
-| `patch diff <file                | ->`                                                                                                                                     | The same evaluated before/after field diff                         |
-| `patch apply <file               | ->`                                                                                                                                     | Applied, proposed, or already-applied mutation result              |
+| `patch check <file\|->` | Predicted diff and readiness without a source write |
+| `patch diff <file\|->` | The evaluated before/after field diff |
+| `patch apply <file\|->` | Applied, proposed, or already-applied mutation result |
 | `history list`                   | Recorded revisions; `--proposals` lists stored proposals                                                                                |
 | `history show <revision>`        | Verified historical source and snapshot                                                                                                 |
 | `history restore <revision>`     | Authoring restore as a new revision, preserving protected current review history                                                        |
@@ -38,12 +38,14 @@ The inbound-pallet example is fictional. Its unknown and unverified information 
 | `evidence list`                  | Declared evidence records                                                                                                               |
 | `evidence check`                 | Current local attachment observations; no external fetch                                                                                |
 | `evidence remove <id>`           | Remove the active reference while retaining recovery/history bytes                                                                      |
-| `review acknowledge <file        | ->`                                                                                                                                     | Supplied warning acknowledgments                                   |
-| `review waive <file              | ->`                                                                                                                                     | Supplied waivers for explicitly eligible warnings                  |
-| `review approve <file            | ->`                                                                                                                                     | Supplied approved, rejected or changes-requested operator decision |
+| `review acknowledge <file\|->` | Supplied warning acknowledgments |
+| `review waive <file\|->` | Supplied waivers for explicitly eligible warnings |
+| `review approve <file\|->` | Supplied approved, rejected or changes-requested operator decision |
 | `review revoke <id>`             | Supplied actor, source, reason and decision date bound to the explicit source base                                                      |
 | `export`                         | ZIP or `--format files`, confined beneath the project's `exports/` directory                                                            |
 | `migrate --target <version>`     | Preview; `--apply` requires exact base, actor and author authority                                                                      |
+| `migrate --recover <manifest>` | Finish verified migration bookkeeping without replacing source |
+| `migrate --restore-backup <manifest> --destination <empty-folder>` | Restore verified backup bytes into an explicit empty folder with fresh trust required |
 | `capabilities`                   | Core, Skill and adapter stages, ranges, availability and declared writes                                                                |
 | `trust show`                     | Effective authority for the selected project                                                                                            |
 | `trust grant`                    | Remember the supplied scopes and mode                                                                                                   |
@@ -96,3 +98,5 @@ Selection order is per-run `--runtime-version`, rollback hold, persistent exact 
 | 6    | Filesystem, evidence, recovery or archive I/O failure            |
 | 7    | Unsupported specification, runtime, capability or migration      |
 | 8    | Explicit update network, verification or installation failure    |
+
+Operating guides: [project storage and recovery](project-storage.md), [offline operation](offline-operation.md), [update policy](update-policy.md), and [security boundaries](security-boundaries.md).

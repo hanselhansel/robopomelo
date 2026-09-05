@@ -23,7 +23,8 @@ const argumentsByCommand: Partial<Record<CommandName, string>> = {
   'review revoke':
     '<approval-id> --actor <json> --source <text> --reason <text> --date <date-time> --base-revision <revision> --base-hash <sha256>',
   export: '--no-evidence | --all-evidence | --include-evidence <ids>',
-  migrate: '--target <spec-version> [--apply --base-revision <revision> --base-hash <sha256> --actor <json>]',
+  migrate:
+    '--target <spec-version> [--apply --base-revision <revision> --base-hash <sha256> --actor <json>] | --recover <manifest> | --restore-backup <manifest> --destination <empty-folder> --actor <json> --authorize author',
   'trust grant': '--scopes <scopes> --mode <autonomous|review-each-change> [--remember]',
   'update install': '[version] [--target <version>]',
   'update rollback': '[version] [--target <version>]',
