@@ -1,4 +1,5 @@
 import { spawn, spawnSync } from 'node:child_process';
+import { cleanupFor } from './test-process-cleanup.mjs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 export function npm(args, options = {}) {
@@ -28,6 +29,7 @@ export function run(binary, args, options = {}) {
 }
 export function launchJson(binary, args, options = {}) {
   const child = spawn(binary, args, { stdio: ['ignore', 'pipe', 'pipe'], ...options });
+  const close = cleanupFor(child);
   let stderr = '';
   child.stderr.on('data', (chunk) => (stderr += chunk));
   const ready = new Promise((resolve, reject) => {
@@ -57,17 +59,10 @@ export function launchJson(binary, args, options = {}) {
       reject(new Error(`Browser launcher exited ${code}: ${stderr}`));
     });
   });
-  const exited = new Promise((resolve) => child.once('exit', resolve));
   return {
     child,
     ready,
-    close: async () => {
-      if (child.exitCode !== null) return;
-      child.kill('SIGTERM');
-      const timer = setTimeout(() => child.kill('SIGKILL'), 5000);
-      await exited;
-      clearTimeout(timer);
-    },
+    close,
   };
 }
 export const workspaceRoot = fileURLToPath(new URL('../', import.meta.url));

@@ -87,7 +87,7 @@ const server = launchJson(process.execPath, [entry, 'open', project, '--no-brows
 });
 try {
   const launched = await server.ready;
-  assert.equal(launched.ok, true);
+  assert.equal(launched.ok, true, JSON.stringify({ errors: launched.errors, command: launched.command }));
   const bootstrap = new URL(launched.data.bootstrapUrl),
     origin = bootstrap.origin;
   assert.equal(bootstrap.hostname, '127.0.0.1');
