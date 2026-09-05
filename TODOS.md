@@ -2,6 +2,22 @@
 
 These are approved post-v1 phases. Full dependencies, entry/exit criteria, compatibility, security, success metrics and kill/deferral criteria live in [the roadmap](docs/superpowers/specs/robopomelo/delivery-and-roadmap.md). No item authorizes physical-system writes.
 
+## Accessibility verification
+
+### Complete manual screen-reader acceptance
+
+**What:** Exercise the complete planning, review and export workflow with actual screen-reader output and navigation.
+
+**Why:** Automated accessibility and keyboard checks do not establish screen-reader usability.
+
+**Context:** Hansel explicitly deferred this one manual test for v1 on 2026-09-05 after three VoiceOver activation paths could not provide verifiable output through the available automation. Report it as unverified, never passed. Other release gates remain required. See [local acceptance evidence](docs/verification/v1-local-acceptance.md).
+
+**Pros:** Confirms real assistive-technology behavior.
+**Cons:** Requires an accessible test session and an operator or supported output capture.
+**Effort:** M
+**Priority:** P1
+**Depends on:** A working reader session with observable speech or captions. Record browser, OS and reader version, task results and any findings before closing this item.
+
 ## Future capabilities
 
 ### Git-aware intent and optional local-agent access

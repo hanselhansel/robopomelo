@@ -15,6 +15,7 @@ Never read or index unrelated private repositories. Never import another physica
 - At most three agents run concurrently, including the coordinating agent. Delegate only independent bounded work.
 - Use one whole-branch implementation review and at most two global repair cycles. Do not duplicate release-owned reviews.
 - On 2026-09-05 Hansel authorized one additional focused repair cycle for the proposal-application refresh regression, including its verification. Other release gates remain in force.
+- On 2026-09-05 Hansel approved deferring only manual screen-reader testing for v1 as a documented unverified gap. Continue release with all other automated accessibility, keyboard, browser, package, CI and publication checks required. Do not claim full accessibility verification.
 - Run gstack ship, then land-and-deploy exactly. Routine green proceed gates are authorized.
 - Stop for failing CI, unresolved security, merge conflict, unexpected scope, an unresolved release-semantic version choice, destructive recovery or unhealthy deployment.
 

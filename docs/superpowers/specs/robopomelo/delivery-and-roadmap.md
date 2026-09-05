@@ -85,6 +85,8 @@ Cover current stable Chrome, Edge, Firefox and Safari where available on support
 
 Actual unverified required coverage remains a release gap. The implementation agent attempts the tests itself and reports tool/platform constraints if encountered; it does not create a standing personal PR-review task for Hansel.
 
+V1 acceptance amendment, approved by Hansel on 2026-09-05: manual screen-reader testing is deferred and must be reported as unverified. VoiceOver activation was attempted through three available routes, but observable reader output and navigation could not be verified. This exception permits continuing the release; it does not waive automated accessibility, keyboard, browser, package, CI or publication checks, and does not establish WCAG conformance. Track the remaining test in TODOS.md and the release evidence.
+
 ## First release and update channel
 
 The first installable release is `1.0.0-rc.1`, containing the full agreed v1 scope. The reference project and fixtures are clearly fictional. Documentation makes no customer-validation claim.
