@@ -3,10 +3,12 @@ import { expect, type Locator, type Page } from '@playwright/test';
 export const operator = 'Fictional operator Ada';
 export const field = (record: Locator, path: string) => record.locator(`[data-field="${path}"]`);
 export async function navigate(page: Page, name: string) {
-  await page
+  const target = page
     .getByRole('navigation', { name: 'Project sections' })
-    .getByRole('button', { name, exact: true })
-    .click();
+    .getByRole('button', { name, exact: true });
+  await target.click();
+  // The app completes pending durable saves before activating the destination.
+  await expect(target).toHaveAttribute('aria-current', 'page');
 }
 export async function knowledge(record: Locator, path: string, value: string, person = false) {
   const group = field(record, path);
