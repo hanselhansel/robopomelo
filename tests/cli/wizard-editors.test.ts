@@ -103,3 +103,108 @@ it('interrupts queued scripted input without consuming another planned edit', as
   await expect(s.terminal.text('Second')).rejects.toHaveProperty('reason', 'interrupt');
   s.terminal.close();
 });
+import { editField } from '../../apps/cli/src/wizard/fields.js';
+import { editFlowList } from '../../apps/cli/src/wizard/nested.js';
+import { editVerification } from '../../apps/cli/src/wizard/verification.js';
+import { createInboundExample } from '@robopomelo/core';
+import { fields } from '@robopomelo/spec';
+import { WizardDraft } from '../../apps/cli/src/wizard/draft.js';
+import { newRecord } from '../../apps/cli/src/wizard/record-defaults.js';
+const deployment = () =>
+  createInboundExample({ id: 'project', revision: 'revision', timestamp: '2026-09-05T00:00:00Z' });
+it('edits registry knowledge text and stable-ID reference lists with typed values', async () => {
+  const d = deployment(),
+    s = script(['Provided', 'A supplied outcome', 'Done']),
+    field = fields.find((f) => f.id === 'project.outcome')!;
+  expect(
+    await editField(s.terminal, field, null, {
+      deployment: d,
+      collection: 'project',
+      recordId: 'project',
+      id: () => 'new-id',
+    }),
+  ).toEqual({ state: 'provided', value: 'A supplied outcome' });
+  s.terminal.close();
+  const refs = script(['stakeholder-operator', 'Done']);
+  expect(
+    await editField(
+      refs.terminal,
+      fields.find((f) => f.id === 'needs.beneficiaryIds')!,
+      [],
+      { deployment: d, collection: 'needs', recordId: 'need-transfer', id: () => 'new-id' },
+    ),
+  ).toEqual(['stakeholder-operator']);
+  refs.terminal.close();
+});
+it('preserves intentional flow order and supports explicit reorder without dropping another step', async () => {
+  const s = script(['second', 'up', 'back', 'done']);
+  const result = await editFlowList(
+    s.terminal,
+    'steps',
+    [
+      { id: 'first', title: 'Collect', location: null, handoffToId: null },
+      { id: 'second', title: 'Deliver', location: null, handoffToId: null },
+    ],
+    { deployment: deployment(), collection: 'workflows', recordId: 'flow-intended', id: () => 'new-id' },
+  );
+  expect(result.map((r) => r.id)).toEqual(['second', 'first']);
+  s.terminal.close();
+});
+it('lets a supplied verification declaration retain explicit obligation, support and human attestation', async () => {
+  const d = deployment();
+  d.evidence.push(newRecord('evidence', 'support', 'Supplied support', { purpose: 'planning' }));
+  const s = script([
+    'add',
+    'baseline',
+    'required',
+    'True',
+    'evidenceIds',
+    'support',
+    'Done',
+    'attestation',
+    'record',
+    'Human',
+    'Inspector',
+    '',
+    '',
+    'Observed the supplied measurement',
+    '2026-09-01T00:00:00Z',
+    'Inspection report',
+    'back',
+    'done',
+  ]);
+  const result = await editVerification(s.terminal, [], {
+    deployment: d,
+    collection: 'kpis',
+    recordId: d.kpis[0]!.id,
+    id: () => 'verification-id',
+  });
+  expect(result[0]).toMatchObject({
+    claimPath: 'baseline',
+    required: true,
+    evidenceIds: ['support'],
+    attestation: {
+      actor: { kind: 'human', name: 'Inspector' },
+      statement: 'Observed the supplied measurement',
+      recordedAt: '2026-09-01T00:00:00Z',
+      source: 'Inspection report',
+    },
+  });
+  s.terminal.close();
+});
+it('accepts a unique displayed record title but never guesses among duplicate titles', async () => {
+  const one = script(['Operator']);
+  expect(await one.terminal.choose('Person', [{ value: 'person-id', label: 'Operator [person-id]' }])).toBe(
+    'person-id',
+  );
+  one.terminal.close();
+  const two = script(['Operator', 'person-b']);
+  expect(
+    await two.terminal.choose('Person', [
+      { value: 'person-a', label: 'Operator [person-a]' },
+      { value: 'person-b', label: 'Operator [person-b]' },
+    ]),
+  ).toBe('person-b');
+  expect(two.output()).toContain('Choose a listed number');
+  two.terminal.close();
+});

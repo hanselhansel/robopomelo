@@ -95,6 +95,14 @@ export class NodeTerminal implements TerminalAdapter {
             c.value.toLowerCase() === answer.toLowerCase() || c.label.toLowerCase() === answer.toLowerCase(),
         );
       if (choice) return choice.value;
+      const aliases = choices.filter(
+        (c) =>
+          c.label
+            .replace(/^\[(?:x| )\]\s*/, '')
+            .replace(/\s+\[[^\]]+\]$/, '')
+            .toLowerCase() === answer.toLowerCase(),
+      );
+      if (aliases.length === 1) return aliases[0]!.value;
       if (answer === ':back') throw new WizardBack();
       this.write('Choose a listed number or label.\n> ');
     }

@@ -12,6 +12,7 @@ import { loadBundledRuntime } from './runtime/bundle.js';
 import { runtimeContext } from './services/runtime.js';
 import { startApplication } from './server/application.js';
 import { openBrowser } from './browser.js';
+import { runWizard } from './wizard/run.js';
 interface StartMessage {
   type: 'robopomelo:start';
   argv: string[];
@@ -92,6 +93,8 @@ export async function runCli(argv: string[], start?: StartMessage): Promise<void
       project,
       toolVersion: TOOL_VERSION,
       stdin: process.stdin,
+      stdout: process.stdout,
+      plan: runWizard,
       isTTY: start?.stdinIsTTY ?? process.stdin.isTTY === true,
       cwd: process.cwd(),
       packageDirectory,
