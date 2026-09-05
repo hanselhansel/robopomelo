@@ -16,6 +16,8 @@ export interface CommandResult {
 export interface CommandContext {
   project: ProjectService;
   toolVersion: string;
+  launcherVersion?: string;
+  bundledRuntimeVersion?: string;
   stdin: Readable;
   isTTY: boolean;
   cwd?: string;

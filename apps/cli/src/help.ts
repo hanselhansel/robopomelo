@@ -38,6 +38,8 @@ const examples: Partial<Record<CommandName, string[]>> = {
   'trust grant': [
     'robopomelo trust grant --project demo --scopes author,evidence,export --mode autonomous --remember --authorize manage-settings',
   ],
+  'update install': ['robopomelo update install --target 1.0.0 --authorize manage-settings'],
+  'update rollback': ['robopomelo update rollback --authorize manage-settings'],
   'update configure': [
     'robopomelo update configure --mode auto --authorize manage-settings',
     'robopomelo update configure --resume --authorize manage-settings',
