@@ -13,6 +13,19 @@ export interface UpdateStatus {
   mode: 'auto' | 'notify' | 'off';
   pin: string | null;
   offline: boolean;
+  versions?: {
+    launcherVersion: string;
+    bundledRuntimeVersion: string;
+    selectedRuntimeVersion: string;
+    currentRuntimeVersion: string;
+  };
+  configuredOffline?: boolean;
+  offlineForced?: boolean;
+  availableVersion?: string | null;
+  checkEligible?: boolean;
+  rollbackVersion?: string | null;
+  rollbackReason?: string;
+  sourceCheckout?: boolean;
   launcherVersion?: string;
   bundledVersion?: string;
   selectedVersion?: string;
@@ -23,7 +36,7 @@ export interface UpdateStatus {
   installEligible?: boolean;
   compatibility?: string;
   lastOutcome?: Json;
-  rollbackHold?: boolean;
+  rollbackHold?: Json;
 }
 const scopeLabels: Record<Scope, string> = {
   inspect: 'Inspect the project',
@@ -62,13 +75,26 @@ export function Settings({
     if (updates.data) {
       setUpdateMode(updates.data.mode);
       setPin(updates.data.pin ?? '');
-      setOffline(updates.data.offline);
+      setOffline(updates.data.configuredOffline ?? updates.data.offline);
     }
   }, [updates.data]);
   const updateAction = (name: string) =>
     void action.run(async () => {
-      const outcome = await api.request<Json>(`/api/updates/${name}`, {});
-      action.setNotice(`Update operation returned: ${JSON.stringify(outcome)}`);
+      const version =
+        name === 'install'
+          ? updates.data?.availableVersion
+          : name === 'rollback'
+            ? updates.data?.rollbackVersion
+            : null;
+      const outcome = await api.request<Json>(`/api/updates/${name}`, version ? { version } : {});
+      action.setNotice(
+        outcome &&
+          typeof outcome === 'object' &&
+          !Array.isArray(outcome) &&
+          typeof outcome.message === 'string'
+          ? outcome.message
+          : `Update operation returned: ${JSON.stringify(outcome)}`,
+      );
       await updates.reload();
     });
   return (
@@ -168,11 +194,21 @@ export function Settings({
             <dl className="runtime-details">
               <div>
                 <dt>Current session runtime</dt>
-                <dd>{updates.data.currentVersion ?? api.session?.toolVersion ?? 'Not reported'}</dd>
+                <dd>
+                  {updates.data.versions?.currentRuntimeVersion ??
+                    updates.data.currentVersion ??
+                    api.session?.toolVersion ??
+                    'Not reported'}
+                </dd>
               </div>
               <div>
                 <dt>Installed runtime</dt>
-                <dd>{updates.data.installedVersion ?? updates.data.selectedVersion ?? 'Not reported'}</dd>
+                <dd>
+                  {updates.data.versions?.selectedRuntimeVersion ??
+                    updates.data.installedVersion ??
+                    updates.data.selectedVersion ??
+                    'Not reported'}
+                </dd>
               </div>
               <div>
                 <dt>Pending runtime</dt>
@@ -183,6 +219,12 @@ export function Settings({
                 <dd>{updates.data.compatibility ?? 'No compatibility result reported'}</dd>
               </div>
             </dl>
+            {updates.data.availableVersion && (
+              <p>
+                Available stable version: {updates.data.availableVersion}. Installation still checks publisher
+                provenance and compatibility.
+              </p>
+            )}
             <p>Staging an update does not replace the code in this active session.</p>
             <label htmlFor="update-mode">Update policy</label>
             <select id="update-mode" value={updateMode} onChange={(e) => setUpdateMode(e.target.value)}>
@@ -197,9 +239,23 @@ export function Settings({
               onChange={setPin}
             />
             <label className="check-row">
-              <input type="checkbox" checked={offline} onChange={(e) => setOffline(e.target.checked)} />
+              <input
+                type="checkbox"
+                aria-describedby="offline-preference-help"
+                checked={offline}
+                onChange={(e) => setOffline(e.target.checked)}
+              />
               Offline mode
             </label>
+            <p className="help" id="offline-preference-help">
+              Save the default offline preference.{' '}
+              {updates.data.offlineForced
+                ? 'This launch remains offline because it was started with --offline.'
+                : 'The running session also honors the saved preference.'}
+            </p>
+            {updates.data.sourceCheckout && (
+              <p className="notice subtle">This source checkout does not manage installed runtimes.</p>
+            )}
             {updates.data.offline && (
               <p className="notice subtle">
                 Offline mode is active. Network update checks are unavailable; project navigation remains
@@ -223,7 +279,10 @@ export function Settings({
               >
                 Save update policy
               </button>
-              <button disabled={action.busy || updates.data.offline} onClick={() => updateAction('check')}>
+              <button
+                disabled={action.busy || updates.data.offline || updates.data.checkEligible === false}
+                onClick={() => updateAction('check')}
+              >
                 Check for updates
               </button>
               <button
@@ -239,6 +298,24 @@ export function Settings({
                 Roll back runtime
               </button>
             </div>
+            {updates.data.rollbackReason && <p className="help">{updates.data.rollbackReason}</p>}
+            {updates.data.rollbackHold && (
+              <div className="notice subtle">
+                <p>A rollback hold is active. Resume normal selection explicitly when you are ready.</p>
+                <button
+                  disabled={action.busy}
+                  onClick={() =>
+                    void action.run(async () => {
+                      await api.request('/api/updates/configure', { resume: true });
+                      await updates.reload();
+                      action.setNotice('Normal update selection resumed.');
+                    })
+                  }
+                >
+                  Resume normal update selection
+                </button>
+              </div>
+            )}
             <details>
               <summary>Last update outcome and runtime identities</summary>
               <pre>{JSON.stringify(updates.data, null, 2)}</pre>

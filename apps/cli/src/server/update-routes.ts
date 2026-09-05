@@ -7,7 +7,9 @@ interface Status {
   policy: { mode: string; pinnedVersion: string | null; rollbackHold: unknown; offline: boolean };
   selection: { version: string; reason: string };
   runtime: { manifest: { version: string } };
-  lastOutcome: unknown;
+  lastOutcome: { status?: string; pendingVersion?: string | null; message?: string } | null;
+  configuredPolicy?: { mode: string; offline: boolean };
+  rollback?: { version: string; eligible: boolean; reason: string };
 }
 export interface UpdaterApi {
   status(run?: RunPolicy): Promise<Status>;
@@ -37,11 +39,29 @@ export function updateRoutes(updater: UpdaterApi, identity: RuntimeIdentity): Ro
       projectScoped: false,
       handler: async () => {
         const status = await updater.status(run);
+        const availableVersion =
+          status.lastOutcome?.status === 'available' ? (status.lastOutcome.pendingVersion ?? null) : null;
+        const installationAllowed =
+          !status.policy.offline &&
+          !run.sourceCheckout &&
+          !!availableVersion &&
+          !status.policy.rollbackHold &&
+          (!status.policy.pinnedVersion || status.policy.pinnedVersion === availableVersion);
         return {
-          mode: status.policy.mode,
+          mode: status.configuredPolicy?.mode ?? status.policy.mode,
           pin: status.policy.pinnedVersion,
           rollbackHold: status.policy.rollbackHold,
           offline: status.policy.offline,
+          configuredOffline: status.configuredPolicy?.offline ?? status.policy.offline,
+          offlineForced: identity.offline === true,
+          pendingVersion: status.selection.version !== identity.toolVersion ? status.selection.version : null,
+          availableVersion,
+          compatibility: 'Selected runtime passed compatibility checks.',
+          checkEligible: !status.policy.offline && !run.sourceCheckout,
+          installEligible: installationAllowed,
+          rollbackEligible: status.rollback?.eligible ?? false,
+          rollbackVersion: status.rollback?.version ?? null,
+          rollbackReason: status.rollback?.reason ?? 'Rollback eligibility has not been reported.',
           versions: {
             launcherVersion: identity.launcherVersion,
             bundledRuntimeVersion: identity.bundledRuntimeVersion,
@@ -69,7 +89,16 @@ export function updateRoutes(updater: UpdaterApi, identity: RuntimeIdentity): Ro
         }
         if (body.pin !== undefined)
           changes.pinnedVersion = body.pin === null ? null : requiredText(body.pin, 'exact runtime pin', 80);
-        if (body.online === true) changes.offline = false;
+        if (body.offline !== undefined) {
+          if (typeof body.offline !== 'boolean')
+            throw new HttpError(400, 'INVALID_INPUT', 'Offline preference must be true or false.');
+          changes.offline = body.offline;
+        }
+        if (body.online === true) {
+          if (body.offline === true)
+            throw new HttpError(400, 'INVALID_INPUT', 'Choose one consistent online or offline preference.');
+          changes.offline = false;
+        }
         if (!Object.keys(changes).length)
           throw new HttpError(400, 'INVALID_INPUT', 'Supply an explicit update setting change.');
         return updater.configure(changes, authority);

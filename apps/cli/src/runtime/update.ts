@@ -29,7 +29,8 @@ export class UpdateService {
     this.network = options.network ?? new PublicReleaseNetwork();
   }
   async status(run: RunPolicy = {}): Promise<RuntimeStatus> {
-    const policy = effectivePolicy(await this.options.preferences.read(), run),
+    const configuredPolicy = await this.options.preferences.read();
+    const policy = effectivePolicy(configuredPolicy, run),
       pointer = await this.options.cache.pointer();
     if (run.sourceCheckout) {
       assertCompatible(this.options.bundle.manifest, this.options.probe);
@@ -38,6 +39,12 @@ export class UpdateService {
         runtime: this.options.bundle,
         policy,
         lastOutcome: pointer.lastOutcome,
+        configuredPolicy,
+        rollback: {
+          version: this.options.bundle.manifest.version,
+          eligible: false,
+          reason: 'Source checkout execution does not manage installed runtimes.',
+        },
       };
     }
     let cached: RuntimeDescriptor[] = [];
@@ -68,7 +75,26 @@ export class UpdateService {
       selection.version = runtime.manifest.version;
       selection.reason = 'bundle';
     }
-    return { selection, runtime, policy, lastOutcome: pointer.lastOutcome };
+    const rollbackVersion = pointer.previous?.version ?? this.options.bundle.manifest.version;
+    const rollbackRuntime =
+      rollbackVersion === this.options.bundle.manifest.version
+        ? this.options.bundle
+        : cached.find((item) => item.manifest.version === rollbackVersion);
+    const rollback = {
+      version: rollbackVersion,
+      eligible: false,
+      reason: 'No different verified compatible runtime is available for rollback.',
+    };
+    if (rollbackRuntime && rollbackVersion !== selection.version) {
+      try {
+        assertCompatible(rollbackRuntime.manifest, this.options.probe);
+        rollback.eligible = true;
+        rollback.reason = 'A verified compatible local runtime is available.';
+      } catch {
+        rollback.reason = 'The earlier local runtime is incompatible with this project.';
+      }
+    }
+    return { selection, runtime, policy, configuredPolicy, rollback, lastOutcome: pointer.lastOutcome };
   }
   async #check(run: RunPolicy, signal?: AbortSignal): Promise<UpdateOutcome> {
     const current = await this.status(run);

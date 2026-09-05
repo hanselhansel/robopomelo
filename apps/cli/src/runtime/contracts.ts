@@ -66,6 +66,8 @@ export interface RuntimeStatus {
   runtime: RuntimeDescriptor;
   policy: Awaited<ReturnType<UpdatePreferences['read']>>;
   lastOutcome: UpdateOutcome | null;
+  configuredPolicy?: Awaited<ReturnType<UpdatePreferences['read']>>;
+  rollback?: { version: string; eligible: boolean; reason: string };
 }
 export interface LaunchOptions extends RunPolicy {
   readOnly?: boolean;
