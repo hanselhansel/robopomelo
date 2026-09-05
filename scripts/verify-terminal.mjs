@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { mkdtemp, realpath, readFile, writeFile, mkdir, stat } from 'node:fs/promises';
+import { mkdtemp, realpath, readFile, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, resolve, dirname } from 'node:path';
+import { join, resolve } from 'node:path';
 import { stripVTControlCharacters, parseArgs } from 'node:util';
 import { run } from './distribution-process.mjs';
+import { finishTerminalVerification } from './terminal-completion.mjs';
+import { execFile } from 'node:child_process';
 const { values } = parseArgs({
   options: { report: { type: 'string', default: 'test-results/terminal.json' } },
 });
@@ -121,9 +123,31 @@ try {
     exitCode: result.exitCode,
     pending: false,
   };
-  await mkdir(dirname(resolve(values.report)), { recursive: true });
-  await writeFile(values.report, JSON.stringify(report, null, 2) + '\n');
-  process.stdout.write(JSON.stringify(report, null, 2) + '\n');
-} finally {
-  if (!exitResult) terminal.kill();
+  await finishTerminalVerification({ reportPath: values.report, report, exitCode: 0 });
+} catch (error) {
+  await finishTerminalVerification({
+    reportPath: values.report,
+    report: {
+      verifiedAt: new Date().toISOString(),
+      os: process.platform,
+      node: process.version,
+      passed: false,
+      error: error.message,
+      terminalExit: exitResult,
+      outputTail: output.slice(-6000),
+    },
+    exitCode: 1,
+    cleanup: async () => {
+      if (exitResult) return;
+      if (process.platform === 'win32') {
+        if (!Number.isSafeInteger(terminal.pid) || terminal.pid <= 0)
+          throw new Error('Invalid owned PTY PID.');
+        await new Promise((resolve, reject) =>
+          execFile('taskkill', ['/PID', String(terminal.pid), '/T', '/F'], { timeout: 5000 }, (error) =>
+            error && !exitResult ? reject(error) : resolve(),
+          ),
+        );
+      } else terminal.kill();
+    },
+  });
 }
