@@ -84,6 +84,10 @@ describe('digest-bound mutation receipts and immutable proposals', () => {
     ]);
     const first = await session.commit(firstInput);
     expect(first.kind).toBe('proposal');
+    expect(first).toMatchObject({
+      validation: { sourceHash: null, readiness: 'blocked' },
+      approvalStatus: 'none',
+    });
     if (first.kind !== 'proposal') throw new Error('Expected proposal');
     const nextInput = {
       ...commitInput(base, 'proposal-two', review, [

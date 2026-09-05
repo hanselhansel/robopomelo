@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { sessionFixture, snapshot, commitInput } from './helpers/session-fixture.js';
+import { ProjectSession } from '../../packages/project-fs/src/session.js';
 const cleanup: (() => Promise<void>)[] = [];
 afterEach(async () => {
   for (const close of cleanup.splice(0).reverse()) await close();
@@ -13,6 +14,13 @@ async function fixture(...args: Parameters<typeof sessionFixture>) {
 }
 
 describe('project sessions', () => {
+  it('recognizes a committed sibling session change without requesting external reconciliation', async () => {
+    const f = await fixture();
+    const base = await snapshot(f.session);
+    const sibling = new ProjectSession(f.session.options);
+    await sibling.commit(commitInput(base, 'sibling-change', f.authorization));
+    expect(await f.session.open()).toMatchObject({ kind: 'readable', externalEdit: false });
+  });
   it('opens and previews without altering source or creating history/lock directories', async () => {
     const { session, path, authorization } = await fixture();
     const base = await snapshot(session);

@@ -26,12 +26,13 @@ import { commitPrepared } from './transactions/commit.js';
 import { historyList, historyRead } from './history.js';
 import { cumulative, proposalRead, saveProposal, allProposals } from './proposals/store.js';
 import { missing } from './transactions/io.js';
-import { prepareExternalReconciliation, knownBaseline } from './external-edits.js';
+import { prepareExternalReconciliation, knownBaseline, registeredSnapshot } from './external-edits.js';
 import { prepareRestore } from './transactions/restore.js';
 import { listProposals } from './proposals/list.js';
 import { retirePrepared, type RetirementInput } from './transactions/retire.js';
 import type { Authorization, SourceIdentity } from './contracts.js';
 import { isDeepStrictEqual } from 'node:util';
+import { approvalStatus } from '@robopomelo/core';
 
 export class ProjectSession {
   #last: ProjectSnapshot | undefined;
@@ -56,11 +57,12 @@ export class ProjectSession {
     const bytes = await this.options.root.readFile('deployment.yaml');
     try {
       const snapshot = await snapshotBytes(bytes, this.options);
-      let externalEdit = this.#last !== undefined && this.#last.sourceHash !== snapshot.sourceHash;
-      if (!this.#baseline) {
+      const registered = await registeredSnapshot(this.options, snapshot);
+      if (registered) this.#baseline = snapshot;
+      else if (!this.#baseline) {
         this.#baseline = await knownBaseline(this.options, snapshot);
-        externalEdit = this.#baseline.sourceHash !== snapshot.sourceHash;
       }
+      const externalEdit = !registered && this.#baseline!.sourceHash !== snapshot.sourceHash;
       this.#evaluation.recordObservations(snapshot);
       this.#last = snapshot;
       return { kind: 'readable', snapshot, externalEdit };
@@ -260,6 +262,8 @@ export class ProjectSession {
         stored ??= await saveProposal(this.options, input, effective, evaluated.evaluation, newBytes);
         return {
           kind: 'proposal',
+          validation: evaluated.evaluation.validation,
+          approvalStatus: approvalStatus(evaluated.evaluation.deployment, evaluated.evaluation.validation),
           proposalId: stored.proposalId,
           patchDigest: stored.digest,
           diff: stored.diff,
@@ -369,6 +373,7 @@ export class ProjectSession {
     expectedHash: string,
     actor: RestoreInput['actor'],
     authorization = this.options.authorization,
+    mutationId = this.options.id(),
   ): Promise<CommitResult> {
     await this.#inspectAuthority();
     const plan = await prepareExternalReconciliation(
@@ -377,6 +382,7 @@ export class ProjectSession {
       actor,
       authorization,
       this.#baseline,
+      mutationId,
     );
     return this.#commitEvaluated(plan.input, plan.evaluate);
   }

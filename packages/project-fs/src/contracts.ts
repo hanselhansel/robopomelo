@@ -8,6 +8,8 @@ import type {
   PatchEvaluation,
   ProjectSnapshot,
   Scope,
+  ValidationReport,
+  ApprovalStatus,
 } from '@robopomelo/spec';
 import type { SafeRoot } from './fs/safe-fs.js';
 import type { TrustStore } from './settings/trust.js';
@@ -47,7 +49,15 @@ export interface CommitInput {
 }
 export type CommitResult =
   | { kind: 'committed'; snapshot: ProjectSnapshot; diff: FieldDiff[]; receiptDigest: string }
-  | { kind: 'proposal'; proposalId: string; patchDigest: string; diff: FieldDiff[]; receiptDigest: string }
+  | {
+      kind: 'proposal';
+      proposalId: string;
+      patchDigest: string;
+      diff: FieldDiff[];
+      receiptDigest: string;
+      validation: ValidationReport;
+      approvalStatus: ApprovalStatus;
+    }
   | {
       kind: 'conflict';
       expected: SourceIdentity;

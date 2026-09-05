@@ -6,6 +6,21 @@ import { snapshotBytes } from './transactions/snapshot.js';
 import { ProjectFsError } from './errors.js';
 import { missing } from './transactions/io.js';
 import { historyRead, historyList } from './history.js';
+export async function registeredSnapshot(
+  options: SessionOptions,
+  snapshot: ProjectSnapshot,
+): Promise<boolean> {
+  try {
+    const saved = await historyRead(options.root, snapshot.sourceRevision, {
+      ...options,
+      observeEvidence: async () => snapshot.evidenceObservations,
+    });
+    return saved.snapshot.sourceHash === snapshot.sourceHash;
+  } catch (error) {
+    if (missing(error)) return false;
+    throw error;
+  }
+}
 export async function knownBaseline(
   options: SessionOptions,
   current: ProjectSnapshot,
