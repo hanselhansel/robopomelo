@@ -58,7 +58,8 @@ describe('explicit evidence handles and staged uploads', () => {
     });
     const first = await f.evidence.accept(prepared.uploadId, chunks(bytes));
     const second = await f.evidence.accept(prepared.uploadId, chunks(bytes));
-    expect(second).toEqual(first);
+    expect(first).toMatchObject({ kind: 'committed', alreadyApplied: false });
+    expect(second).toEqual({ ...first, alreadyApplied: true });
     expect((await snapshot(f.session)).deployment.evidence).toHaveLength(1);
     expect(await f.session.mutationStatus(request.mutationId, prepared.receiptDigest)).toMatchObject({
       status: 'committed',
