@@ -48,13 +48,13 @@ const roots: string[] = [];
 afterEach(async () => {
   await Promise.all(roots.splice(0).map((p) => rm(p, { recursive: true, force: true })));
 });
-async function childFixture(behavior: 'ready' | 'wrong' | 'timeout' = 'ready') {
+async function childFixture(behavior: 'ready' | 'wrong' | 'timeout' = 'ready', version = '1.0.0') {
   const directory = await realpath(await mkdtemp(join(tmpdir(), 'rp-launch-')));
   roots.push(directory);
-  const files = runtimeFiles(),
-    m = manifest();
+  const files = runtimeFiles(version),
+    m = manifest(version);
   files['runtime/main.mjs'] =
-    `import{readFileSync}from'node:fs';import{createHash}from'node:crypto';const manifest=readFileSync(new URL('../runtime-manifest.json',import.meta.url));if(${JSON.stringify(behavior)}!=='timeout')process.send({type:'robopomelo:ready',version:${JSON.stringify(behavior === 'wrong' ? '9.0.0' : '1.0.0')},launcherProtocol:1,manifestDigest:createHash('sha256').update(manifest).digest('hex')});process.on('message',message=>{if(message.type==='robopomelo:start'){process.stdout.write(JSON.stringify({argv:message.argv,cwd:message.cwd,preload:process.env.NODE_OPTIONS??null}));process.exit(0);}});`;
+    `import{readFileSync}from'node:fs';import{createHash}from'node:crypto';const manifest=readFileSync(new URL('../runtime-manifest.json',import.meta.url));if(${JSON.stringify(behavior)}!=='timeout')process.send({type:'robopomelo:ready',version:${JSON.stringify(behavior === 'wrong' ? '9.0.0' : version)},launcherProtocol:1,manifestDigest:createHash('sha256').update(manifest).digest('hex')});process.on('message',message=>{if(message.type==='robopomelo:start'){process.stdout.write(JSON.stringify({argv:message.argv,cwd:message.cwd,preload:process.env.NODE_OPTIONS??null,launcherDirectory:message.launcherDirectory,launcherVersion:message.launcherVersion,bundledRuntimeVersion:message.bundledRuntimeVersion}));process.exit(0);}});`;
   m.files = m.files.map((f) => ({
     ...f,
     size: Buffer.byteLength(files[f.path]!),
@@ -87,7 +87,14 @@ it('spawns the selected actual entrypoint and sends project argv only after the 
   });
   expect(selected).toBe(join(descriptor.directory, 'runtime/main.mjs'));
   expect(await launched.completed).toMatchObject({ code: 0 });
-  expect(JSON.parse(output)).toMatchObject({ argv, cwd: '/private/project', preload: null });
+  expect(JSON.parse(output)).toMatchObject({
+    argv,
+    cwd: '/private/project',
+    preload: null,
+    launcherDirectory: descriptor.directory,
+    launcherVersion: '1.0.0',
+    bundledRuntimeVersion: '1.0.0',
+  });
   expect(launched.version).toBe('1.0.0');
 });
 it.each(['wrong', 'timeout'] as const)(
@@ -128,4 +135,51 @@ it('reads only a bounded local specification version before runtime selection', 
   expect(await readFile(join(directory, 'deployment.yaml'), 'utf8')).toBe(source);
   await writeFile(join(directory, 'deployment.yaml'), 'specVersion: !execute shell\n');
   await expect(probeProjectSpecVersion(directory)).rejects.toThrow();
+});
+import { RuntimeCache } from '../../apps/cli/src/runtime/cache.js';
+import { UpdateService } from '../../apps/cli/src/runtime/update.js';
+import { SettingsStore } from '../../packages/project-fs/src/settings/store.js';
+import { UpdatePreferences } from '../../packages/project-fs/src/settings/updates.js';
+import { release, syntheticVerifier } from './helpers/release.js';
+it('sends original bundle identity to a newer cached child through the actual updater launcher', async () => {
+  const original = await childFixture('ready', '1.0.0'),
+    next = await childFixture('ready', '1.1.0'),
+    machine = await realpath(await mkdtemp(join(tmpdir(), 'rp-launch-origin-')));
+  roots.push(machine);
+  const overrides = Object.fromEntries(
+      await Promise.all(
+        next.manifest.files.map(async (f) => [f.path, await readFile(join(next.directory, f.path), 'utf8')]),
+      ),
+    ),
+    r = await release('1.1.0', overrides),
+    cache = new RuntimeCache({ directory: join(machine, 'cache'), verify: syntheticVerifier });
+  const staged = await cache.install(r.metadata, async (sink) => sink(r.bytes), r.attestations);
+  await cache.promote(staged);
+  const updater = new UpdateService({
+    bundle: original,
+    cache,
+    preferences: new UpdatePreferences(new SettingsStore(join(machine, 'config'))),
+    probe: probe(),
+  });
+  let output = '';
+  const launched = await updater.launch(['show'], {
+    startupCheck: false,
+    spawn: (entry, options) => {
+      const child = fork(entry, [], {
+        cwd: options.cwd,
+        env: options.env,
+        execArgv: [],
+        stdio: ['ignore', 'pipe', 'ignore', 'ipc'],
+      });
+      child.stdout!.on('data', (c) => (output += c.toString()));
+      return child;
+    },
+  });
+  expect(await launched.completed).toMatchObject({ code: 0 });
+  expect(launched.version).toBe('1.1.0');
+  expect(JSON.parse(output)).toMatchObject({
+    launcherDirectory: original.directory,
+    launcherVersion: '1.0.0',
+    bundledRuntimeVersion: '1.0.0',
+  });
 });

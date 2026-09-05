@@ -1,5 +1,6 @@
 import { fork, type ChildProcess } from 'node:child_process';
-import { join } from 'node:path';
+import { join, isAbsolute } from 'node:path';
+import semver from 'semver';
 import type { Readable } from 'node:stream';
 import type { RuntimeDescriptor } from './contracts.js';
 import { RuntimeError } from './errors.js';
@@ -13,6 +14,9 @@ export interface RuntimeLaunchOptions {
   timeoutMs?: number;
   input?: Readable;
   env?: NodeJS.ProcessEnv;
+  launcherDirectory?: string;
+  launcherVersion?: string;
+  bundledRuntimeVersion?: string;
 }
 export interface LaunchedRuntime {
   version: string;
@@ -33,6 +37,19 @@ export async function launchRuntime(
   argv: string[],
   options: RuntimeLaunchOptions = {},
 ): Promise<LaunchedRuntime> {
+  const launcherDirectory = options.launcherDirectory ?? runtime.directory,
+    launcherVersion = options.launcherVersion ?? runtime.manifest.version,
+    bundledRuntimeVersion = options.bundledRuntimeVersion ?? runtime.manifest.version;
+  if (
+    !isAbsolute(launcherDirectory) ||
+    launcherDirectory.length > 4096 ||
+    launcherDirectory.includes('\0') ||
+    !semver.valid(launcherVersion) ||
+    launcherVersion.length > 40 ||
+    !semver.valid(bundledRuntimeVersion) ||
+    bundledRuntimeVersion.length > 40
+  )
+    throw new RuntimeError('RUNTIME_HANDSHAKE', 'Original launcher identity is invalid.');
   const env = { ...(options.env ?? process.env) };
   delete env.NODE_OPTIONS;
   delete env.NODE_PATH;
@@ -93,6 +110,9 @@ export async function launchRuntime(
         argv: [...argv],
         cwd: options.cwd ?? process.cwd(),
         stdinIsTTY: process.stdin.isTTY === true,
+        launcherDirectory,
+        launcherVersion,
+        bundledRuntimeVersion,
       },
       (error) => {
         if (error) {

@@ -292,7 +292,12 @@ export class UpdateService {
     const before = await this.options.cache.pointer();
     const selected = await this.startup(run);
     try {
-      return await launchRuntime(selected.runtime, argv, run);
+      return await launchRuntime(selected.runtime, argv, {
+        ...run,
+        launcherDirectory: this.options.bundle.directory,
+        launcherVersion: this.options.bundle.manifest.version,
+        bundledRuntimeVersion: this.options.bundle.manifest.version,
+      });
     } catch (error) {
       if (selected.runtime.source === 'cache')
         await this.options.cache.restoreSelection(selected.runtime.manifest.version, before.active);
