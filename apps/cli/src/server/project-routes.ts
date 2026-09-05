@@ -118,7 +118,8 @@ export function projectRoutes(service: ProjectService, onStatus: () => void): Ro
             body.mode as 'autonomous' | 'review-each-change',
             body.remember,
           );
-        } else if (body.action === 'forget' || body.action === 'revoke') await service.forget();
+        } else if (body.action === 'forget') await service.forget();
+        else if (body.action === 'revoke') await service.revoke();
         else throw new HttpError(400, 'INVALID_INPUT', 'Choose grant, revoke or forget.');
         onStatus();
         return service.status();

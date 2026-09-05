@@ -27,3 +27,8 @@ it('treats version as a Boolean query independent of command operands',()=>{
 it('rejects a known flag on the wrong command',()=>{
  expect(()=>parseCommand(['show','--no-browser'])).toThrow(/flag/);
 });
+it('accepts explicit recovery and proposal-discovery inputs',()=>{
+ expect(parseCommand(['history','reconcile','--base-hash','a'.repeat(64),'--actor','{"kind":"human","name":"Author"}']).name).toBe('history reconcile');
+ expect(parseCommand(['history','list','--proposals']).flags.proposals).toBe(true);
+ expect(parseCommand(['trust','grant','--remember','--scopes','author']).flags.remember).toBe(true);
+});

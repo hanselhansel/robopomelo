@@ -182,6 +182,19 @@ export class ProjectService {
       return this.status();
     });
   }
+  async revoke() {
+    return this.withProject(async (selected) => {
+      const grant = selected.writeGrant;
+      if (grant && selected.projectId) {
+        const binding = { ...selected.root.identity(), projectId: selected.projectId };
+        const persisted = (await this.trust.show(binding)).some((item) => item.grantId === grant.grantId);
+        if (persisted) await this.trust.revoke(grant.grantId, { scopes: ['manage-settings'] });
+        else await this.trust.revokeRun(grant.grantId);
+      }
+      selected.writeGrant = null;
+      return this.status();
+    });
+  }
   async forget() {
     return this.withProject(async (selected) => {
       if (selected.projectId)

@@ -2,7 +2,7 @@ import { parseArgs, type ParseArgsConfig } from 'node:util';
 import type { Scope } from '@robopomelo/spec';
 import { commandRegistry, type CommandName } from './command-registry.js';
 export { commandRegistry } from './command-registry.js';
-const strings = [
+export const stringFlags = [
   'project',
   'runtime-version',
   'update-mode',
@@ -32,7 +32,7 @@ const strings = [
   'output',
   'scopes',
 ];
-const booleans = [
+export const booleanFlags = [
   'version',
   'help',
   'json',
@@ -45,11 +45,15 @@ const booleans = [
   'apply',
   'clear-pin',
   'resume',
+  'remember',
+  'proposals',
+  'online',
 ];
 const options: NonNullable<ParseArgsConfig['options']> = { authorize: { type: 'string', multiple: true } };
-for (const name of strings) options[name] = { type: 'string' };
-for (const name of booleans) options[name] = { type: 'boolean' };
+for (const name of stringFlags) options[name] = { type: 'string' };
+for (const name of booleanFlags) options[name] = { type: 'boolean' };
 options.help = { type: 'boolean', short: 'h' };
+export const flagDefinitions = options;
 const scopes = new Set<Scope>([
   'inspect',
   'author',
@@ -66,6 +70,49 @@ export interface ParsedCommand {
   help: boolean;
   version: boolean;
 }
+export const globalFlags = new Set([
+  'version',
+  'help',
+  'json',
+  'offline',
+  'yes',
+  'project',
+  'runtime-version',
+  'update-mode',
+  'authorize',
+]);
+export const commandFlags: Partial<Record<CommandName, string[]>> = {
+  open: ['no-browser'],
+  init: ['name', 'example'],
+  show: ['id', 'traceability', 'change', 'digest'],
+  'patch apply': ['proposal', 'base-revision', 'base-hash', 'digest'],
+  'history restore': ['base-revision', 'base-hash', 'actor', 'source', 'reason', 'change'],
+  'history reconcile': ['base-hash', 'actor', 'source', 'reason', 'change'],
+  'history recover': [],
+  'history retire': ['base-revision', 'base-hash', 'digest', 'actor', 'reason', 'change'],
+  'history list': ['proposals'],
+  'evidence add': [
+    'reference',
+    'purpose',
+    'title',
+    'provenance',
+    'related',
+    'base-revision',
+    'base-hash',
+    'actor',
+    'source',
+    'reason',
+    'change',
+  ],
+  'evidence remove': ['base-revision', 'base-hash', 'actor', 'source', 'reason', 'change'],
+  'review revoke': ['base-revision', 'base-hash', 'actor', 'source', 'reason', 'date'],
+  export: ['format', 'include-evidence', 'all-evidence', 'no-evidence', 'output'],
+  migrate: ['target', 'apply', 'base-revision', 'base-hash', 'actor', 'source', 'reason', 'change'],
+  'trust grant': ['scopes', 'mode', 'actor', 'remember'],
+  'update configure': ['mode', 'pin', 'clear-pin', 'resume', 'online'],
+  'update install': ['target'],
+  'update rollback': ['target'],
+};
 export function parseCommand(argv: string[]): ParsedCommand {
   const parsed = parseArgs({ args: argv, options, allowPositionals: true, strict: true, tokens: true });
   const positionals = [...parsed.positionals];
@@ -81,31 +128,6 @@ export function parseCommand(argv: string[]): ParsedCommand {
   }
   const flags = parsed.values as ParsedCommand['flags'];
   const version = flags.version === true;
-  const globalFlags = new Set([
-    'version',
-    'help',
-    'json',
-    'offline',
-    'yes',
-    'project',
-    'runtime-version',
-    'update-mode',
-    'authorize',
-  ]);
-  const commandFlags: Partial<Record<CommandName, string[]>> = {
-    open: ['no-browser'],
-    init: ['name', 'example'],
-    show: ['id', 'traceability', 'change', 'digest'],
-    'patch apply': ['proposal'],
-    'history restore': ['base-revision', 'base-hash'],
-    'evidence add': ['reference', 'purpose', 'title', 'provenance', 'related', 'base-revision', 'base-hash'],
-    'evidence remove': ['base-revision', 'base-hash'],
-    'review revoke': ['base-revision', 'base-hash', 'actor', 'source', 'reason', 'date'],
-    export: ['format', 'include-evidence', 'all-evidence', 'no-evidence', 'output'],
-    migrate: ['target', 'apply', 'base-revision', 'base-hash'],
-    'trust grant': ['scopes', 'mode', 'actor'],
-    'update configure': ['mode', 'pin', 'clear-pin', 'resume'],
-  };
   for (const flag of Object.keys(flags))
     if (!globalFlags.has(flag) && !commandFlags[name]?.includes(flag))
       throw new Error(`Unsupported flag --${flag} for ${name}.`);
