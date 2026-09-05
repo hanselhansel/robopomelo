@@ -65,7 +65,10 @@ function reconcile(document: Document, node: unknown, value: unknown): Node {
   preserve(replacement, node);
   return replacement;
 }
-export function serializeCandidate(source: SourceDocument, candidate: Deployment): string {
+export function serializeCandidate(
+  source: SourceDocument,
+  candidate: Deployment | SourceDocument['value'],
+): string {
   const document = source.document.clone();
   if (!isDeepStrictEqual(source.value, candidate))
     document.contents = reconcile(document, document.contents, candidate);
