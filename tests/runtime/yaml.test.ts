@@ -7,7 +7,7 @@ import { serializeSource } from '../../packages/project-fs/src/yaml/serialize.js
 const commentedSource = readFileSync(new URL('./fixtures/commented-deployment.yaml', import.meta.url), 'utf8');
 describe('data-only preserving YAML', () => {
   it('changes only the stable-ID target and retains comments and scalar meanings', () => {
-    const source = parseSource(commentedSource.replaceAll('\n', '\r\n'));
+    const source = parseSource(commentedSource.replace(/\r?\n/g, '\r\n'));
     const changed = editRecord(source, {collection:'needs', id:'need-1', field:'title', value:'Safe handoff'});
     const rendered = serializeSource(changed);
     expect(rendered).toContain('# vendor note');
