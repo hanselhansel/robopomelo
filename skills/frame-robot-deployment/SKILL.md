@@ -2,7 +2,6 @@
 name: frame-robot-deployment
 description: Use when framing an AMR deployment problem, desired outcome, scope, stakeholders or unmet needs before specifying material flow.
 license: Apache-2.0
-compatibility: Requires a compatible RoboPomelo CLI, supported Node and a host with local file and command access.
 metadata:
   "robopomelo:contract": contract.json
   "robopomelo:capability": frame-robot-deployment
@@ -11,6 +10,8 @@ metadata:
 # frame-robot-deployment
 
 ## Inputs and scope
+
+Requires supported Node and local file/command access.
 
 - User-selected project folder and current source snapshot.
 - Caller-supplied problem, outcome, scope and stakeholder facts.

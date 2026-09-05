@@ -2,7 +2,6 @@
 name: define-deployment-kpis
 description: Use when defining deployment success measures, baseline observations, proposed targets, units, measurement methods or measurement windows.
 license: Apache-2.0
-compatibility: Requires a compatible RoboPomelo CLI, supported Node and a host with local file and command access.
 metadata:
   "robopomelo:contract": contract.json
   "robopomelo:capability": define-deployment-kpis
@@ -11,6 +10,8 @@ metadata:
 # define-deployment-kpis
 
 ## Inputs and scope
+
+Requires supported Node and local file/command access.
 
 - User-selected project folder and current source snapshot.
 - Committed framing and flow IDs plus supplied baseline or target facts.

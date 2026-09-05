@@ -2,7 +2,6 @@
 name: specify-material-flow
 description: Use when documenting current or intended material movements, endpoints, handoffs, volume, workflow steps or exceptions for an AMR planning project.
 license: Apache-2.0
-compatibility: Requires a compatible RoboPomelo CLI, supported Node and a host with local file and command access.
 metadata:
   "robopomelo:contract": contract.json
   "robopomelo:capability": specify-material-flow
@@ -11,6 +10,8 @@ metadata:
 # specify-material-flow
 
 ## Inputs and scope
+
+Requires supported Node and local file/command access.
 
 - User-selected project folder and current source snapshot.
 - Committed framing IDs, supplied movement observations and material subjects.

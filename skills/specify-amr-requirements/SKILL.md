@@ -2,7 +2,6 @@
 name: specify-amr-requirements
 description: Use when translating supplied deployment needs, flows and KPIs into AMR capability requirements, constraints, dependencies and proposed risks.
 license: Apache-2.0
-compatibility: Requires a compatible RoboPomelo CLI, supported Node and a host with local file and command access.
 metadata:
   "robopomelo:contract": contract.json
   "robopomelo:capability": specify-amr-requirements
@@ -11,6 +10,8 @@ metadata:
 # specify-amr-requirements
 
 ## Inputs and scope
+
+Requires supported Node and local file/command access.
 
 - User-selected project folder and current source snapshot.
 - Committed flow/KPI IDs and supplied capability or constraint facts.

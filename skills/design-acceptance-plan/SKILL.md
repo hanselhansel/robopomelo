@@ -2,7 +2,6 @@
 name: design-acceptance-plan
 description: Use when planning acceptance procedures, measurable criteria, test conditions, future evidence requirements or proposed assessment responsibilities.
 license: Apache-2.0
-compatibility: Requires a compatible RoboPomelo CLI, supported Node and a host with local file and command access.
 metadata:
   "robopomelo:contract": contract.json
   "robopomelo:capability": design-acceptance-plan
@@ -11,6 +10,8 @@ metadata:
 # design-acceptance-plan
 
 ## Inputs and scope
+
+Requires supported Node and local file/command access.
 
 - User-selected project folder and current source snapshot.
 - Committed requirement/KPI IDs, flow exceptions and supplied acceptance intent.

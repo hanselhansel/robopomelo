@@ -2,7 +2,6 @@
 name: plan-amr-deployment
 description: Use when coordinating the full five-step AMR planning workflow, resuming it after a dependency change or preparing a traceable planning handoff.
 license: Apache-2.0
-compatibility: Requires a compatible RoboPomelo CLI, supported Node and a host with local file and command access.
 metadata:
   "robopomelo:contract": contract.json
   "robopomelo:capability": plan-amr-deployment
@@ -11,6 +10,8 @@ metadata:
 # plan-amr-deployment
 
 ## Inputs and scope
+
+Requires supported Node and local file/command access.
 
 - User-selected project folder and current source snapshot.
 - Supplied project facts and available narrow Skill contracts.
