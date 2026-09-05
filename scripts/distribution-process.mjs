@@ -28,8 +28,13 @@ export function run(binary, args, options = {}) {
   return result.stdout;
 }
 export function launchJson(binary, args, options = {}) {
-  const child = spawn(binary, args, { stdio: ['ignore', 'pipe', 'pipe'], ...options });
-  const close = cleanupFor(child);
+  const ownsProcessGroup = process.platform !== 'win32';
+  const child = spawn(binary, args, {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    ...options,
+    detached: ownsProcessGroup,
+  });
+  const close = cleanupFor(child, ownsProcessGroup);
   let stderr = '';
   child.stderr.on('data', (chunk) => (stderr += chunk));
   const ready = new Promise((resolve, reject) => {

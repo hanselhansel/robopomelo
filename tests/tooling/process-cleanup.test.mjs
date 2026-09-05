@@ -86,3 +86,36 @@ test('cleanup after launcher exit still waits for descendants and is repeatable'
   assert.equal(closed, true);
   await app.close();
 });
+
+test(
+  'Unix cleanup terminates a retained runtime after its launcher exits',
+  { skip: process.platform === 'win32' },
+  async () => {
+    const app = launchJson(process.execPath, [
+      '-e',
+      `
+    const { spawn } = require('node:child_process');
+    spawn(process.execPath, ['-e', \
+      'process.on("SIGTERM", () => {}); console.log(JSON.stringify({ok:true,pid:process.pid})); setInterval(() => {}, 1000);'], \
+      { stdio: ['ignore', 1, 2] });
+    process.on('SIGTERM', () => process.exit(0));
+  `,
+    ]);
+    const ready = await app.ready;
+    let closed = false;
+    app.child.once('close', () => {
+      closed = true;
+    });
+    try {
+      await app.close();
+      assert.equal(closed, true);
+    } finally {
+      // Always clean up this known fixture if the regression reproduces.
+      try {
+        process.kill(ready.pid, 'SIGKILL');
+      } catch (error) {
+        if (error.code !== 'ESRCH') throw error;
+      }
+    }
+  },
+);
