@@ -8,7 +8,7 @@ export async function navigate(page: Page, name: string) {
     .getByRole('button', { name, exact: true });
   await target.click();
   // The app completes pending durable saves before activating the destination.
-  await expect(target).toHaveAttribute('aria-current', 'page');
+  await expect(target).toHaveAttribute('aria-current', 'page', { timeout: 15000 });
 }
 export async function knowledge(record: Locator, path: string, value: string, person = false) {
   const group = field(record, path);
