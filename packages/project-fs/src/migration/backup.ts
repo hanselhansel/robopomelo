@@ -8,6 +8,7 @@ import { directory, jsonRead, jsonWrite, missing } from '../transactions/io.js';
 import { closed, isHash, isId, validActor, validTimestamp } from '../transactions/metadata.js';
 import { projectRelativePath, portableNameKey } from '../fs/paths.js';
 import { verifyFile } from '../transactions/evidence.js';
+import { flushContainingDirectories } from '../fs/durability.js';
 export interface BackupFile {
   path: string;
   size: number;
@@ -138,6 +139,10 @@ export async function createBackup(
     const file = await copyVerified(root, path, root, `${base}/files/${path}`);
     files.push({ ...file, path });
   }
+  await flushContainingDirectories(
+    root,
+    files.map((file) => `${base}/files/${file.path}`),
+  );
   if (byteHash(await root.readFile('deployment.yaml')) !== header.sourceHash)
     throw new ProjectFsError('STALE_BASE', 'Project source changed during backup.');
   const copiedSource = files.find((file) => file.path === 'deployment.yaml');

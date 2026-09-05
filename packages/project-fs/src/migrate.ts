@@ -11,6 +11,7 @@ import { immutable, jsonWrite } from './transactions/io.js';
 import { writeInitialHistory } from './history.js';
 import { recoverMigration } from './migration/recover.js';
 import { sourceHeader, createBackup, verifyBackup, copyVerified } from './migration/backup.js';
+import { flushContainingDirectories } from './fs/durability.js';
 import {
   planMigration,
   evaluateMigration,
@@ -219,6 +220,10 @@ export class MigrationService {
           file.path === 'deployment.yaml' ? stage : file.path,
           file,
         );
+      await flushContainingDirectories(
+        destination,
+        manifest.files.map((file) => (file.path === 'deployment.yaml' ? stage : file.path)),
+      );
       await trust.withAuthorization(this.#binding(), input.authorization, ['author'], async () => {
         await destination.renameNoReplace(stage, 'deployment.yaml');
         await destination.fsyncDirectory();

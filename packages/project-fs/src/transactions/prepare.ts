@@ -5,6 +5,7 @@ import { directory, immutable, jsonWrite, layout, transactionBase, metadataBytes
 import type { Journal } from './journal.js';
 import { validateJournal } from './journal.js';
 import { bindsEvidence, verifyFile } from './evidence.js';
+import { flushContainingDirectories } from '../fs/durability.js';
 export async function prepare(
   options: SessionOptions,
   input: CommitInput,
@@ -42,7 +43,10 @@ export async function prepare(
   await immutable(options.root, `${base}/new.yaml`, newBytes);
   await immutable(options.root, `${base}/replacement.yaml`, newBytes);
   await jsonWrite(options.root, `${base}/journal.json`, journal);
-  await options.root.fsyncDirectory(base);
+  await flushContainingDirectories(options.root, [
+    `${base}/journal.json`,
+    ...journal.evidence.map((item) => item.stagedPath),
+  ]);
   await options.onProgress?.({ transactionId: journal.transactionId, phase: 'journal-flushed' });
   return journal;
 }

@@ -3,6 +3,7 @@ import type { ProjectSession } from '../session.js';
 import type { Authorization, SourceIdentity } from '../contracts.js';
 import { acquireLock } from '../fs/lock.js';
 import { projectRelativePath } from '../fs/paths.js';
+import { flushContainingDirectories } from '../fs/durability.js';
 import { ProjectFsError } from '../errors.js';
 import { directory } from '../transactions/io.js';
 import { freezePlan, verifyFrozen } from './plan.js';
@@ -103,6 +104,10 @@ export class ExportService {
         }
         await root.fsyncDirectory(stage);
       }
+      await flushContainingDirectories(
+        root,
+        options.format === 'zip' ? [stage] : plan.members.map((member) => `${stage}/${member.path}`),
+      );
       await trust.withAuthorization(this.#binding(), options.authorization, ['export'], async () => {
         cancelled(options.signal);
         await verifyFrozen(root, plan);
