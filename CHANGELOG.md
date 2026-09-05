@@ -21,6 +21,8 @@ RoboPomelo product and package release notes. Specification versions are recorde
 
 ### Fixed
 
+- Distinguish launcher identity rejection, timeout and early process exit in bounded local diagnostics.
+
 - Coordinate buffered reads with atomic source replacement, and retry transient Windows contention with bounded checks that preserve external edits and recovery evidence.
 
 - Include limited filesystem error identifiers in local failure responses without exposing paths, project content or credentials.
