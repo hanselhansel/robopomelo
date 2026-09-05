@@ -1,0 +1,88 @@
+name: Published package verification
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Published candidate or stable artifact
+        required: true
+        type: choice
+        options: [candidate, stable]
+        default: candidate
+      version:
+        description: Exact published npm version
+        required: true
+        type: string
+      commit:
+        description: Full 40-character reviewed main commit
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  guard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Check exact committed published source
+        run: node scripts/verify-published-context.mjs --version "$VERSION" --commit "$COMMIT" --channel "$CHANNEL"
+        env:
+          VERSION: ${{ inputs.version }}
+          COMMIT: ${{ inputs.commit }}
+          CHANNEL: ${{ inputs.channel }}
+  native:
+    needs: [guard]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025, macos-15, macos-15-intel]
+        node: ['22.22.2', '22', '24.15.0', '24']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+          package-manager-cache: false
+      - run: npm ci --ignore-scripts
+      - name: Verify provenance and install the original published tarball
+        run: node scripts/verify-release.mjs --version "$VERSION" --commit "$COMMIT" --report test-results/published.json
+        env:
+          VERSION: ${{ inputs.version }}
+          COMMIT: ${{ inputs.commit }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() }}
+        with:
+          name: published-${{ inputs.version }}-${{ matrix.os }}-node${{ matrix.node }}-${{ strategy.job-index }}
+          path: test-results/published.json
+          if-no-files-found: error
+  required-published:
+    if: ${{ always() }}
+    needs: [guard, native]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - run: node scripts/check-plan-coverage.mjs --results "$RESULTS" --expected guard,native
+        env:
+          RESULTS: ${{ toJSON(needs) }}
