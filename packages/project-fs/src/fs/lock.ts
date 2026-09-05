@@ -41,7 +41,10 @@ async function initialize(root:SafeRoot,path:string):Promise<Record> {
     // A cooperative owner may release the inspected entry before mkdir's
     // path checks finish. Recheck the pinned root and exact fixed entry;
     // only its disappearance enters acquireLock's bounded retry loop.
-    if (missing(error) && !(await exists(root,path))) return locked();
+    // Windows may report delete-pending realpath as EPERM, not ENOENT.
+    const failure = error as NodeJS.ErrnoException;
+    if ((missing(error) || (failure.code === 'EPERM' && failure.syscall === 'realpath')) &&
+        !(await exists(root,path))) return locked();
     throw error;
   }
   const owner = await currentOwner(root.identity());
