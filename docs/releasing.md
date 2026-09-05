@@ -143,3 +143,9 @@ The promotion guard binds the exact version, commit and integrity to passing ins
 The final verifier checks `latest` against the exact stable integrity and performs a fresh isolated installation. This is the package deployment health check. Record its report, actual workflow URLs and final local/live main equality before claiming release completion. Retain failure evidence and stop when a required check fails.
 
 For later releases, use a reviewed stable target and its derived candidate identity under the same gates. Do not reuse these first-release version numbers or assume an existing trusted-publisher configuration remains correct without readback.
+
+## Launcher startup diagnostics
+
+A rejected runtime handshake reports a bounded failure phase (`timeout`, `identity`, `spawn-error` or `child-exit`) with elapsed/budget milliseconds and, when applicable, a numeric exit code or known signal. It does not include project arguments, paths or untrusted child messages. Exact version, protocol and complete-manifest identity still gate the project handoff.
+
+The native Intel job runs `node scripts/probe-launcher.mjs` against the built package. Its longer finite deadline is diagnostic only: the probe uses the production identity validator and fails if verified startup exceeds the current production budget. Results are retained in `test-results/launcher-profile.json`. A passing diagnostic under a longer deadline is not permission to skip the production launch gate.

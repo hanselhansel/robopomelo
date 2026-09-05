@@ -19,6 +19,8 @@ Machine-local settings hold remembered trust and update preferences. The verifie
 
 ## Inspect a lost response
 
+Some local HTTP `500` responses with code `INTERNAL_ERROR` include `error.details.systemCode` and `error.details.operation`, for example `EPERM` and `rename`. Both fields appear only when the thrown value is an `Error` with a recognized filesystem code and operation; unsupported values omit these details. These diagnostic fields exclude raw messages, paths, stacks and nested causes. They identify the failed operation, not whether a source change committed, so inspect the receipt before retrying.
+
 Keep the original change ID and receipt digest. `show` accepts both without replaying a different operation:
 
 ```sh
@@ -60,3 +62,7 @@ Use the real manifest path and recorder supplied for the operation. Restore refu
 Read the restored specification version before choosing a runtime. If it needs an earlier compatible runtime, select an exact already-verified cached version with `--runtime-version VERSION --offline`, or deliberately install that official package version through npm. An unavailable exact runtime is an error, never a silent fallback. Run `show --project recovered-demo --json --offline` under the compatible runtime and compare its `sourceHash` to the restore result and backup manifest. Authorize the recovered folder only after that inspection.
 
 An interrupted restore leaves its partial destination for inspection. Preserve it and choose another empty destination for a retry. Do not overlay a partially copied folder or remove uncertain recovery evidence to force success.
+
+Windows source commits may retry an `EPERM` rename failure up to eight total attempts while holding the existing project lease and authorization. Every attempt verifies the original file identities and expected old/new hashes. The deliberate backoff totals at most 775 ms; filesystem I/O time is separate. Changed or missing files and other errors stop the operation. Persistent denial retains a pending receipt and prepared recovery data; it is not reported as a successful save.
+
+Within one open root, buffered reads and destination replacements are coordinated in FIFO order for each path. A source observation completes and closes its handle before a queued replacement starts; later observations wait behind that replacement. Other files remain independent. Explicit streaming handles and external processes retain their existing behavior and are not covered by this in-process coordination.

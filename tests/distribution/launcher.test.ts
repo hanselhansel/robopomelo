@@ -48,13 +48,13 @@ const roots: string[] = [];
 afterEach(async () => {
   await Promise.all(roots.splice(0).map((p) => rm(p, { recursive: true, force: true })));
 });
-async function childFixture(behavior: 'ready' | 'wrong' | 'timeout' = 'ready', version = '1.0.0') {
+async function childFixture(behavior: 'ready' | 'wrong' | 'timeout' | 'exit' = 'ready', version = '1.0.0') {
   const directory = await realpath(await mkdtemp(join(tmpdir(), 'rp-launch-')));
   roots.push(directory);
   const files = runtimeFiles(version),
     m = manifest(version);
   files['runtime/main.mjs'] =
-    `import{readFileSync}from'node:fs';import{createHash}from'node:crypto';const manifest=readFileSync(new URL('../runtime-manifest.json',import.meta.url));if(${JSON.stringify(behavior)}!=='timeout')process.send({type:'robopomelo:ready',version:${JSON.stringify(behavior === 'wrong' ? '9.0.0' : version)},launcherProtocol:1,manifestDigest:createHash('sha256').update(manifest).digest('hex')});process.on('message',message=>{if(message.type==='robopomelo:start'){process.stdout.write(JSON.stringify({argv:message.argv,cwd:message.cwd,preload:process.env.NODE_OPTIONS??null,launcherDirectory:message.launcherDirectory,launcherVersion:message.launcherVersion,bundledRuntimeVersion:message.bundledRuntimeVersion}));process.exit(0);}});`;
+    `import{readFileSync}from'node:fs';import{createHash}from'node:crypto';const manifest=readFileSync(new URL('../runtime-manifest.json',import.meta.url));if(${JSON.stringify(behavior)}==='exit')process.exit(23);if(${JSON.stringify(behavior)}!=='timeout')process.send({type:'robopomelo:ready',version:${JSON.stringify(behavior === 'wrong' ? '9.0.0' : version)},launcherProtocol:1,manifestDigest:createHash('sha256').update(manifest).digest('hex')});process.on('message',message=>{if(message.type==='robopomelo:start'){process.stdout.write(JSON.stringify({argv:message.argv,cwd:message.cwd,preload:process.env.NODE_OPTIONS??null,launcherDirectory:message.launcherDirectory,launcherVersion:message.launcherVersion,bundledRuntimeVersion:message.bundledRuntimeVersion}));process.exit(0);}});`;
   m.files = m.files.map((f) => ({
     ...f,
     size: Buffer.byteLength(files[f.path]!),
@@ -97,14 +97,14 @@ it('spawns the selected actual entrypoint and sends project argv only after the 
   });
   expect(launched.version).toBe('1.0.0');
 });
-it.each(['wrong', 'timeout'] as const)(
+it.each(['wrong', 'timeout', 'exit'] as const)(
   'rejects a %s handshake without supplying project arguments',
   async (behavior) => {
     const descriptor = await childFixture(behavior);
     let supplied = false;
     await expect(
       launchRuntime(descriptor, ['private-project'], {
-        timeoutMs: behavior === 'wrong' ? 1000 : 50,
+        timeoutMs: behavior === 'timeout' ? 50 : 1000,
         spawn: (entry, options) => {
           const child = fork(entry, [], {
             cwd: options.cwd,
@@ -120,7 +120,12 @@ it.each(['wrong', 'timeout'] as const)(
           return child;
         },
       }),
-    ).rejects.toMatchObject({ code: 'RUNTIME_HANDSHAKE' });
+    ).rejects.toMatchObject({
+      code: 'RUNTIME_HANDSHAKE',
+      details: {
+        phase: behavior === 'wrong' ? 'identity' : behavior === 'timeout' ? 'timeout' : 'child-exit',
+      },
+    });
     expect(supplied).toBe(false);
   },
 );
@@ -182,4 +187,25 @@ it('sends original bundle identity to a newer cached child through the actual up
     launcherVersion: '1.0.0',
     bundledRuntimeVersion: '1.0.0',
   });
+});
+it('reports spawn failure without disclosing the executable path or project arguments', async () => {
+  const descriptor = await childFixture();
+  let supplied = false;
+  const failure = await launchRuntime(descriptor, ['private-project-marker'], {
+    spawn: (entry, options) => {
+      const child = fork(entry, [], {
+        ...options,
+        execPath: join(descriptor.directory, 'private-missing-executable'),
+        stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
+      });
+      child.send = (() => {
+        supplied = true;
+        return false;
+      }) as typeof child.send;
+      return child;
+    },
+  }).catch((error: unknown) => error);
+  expect(failure).toMatchObject({ code: 'RUNTIME_HANDSHAKE', details: { phase: 'spawn-error' } });
+  expect(JSON.stringify(failure)).not.toContain('private-');
+  expect(supplied).toBe(false);
 });

@@ -1,0 +1,10 @@
+---
+'@robopomelo/cli': patch
+'@robopomelo/project-fs': patch
+---
+
+Expose only known filesystem error codes and operation names in local HTTP failure details, without including project paths, content, stacks or credentials.
+
+This intent remains part of the approved first 1.0.0 release target. Buffered reads and replacements coordinate on each managed path. A bounded Windows source-replacement retry revalidates file identity and bytes before each attempt. Native verification remains required before claiming the save failure repaired or publishing.
+
+Distinguish bounded launcher identity, timeout and child-exit diagnostics before any project handoff. Native startup profiling retains exact identity checks and blocks when the current launch budget is insufficient.

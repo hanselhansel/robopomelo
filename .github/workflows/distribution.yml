@@ -42,6 +42,9 @@ jobs:
         env:
           TARGET: ${{ inputs.target || '1.0.0' }}
           CHANNEL: ${{ inputs.channel || 'candidate' }}
+      - name: Measure verified Intel runtime startup
+        if: ${{ runner.os == 'macOS' && runner.arch == 'X64' }}
+        run: node scripts/probe-launcher.mjs --report test-results/launcher-profile.json
       - run: node scripts/verify-package.mjs --report test-results/package.json
       - run: node scripts/verify-terminal.mjs --report test-results/terminal.json
       - name: Install native Windows browser binaries
