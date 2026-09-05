@@ -12,9 +12,11 @@ Hansel approved this focused cycle on 2026-09-05 after reviewing the storage-fai
 
 ## Diagnosis
 
-- [ ] Add `tests/security/filesystem-diagnostics-http.test.ts`: a real local HTTP failure must expose only known `systemCode` and `operation`; arbitrary codes, paths, messages, stacks and credentials must not escape. Confirm the known-code test fails before implementation.
-- [ ] Update `apps/cli/src/server/errors.ts` with closed-list diagnostics. Preserve status, error code, authentication and mutation semantics. Run the focused security tests and strict types; commit after green.
+- [x] Add `tests/security/filesystem-diagnostics-http.test.ts`: a real local HTTP failure must expose only known `systemCode` and `operation`; arbitrary codes, paths, messages, stacks and credentials must not escape. Confirm the known-code test fails before implementation.
+- [x] Update `apps/cli/src/server/errors.ts` with closed-list diagnostics. Preserve status, error code, authentication and mutation semantics. Run the focused security tests and strict types; commit after green.
 - [ ] Reproduce the fictional save on native Windows with the built browser acceptance journey. Preserve the sanitized failure and transaction receipt. A passing run alone is not root-cause proof.
+
+Native reproduction uses `tests/runtime/storage-replay.test.ts` and its synthetic captured fixture. It performs 100 add/remove cycles on Windows under concurrent source observation, captures transaction phase and native method errors, and retains only the synthetic project on failure. The existing native CI matrix runs it. A diagnostic branch/PR may be pushed for this evidence; it must not merge or publish until the causal repair gate is satisfied.
 
 ## Repair gate
 
