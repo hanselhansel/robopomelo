@@ -26,6 +26,7 @@
     "apps/**/*.ts",
     "apps/**/*.tsx",
     "tests/**/*.ts",
+    "scripts/**/*.ts",
     "*.config.ts"
   ],
   "exclude": [

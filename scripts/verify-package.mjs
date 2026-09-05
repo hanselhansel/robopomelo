@@ -7,7 +7,11 @@ import { createHash } from 'node:crypto';
 import { inventory } from './release-manifest.mjs';
 import { npm, run, launchJson } from './distribution-process.mjs';
 const { values } = parseArgs({
-  options: { package: { type: 'string', default: 'dist/package' }, report: { type: 'string' } },
+  options: {
+    package: { type: 'string', default: 'dist/package' },
+    report: { type: 'string' },
+    tarball: { type: 'string' },
+  },
 });
 const directory = resolve(values.package),
   metadata = JSON.parse(await readFile(join(directory, 'package.json'), 'utf8'));
@@ -22,7 +26,7 @@ for (const file of manifest.files)
   assert.ok(!/(?:^|\/)(?:\.env|node_modules|\.git|test-results)(?:\/|$)/.test(file.path));
 const temporary = await realpath(await mkdtemp(join(tmpdir(), 'robopomelo-package-')));
 const packed = JSON.parse(npm(['pack', '--json', '--pack-destination', temporary], { cwd: directory }))[0];
-const tarball = join(temporary, packed.filename),
+const tarball = values.tarball ? resolve(values.tarball) : join(temporary, packed.filename),
   installed = join(temporary, 'installed');
 await mkdir(installed);
 assert.deepEqual(
@@ -116,7 +120,11 @@ const report = {
   os: process.platform,
   arch: process.arch,
   node: process.version,
-  tarballIntegrity: packed.integrity,
+  tarballIntegrity:
+    'sha512-' +
+    createHash('sha512')
+      .update(await readFile(tarball))
+      .digest('base64'),
   tarballSha256: createHash('sha256')
     .update(await readFile(tarball))
     .digest('hex'),
