@@ -21,6 +21,8 @@ RoboPomelo product and package release notes. Specification versions are recorde
 
 ### Fixed
 
+- Include limited filesystem error identifiers in local failure responses without exposing paths, project content or credentials.
+
 - Verify shutdown across launcher and runtime processes before removing temporary test projects, and allow pending durable operations to complete before asserting their UI results in hosted verification.
 
 - Keep selected evidence bound to its original bytes even when file timestamps are delayed. Wait for failed runtime processes to close and retry a lock entry released during acquisition.
