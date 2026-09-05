@@ -21,13 +21,15 @@ export function RecordEditor({
   const [remove, setRemove] = useState(false);
   const update = (path: string, value: Json) =>
     edit({ op: 'update', collection, id: record.id, fields: { [path]: value } });
-  const dependents = Object.entries(deployment)
-    .filter(([key, value]) => Array.isArray(value))
-    .flatMap(([key, rows]) =>
-      (rows as { id: string; title?: string }[])
-        .filter((r) => r.id !== record.id && JSON.stringify(r).includes(JSON.stringify(record.id)))
-        .map((r) => ({ collection: key, id: r.id, title: r.title ?? r.id })),
-    );
+  const dependents = !remove
+    ? []
+    : Object.entries(deployment)
+        .filter(([key, value]) => Array.isArray(value))
+        .flatMap(([key, rows]) =>
+          (rows as { id: string; title?: string }[])
+            .filter((r) => r.id !== record.id && JSON.stringify(r).includes(JSON.stringify(record.id)))
+            .map((r) => ({ collection: key, id: r.id, title: r.title ?? r.id })),
+        );
   return (
     <div className="record-editor" id={`record-${record.id}`}>
       <p className="eyebrow">

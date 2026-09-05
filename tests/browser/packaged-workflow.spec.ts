@@ -46,6 +46,8 @@ test('real packaged application creates and edits a project and renders every sc
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     }
     await page.getByLabel('Edit planning records', { exact: true }).check();
+    await page.getByLabel('Add and manage evidence', { exact: true }).check();
+    await page.getByLabel('Export handoff packages', { exact: true }).check();
     await page.getByRole('button', { name: 'Authorize selected scopes', exact: true }).click();
     await expect(
       page.getByRole('status').filter({ hasText: 'Selected project authority updated.' }),
@@ -62,6 +64,33 @@ test('real packaged application creates and edits a project and renders every sc
     await page.screenshot({ path: testInfo.outputPath('frame-real.png'), fullPage: true });
     await page.reload();
     await expect(page.getByLabel('Project name', { exact: true })).toHaveValue('Fictional receiving revised');
+    const nav = page.getByRole('navigation', { name: 'Project sections' });
+    await nav.getByRole('button', { name: 'Evidence', exact: true }).click();
+    await page.getByRole('button', { name: 'Add evidence', exact: true }).click();
+    const modal = page.getByRole('dialog', { name: 'Add evidence', exact: true });
+    await modal.getByLabel('Evidence title').fill('Fictional receiving notes');
+    await modal
+      .getByLabel('Local file')
+      .setInputFiles({
+        name: 'receiving-notes.txt',
+        mimeType: 'text/plain',
+        buffer: Buffer.from('Fictional receiving observations for test only.'),
+      });
+    await modal.getByRole('button', { name: 'Add evidence', exact: true }).click();
+    await expect(modal).toHaveCount(0);
+    await expect(page.getByText('Fictional receiving notes', { exact: true })).toBeVisible();
+    await nav.getByRole('button', { name: 'Review & export', exact: true }).click();
+    await page.getByRole('button', { name: 'Download handoff package', exact: true }).click();
+    const handoff = page.getByRole('dialog', { name: 'Prepare the handoff package' });
+    await handoff.getByLabel('Fictional receiving notes', { exact: true }).check();
+    await handoff.getByRole('button', { name: 'Preview package files' }).click();
+    await expect(handoff.getByText('engineering-handoff.md', { exact: true })).toBeVisible();
+    const downloaded = page.waitForEvent('download');
+    await handoff.getByRole('button', { name: 'Download ZIP', exact: true }).click();
+    const download = await downloaded;
+    expect(download.suggestedFilename()).toBe('robopomelo-handoff.zip');
+    await download.saveAs(testInfo.outputPath('handoff.zip'));
+    expect((await readFile(testInfo.outputPath('handoff.zip'))).subarray(0, 2).toString()).toBe('PK');
     expect(errors).toEqual([]);
     expect(outbound).toEqual([]);
   } finally {

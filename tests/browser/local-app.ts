@@ -2,11 +2,18 @@ import { spawn } from 'node:child_process';
 import { mkdtemp, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-export async function localApp() {
+export async function localApp(existingProject?: string) {
   const directory = await realpath(await mkdtemp(join(tmpdir(), 'robopomelo-browser-')));
   const child = spawn(
     process.execPath,
-    [resolve('dist/package/bin/robopomelo.mjs'), 'open', '--no-browser', '--offline', '--json'],
+    [
+      resolve('dist/package/bin/robopomelo.mjs'),
+      'open',
+      ...(existingProject ? [existingProject] : []),
+      '--no-browser',
+      '--offline',
+      '--json',
+    ],
     {
       cwd: directory,
       env: {

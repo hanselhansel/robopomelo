@@ -2,6 +2,7 @@ import { fields, workflows, questions } from '@robopomelo/spec/browser';
 import type { Collection, Deployment, Json, PatchOperation, StepId } from '@robopomelo/spec';
 import { Field } from '../components/Field.js';
 import { RecordEditor } from '../components/RecordEditor.js';
+import { RecordDisclosure } from '../components/RecordDisclosure.js';
 import { PagedList } from '../components/ui.js';
 import { KnowledgeField } from '../components/KnowledgeField.js';
 import { References, referenceOptions } from '../components/References.js';
@@ -94,11 +95,12 @@ export function Planning({
               searchText={(r) => `${r.title} ${r.id}`}
             >
               {(record) => (
-                <details className="record" key={record.id} open={record.id === revealId || undefined}>
-                  <summary>
-                    <span>{record.title}</span>
-                    <small>{record.id}</small>
-                  </summary>
+                <RecordDisclosure
+                  key={record.id}
+                  id={record.id}
+                  title={record.title}
+                  reveal={record.id === revealId}
+                >
                   <RecordEditor
                     collection={collection}
                     record={record}
@@ -106,7 +108,7 @@ export function Planning({
                     edit={edit}
                     onView={onView}
                   />
-                </details>
+                </RecordDisclosure>
               )}
             </PagedList>
           )}
