@@ -24,3 +24,11 @@ Retrieved 2026-09-05:
 
 - [Node child process events](https://github.com/nodejs/node/blob/main/doc/api/child_process.md): `close` follows process termination and closure of child stdio.
 - [Microsoft taskkill](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/taskkill), updated 2024-11-01: `/pid` selects the process and `/t` includes its children. The verifier uses no image-name wildcard or unrelated PID.
+
+## Consistent CI assertion deadlines
+
+After PR #2, main run `33955697974` failed Windows UI assertions in evidence upload, save completion and project-opening authorization. The candidate run `33955710855` also failed its evidence-upload assertion. None of these failures reported teardown `EBUSY`. The Windows print trace recorded a successful patch response at 4,554 ms; the upload and trust requests were still pending when their default five-second assertions expired.
+
+The CI browser configuration now permits 15 seconds for an assertion to reach its expected state. Local defaults remain five seconds. Every assertion, zero retries, the 60-second test deadline and explicit 180-second complete-journey deadline remain. This is functional acceptance tolerance for hosted execution, not a claim that long interactive latency is desirable or that performance has improved. No runtime deadline, project-write logic or approval rule changes.
+
+[Playwright timeout documentation](https://playwright.dev/docs/test-timeouts), retrieved 2026-09-05, distinguishes assertion timeouts from overall test deadlines. Fresh hosted acceptance remains required; earlier failures are retained as failures.
