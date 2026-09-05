@@ -24,6 +24,8 @@ All Windows runtime legs also install and exercise actual Chrome and Edge binari
 
 Required release results include guard, verification and delivery. Selecting bootstrap deliberately performs signing instead of registry publication; it does not skip an applicable acceptance gate or certify that the package exists.
 
+The [maintainer release guide](../releasing.md) gives the ordered commands, artifact identity checks, trusted-publisher readback and guarded promotion procedure. Its instructions do not substitute for successful run and registry evidence.
+
 ## Reviewed Action pins
 
 The coordinator verified these versions on 2026-09-05. Workflows use full immutable commits, not moving tags.

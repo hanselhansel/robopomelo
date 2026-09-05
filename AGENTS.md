@@ -41,3 +41,12 @@ Never read or index unrelated private repositories. Never import another physica
 ## Communication
 
 Short, concrete updates. No em dashes. No pricing or payment messaging in product materials. Explain actual blockers with evidence; do not invent completion.
+
+## Deploy Configuration
+
+- Deployment type: npm package distribution. There is no hosted application production URL.
+- Release workflow: `.github/workflows/release.yml`, explicit dispatch on the exact merged main commit. Merging does not publish.
+- Procedure: [maintainer release guide](docs/releasing.md), with the [CI contract](docs/verification/ci-contract.md) defining required jobs.
+- First release: signed candidate bootstrap, verification of the original tarball, authenticated publication with its provenance file, exact GitHub trusted-publisher setup, stable publication under `verification`, then guarded `latest` promotion.
+- Health check: `scripts/verify-release.mjs` verifies registry provenance/integrity and a fresh isolated package installation, including local browser-server launch. After promotion require `--expect-latest`.
+- Promotion: only `scripts/promote-release.mjs` with fresh passing proof for the exact stable version and source commit. Keep account challenges and failed gates visible; never substitute a raw dist-tag write or a hosted-web health check.

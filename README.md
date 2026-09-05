@@ -65,4 +65,6 @@ Read the [CLI reference](docs/cli.md), [terminal guide](docs/terminal-guide.md),
 
 Read the [approved design](docs/superpowers/specs/2026-09-05-robopomelo-design.md) and [delivery roadmap](docs/superpowers/specs/robopomelo/delivery-and-roadmap.md).
 
+Maintainers can follow the [release guide](docs/releasing.md), inspect the [CI contract](docs/verification/ci-contract.md), and review the dated [local acceptance evidence](docs/verification/v1-local-acceptance.md). These records distinguish local verification from hosted checks and publication.
+
 RoboPomelo is free and open source under Apache-2.0. It does not control robots or certify a deployment's physical safety or performance.

@@ -1,6 +1,8 @@
 <!-- /autoplan restore point: /Users/hansel/.gstack/projects/robopomelo/feat-v1-autoplan-restore-20260904-203008.md -->
 # RoboPomelo v1 Implementation Plan
 
+This is the original 2026-09-05 planning and review record. Its environment, credentials, pending checks and no-deferral statements describe that stage. The later [local acceptance record](../../verification/v1-local-acceptance.md) records completed local verification and Hansel's explicit deferral of only manual screen-reader testing. Follow the [release guide](../../releasing.md) for publication; the original observations below do not establish current account or release state.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax for tracking. Respect the three-concurrent-agent limit.
 
 **Goal:** Deliver the full approved RoboPomelo v1, verify its distributed release, and reconcile canonical local main with live GitHub main.
