@@ -10,12 +10,15 @@ test('CI always aggregates the complete required job set without path filtering'
   for (const event of ['pull_request', 'push']) assert.equal(ci.on[event]?.paths, undefined);
   assert.equal(ci.on.pull_request_target, undefined);
 });
-test('native matrix covers each current supported OS/runtime pair', async () => {
+test('native matrix covers exact runtime floors and current patches on each supported platform', async () => {
   const d = await workflow('distribution');
   const m = d.jobs.native.strategy.matrix;
-  assert.deepEqual(m.os, ['ubuntu-24.04', 'windows-2025', 'macos-15']);
-  assert.deepEqual(m.node, ['22', '24']);
-  assert.deepEqual(m.include, [{ os: 'macos-15-intel', node: '24' }]);
+  assert.deepEqual(m.os, ['ubuntu-24.04', 'windows-2025', 'macos-15', 'macos-15-intel']);
+  assert.deepEqual(m.node, ['22.22.2', '22', '24.15.0', '24']);
+  const commands = d.jobs.native.steps.map((step) => step.run ?? '').join('\n');
+  assert.match(commands, /npm rebuild node-pty/);
+  assert.match(commands, /prepare-terminal\.mjs/);
+  assert.match(commands, /verify-terminal\.mjs/);
   assert.equal(d.jobs.native.strategy['fail-fast'], false);
   assert.equal(d.jobs['required-distribution'].if, '${{ always() }}');
 });

@@ -16,11 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2025, macos-15]
-        node: ['22', '24']
-        include:
-          - os: macos-15-intel
-            node: '24'
+        os: [ubuntu-24.04, windows-2025, macos-15, macos-15-intel]
+        node: ['22.22.2', '22', '24.15.0', '24']
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     defaults:
@@ -35,6 +32,9 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci --ignore-scripts
+      - name: Prepare test-only native terminal driver
+        run: npm rebuild node-pty
+      - run: node scripts/prepare-terminal.mjs
       - name: Record native runtime
         run: node -e 'const fs=require("node:fs");fs.mkdirSync("test-results",{recursive:true});fs.writeFileSync("test-results/runtime.json",JSON.stringify({os:process.platform,arch:process.arch,node:process.version},null,2))'
       - run: npx --no-install vitest run tests/runtime tests/security tests/cli apps/cli/test tests/distribution tests/skills --reporter=default --reporter=json --outputFile=test-results/native-tests.json
@@ -43,6 +43,7 @@ jobs:
           TARGET: ${{ inputs.target || '1.0.0' }}
           CHANNEL: ${{ inputs.channel || 'candidate' }}
       - run: node scripts/verify-package.mjs --report test-results/package.json
+      - run: node scripts/verify-terminal.mjs --report test-results/terminal.json
       - name: Install native Windows browser binaries
         if: ${{ runner.os == 'Windows' }}
         run: npx --no-install playwright install chrome msedge
