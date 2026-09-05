@@ -62,6 +62,21 @@ Run each step only after the preceding one passes. Bootstrap verification checks
 
 Require the registry verifier to pass for the exact candidate and source commit, and require `candidate` to resolve to `1.0.0-rc.1`. Preserve the existing `latest` state. If publication returns an ambiguous result, inspect registry state before retrying. An immutable-version collision or account error stops publication.
 
+Verify that actual published candidate on the supported native matrix before stable publication:
+
+```sh
+gh workflow run published.yml --repo hanselhansel/robopomelo --ref main -f channel=candidate -f version=1.0.0-rc.1 -f commit="$RP_RELEASE_COMMIT"
+gh run list --repo hanselhansel/robopomelo --workflow published.yml --event workflow_dispatch --commit "$RP_RELEASE_COMMIT" --json databaseId,createdAt,status,conclusion,url
+```
+
+Select this dispatch's run as `RP_CANDIDATE_VERIFY_RUN`, inspect its inputs, then wait:
+
+```sh
+gh run watch "$RP_CANDIDATE_VERIFY_RUN" --repo hanselhansel/robopomelo --exit-status
+```
+
+Require successful `required-published` and retain its native installation reports. This gate installs the registry artifact; the earlier source distribution matrix built its own packages and cannot establish this result.
+
 ## Configure trusted publishing
 
 After the real package exists, configure and read back the exact publisher:
@@ -93,11 +108,27 @@ npm view robopomelo dist-tags --json
 
 Require passing `required-release`, exact registry provenance and integrity, independently installed commands and protected local HTTP launch. A source build, Git tag or workflow configuration cannot substitute for those results.
 
-## Promote and check the default install
-
-Use stable proof less than one hour old. If it expires, verify the registry artifact again to produce fresh proof.
+Verify the actual stable registry artifact on the supported native matrix before promotion:
 
 ```sh
+gh workflow run published.yml --repo hanselhansel/robopomelo --ref main -f channel=stable -f version=1.0.0 -f commit="$RP_RELEASE_COMMIT"
+gh run list --repo hanselhansel/robopomelo --workflow published.yml --event workflow_dispatch --commit "$RP_RELEASE_COMMIT" --json databaseId,createdAt,status,conclusion,url
+```
+
+Select and inspect this dispatch as `RP_STABLE_VERIFY_RUN`, then require successful `required-published`:
+
+```sh
+gh run watch "$RP_STABLE_VERIFY_RUN" --repo hanselhansel/robopomelo --exit-status
+```
+
+Preserve the reports for the exact stable version and source commit. A passing candidate matrix does not substitute for this stable artifact check.
+
+## Promote and check the default install
+
+After the stable native matrix passes, produce fresh stable proof. The promotion guard requires proof less than one hour old.
+
+```sh
+node scripts/verify-release.mjs --version 1.0.0 --commit "$RP_RELEASE_COMMIT" --report "$RP_RELEASE_ARTIFACTS/stable-published.json"
 node scripts/promote-release.mjs --version 1.0.0 --commit "$RP_RELEASE_COMMIT" --proof "$RP_RELEASE_ARTIFACTS/stable-published.json"
 node scripts/verify-release.mjs --version 1.0.0 --commit "$RP_RELEASE_COMMIT" --expect-latest --report "$RP_RELEASE_ARTIFACTS/latest-published.json"
 npm view robopomelo@1.0.0 version dist.integrity dist.attestations --json

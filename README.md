@@ -63,8 +63,10 @@ The generated package lives in `dist/package`. Build tools and test-only browser
 
 Read the [CLI reference](docs/cli.md), [terminal guide](docs/terminal-guide.md), [storage and recovery guide](docs/project-storage.md), [update policy](docs/update-policy.md), and [security boundaries](docs/security-boundaries.md).
 
-Read the [approved design](docs/superpowers/specs/2026-09-05-robopomelo-design.md) and [delivery roadmap](docs/superpowers/specs/robopomelo/delivery-and-roadmap.md).
+Read the [approved design](docs/superpowers/specs/2026-09-05-robopomelo-design.md), [original implementation plan](docs/superpowers/plans/2026-09-05-robopomelo-v1.md), [visual system](DESIGN.md), and [delivery roadmap](docs/superpowers/specs/robopomelo/delivery-and-roadmap.md).
 
 Maintainers can follow the [release guide](docs/releasing.md), inspect the [CI contract](docs/verification/ci-contract.md), and review the dated [local acceptance evidence](docs/verification/v1-local-acceptance.md). These records distinguish local verification from hosted checks and publication.
+
+See the [release notes](CHANGELOG.md) for the changes prepared for each version and [early implementation record](docs/verification/implementation-progress.md) for historical evidence.
 
 RoboPomelo is free and open source under Apache-2.0. It does not control robots or certify a deployment's physical safety or performance.

@@ -26,6 +26,14 @@ Required release results include guard, verification and delivery. Selecting boo
 
 The [maintainer release guide](../releasing.md) gives the ordered commands, artifact identity checks, trusted-publisher readback and guarded promotion procedure. Its instructions do not substitute for successful run and registry evidence.
 
+## Published artifact matrix
+
+[Published verification](../../.github/workflows/published.yml) is a separate explicit dispatch with exact `version`, `commit` and `channel` inputs. Run it after candidate publication and again after stable publication. Each run must pass `required-published` for its actual registry artifact before advancing to the next release stage. The stable run precedes `latest` promotion.
+
+This gate verifies the published package on the supported native matrix. The source distribution matrix builds packages per runner, so its success cannot prove installation of the eventual npm bytes. Retain the published-artifact reports separately from source and bootstrap evidence.
+
+The [source guard](../../scripts/verify-published-context.mjs) requires the exact authorized main dispatch, clean source and committed release target. Each of the same 16 OS/Node combinations runs `verify-release.mjs` against the registry tarball and uploads `test-results/published.json` with version, OS, Node and matrix index in its artifact name. The aggregate requires successful guard and native jobs and rejects missing, skipped, failed or cancelled results. This read-only workflow has no signing, publication or tag-mutation permission.
+
 ## Reviewed Action pins
 
 The coordinator verified these versions on 2026-09-05. Workflows use full immutable commits, not moving tags.
