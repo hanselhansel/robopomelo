@@ -14,13 +14,13 @@ Hansel approved this focused cycle on 2026-09-05 after reviewing the storage-fai
 
 - [x] Add `tests/security/filesystem-diagnostics-http.test.ts`: a real local HTTP failure must expose only known `systemCode` and `operation`; arbitrary codes, paths, messages, stacks and credentials must not escape. Confirm the known-code test fails before implementation.
 - [x] Update `apps/cli/src/server/errors.ts` with closed-list diagnostics. Preserve status, error code, authentication and mutation semantics. Run the focused security tests and strict types; commit after green.
-- [ ] Reproduce the fictional save on native Windows with the built browser acceptance journey. Preserve the sanitized failure and transaction receipt. A passing run alone is not root-cause proof.
+- [x] Reproduce the fictional save on native Windows with the built browser acceptance journey. Preserve the sanitized failure and transaction receipt. A passing run alone is not root-cause proof.
 
 Native reproduction uses `tests/runtime/storage-replay.test.ts` and its synthetic captured fixture. It performs 100 add/remove cycles on Windows under concurrent source observation, captures transaction phase and native method errors, and retains only the synthetic project on failure. The existing native CI matrix runs it. A diagnostic branch/PR may be pushed for this evidence; it must not merge or publish until the causal repair gate is satisfied.
 
 ## Repair gate
 
-- [ ] Identify the exact failing operation from native evidence. Update this plan with the causal change before editing transaction code. Do not assume a sharing violation or increase assertion deadlines.
+- [x] Identify the exact failing operation from native evidence. Update this plan with the causal change before editing transaction code. Do not assume a sharing violation or increase assertion deadlines.
 - [ ] Write a failing causal regression, implement only the verified correction, and prove successful and failed-operation recovery without weakening source identity, confinement, permissions or approval invalidation.
 
 ## Completion
@@ -29,3 +29,11 @@ Native reproduction uses `tests/runtime/storage-replay.test.ts` and its syntheti
 - [ ] Run ship and land-and-deploy, synchronize main, verify the signed candidate and actual published artifacts, configure trusted publishing, promote verified stable, and verify local/live main equality.
 
 Research checked 2026-09-05: [Node system error documentation](https://nodejs.org/api/errors.html) defines stable `code` and `syscall` fields. Error messages are not treated as a machine-readable contract.
+
+## Verified cause and causal change
+
+Native run 33962540784 reproduced EPERM at the source rename on all four Windows Node variants. The transaction phase was evidence-published and the method log identified renameReplace, not lease cleanup. Main remains unchanged while the draft is under repair.
+
+`transactions/replace-source.ts` will retry only Windows EPERM with syscall rename, at most eight attempts. Each attempt rechecks the original staged/destination device and file identity, old/new byte hashes, and identity again after reads. All checks use confined SafeRoot operations. Source changes abort with STALE_BASE; prepared-file changes require recovery. Missing files and other errors abort. There is no unlink, copy-overwrite, permission change, or retry of directory sync/history. The helper remains inside existing authorization and the project lease. Backoff totals at most 775ms; I/O time is separate.
+
+Causal tests cover transient success, bounded persistent failure, other OS/error boundaries, external source edits, stage tampering, changed inode with identical bytes, and post-replacement failure. The existing native replay remains the Windows acceptance gate. Failed synthetic metadata is also retained under a visible artifact directory because upload excludes dot-directories by default.

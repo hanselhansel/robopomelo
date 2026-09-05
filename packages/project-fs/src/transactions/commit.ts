@@ -1,7 +1,6 @@
 import type { CommitInput, SessionOptions } from '../contracts.js';
 import type { Journal } from './journal.js';
-import { byteHash } from './digest.js';
-import { ProjectFsError } from '../errors.js';
+import { replaceSource } from './replace-source.js';
 import { transactionBase, jsonWrite } from './io.js';
 import { publishEvidence } from './evidence.js';
 import { finalizeHistory } from '../history.js';
@@ -21,9 +20,10 @@ export async function commitPrepared(
     input.authorization,
     required,
     async () => {
-      if (byteHash(await root.readFile('deployment.yaml')) !== journal.prior.sourceHash)
-        throw new ProjectFsError('STALE_BASE', 'Source changed after transaction preparation.');
-      await root.renameReplace(`${transactionBase(journal.mutationId)}/replacement.yaml`, 'deployment.yaml');
+      await replaceSource(root, `${transactionBase(journal.mutationId)}/replacement.yaml`, {
+        prior: journal.prior.sourceHash,
+        next: journal.next.sourceHash,
+      });
       await root.fsyncDirectory();
     },
   );

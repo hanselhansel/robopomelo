@@ -116,6 +116,8 @@ it('replays the captured Windows save while source observers read concurrently',
     );
     // Only this synthetic fixture's project is retained. Its config/session is excluded.
     await cp(project, join(output, 'project'), { recursive: true });
+    // Artifact upload omits dot-directories. Retain this synthetic metadata visibly too.
+    await cp(join(project, '.robopomelo'), join(output, 'project-metadata'), { recursive: true });
     throw error;
   } finally {
     stopped = true;
