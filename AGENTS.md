@@ -4,6 +4,10 @@
 
 The approved design is `docs/superpowers/specs/2026-09-05-robopomelo-design.md` and its five linked specifications. Hansel authorized end-to-end implementation on 2026-09-05 after receiving the written specification. Preserve the full v1 scope. Keep unrelated discoveries as follow-up work.
 
+On 2026-09-07 Hansel approved `docs/superpowers/specs/2026-09-07-agentic-desktop-design.md` and authorized end-to-end implementation of the reviewed `docs/superpowers/plans/2026-09-07-agentic-desktop.md`. That plan and its linked contracts/task/interface files govern the current macOS-first iteration. Explicit connected-AI/public-research grants are approved new capabilities; preserve model-free use and never infer those grants from an old v1 author permission. The approved combined mockup is in `docs/superpowers/specs/agentic-desktop/approved-workspace.png`.
+
+Current implementation worktree is `.worktrees/agentic-desktop` on `feat/agentic-desktop`. Keep the existing planning worktree and unrelated state. Routine green execution/review/commit/release work is authorized; live provider containment, old-reader compatibility, simulator performance, actual Isaac GPU acceptance and signed/notarized desktop delivery remain explicit gates. Devin CLI is authorized for external review; do not repeatedly ask to reopen settled product decisions.
+
 Never read or index unrelated private repositories. Never import another physical-AI repository's product code, history, migration, or packages.
 
 ## Workflow
@@ -35,8 +39,8 @@ Never read or index unrelated private repositories. Never import another physica
 
 - Keep source files under 400 lines.
 - Core rules are deterministic and shared by browser, terminal and Skills.
-- No model dependency, project telemetry/upload, remote UI assets or physical-system writes.
-- Automatic compatible stable updates are the only built-in network exception, disabled in offline mode.
+- Preserve manual/model-free operation. Connected AI may receive only explicitly granted project context; public research uses the approved broker boundary. No telemetry, remote UI assets, implicit project upload or physical-system writes.
+- Automatic compatible stable updates and explicitly granted AI/research are network capabilities; offline mode disables them. Desktop updates replace the complete signed app and do not invoke the standalone CLI's runtime hot-swap path.
 - Preserve typed unknown states, extension data, provenance, revision recovery and protected review decisions.
 - Test meaningful error and boundary behavior, not just implementation-shaped assertions.
 

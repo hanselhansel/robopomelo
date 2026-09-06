@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript, React/Vite, Electron with a sandboxed renderer, existing Ajv/YAML/transaction packages, Three.js rendering, deterministic TypeScript worker simulation, PDF.js for local PDF extraction, OpenRouter HTTPS, Codex app-server and feasibility-gated Grok ACP/headless adapters. Isaac Sim 6.0.0 on Ubuntu 24.04 x86_64 is the proposed external reference runtime.
 
-Status: engineering plan reviewed through sequential product, design, DX and engineering passes with user-authorized Devin CLI outside reviews. Awaiting the final engineering-choice approval. Product design is approved; no product code has been implemented by this plan. Implementation dependencies are tracked explicitly below. Exact new dependency pins are selected by the registry/license/security check in task D1, not guessed from remembered releases.
+Status: engineering plan reviewed through sequential product, design, DX and engineering passes with user-authorized Devin CLI outside reviews. Hansel authorized end-to-end implementation on2026-09-07. Product design and engineering choices are approved. Checkboxes and evidence records below track actual implementation; approval is not proof that integration gates passed. Exact new dependency pins are selected by the registry/license/security check in task D1, not guessed from remembered releases.
 
 ## Execution order and review target
 
