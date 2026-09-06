@@ -1,11 +1,6 @@
 import type { UpdateSettings } from '../../../../packages/project-fs/src/settings/schema.js';
-import { RuntimeError } from './errors.js';
-export interface RunPolicy {
-  offline?: boolean;
-  mode?: 'auto' | 'notify' | 'off';
-  explicitVersion?: string;
-  sourceCheckout?: boolean;
-}
+import { RuntimeError, type RunPolicy } from '@robopomelo/application/runtime';
+export type { RunPolicy } from '@robopomelo/application/runtime';
 export type SelectionReason = 'explicit' | 'rollback-hold' | 'pin' | 'cache' | 'bundle';
 export interface RuntimeSelection {
   version: string;

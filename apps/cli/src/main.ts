@@ -6,11 +6,10 @@ import { parseCommand } from './arguments.js';
 import { helpText } from './help.js';
 import { executeCommand, resultEnvelope, type CommandContext } from './dispatch.js';
 import { errorEnvelope, exitForError, successEnvelope } from './output.js';
-import { ProjectService } from './services/project.js';
+import { ProjectService, startApplication } from '@robopomelo/application';
 import { TOOL_VERSION } from './version.js';
 import { loadBundledRuntime } from './runtime/bundle.js';
 import { runtimeContext } from './services/runtime.js';
-import { startApplication } from './server/application.js';
 import { openBrowser } from './browser.js';
 import { runWizard } from './wizard/run.js';
 interface StartMessage {

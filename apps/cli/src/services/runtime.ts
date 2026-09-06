@@ -4,8 +4,7 @@ import { UpdateService } from '../runtime/update.js';
 import { UpdatePreferences } from '../../../../packages/project-fs/src/settings/updates.js';
 import { machinePaths } from '../../../../packages/project-fs/src/fs/machine-paths.js';
 import { RULE_SET_VERSION } from '@robopomelo/core';
-import type { ProjectService } from './project.js';
-import type { RuntimeIdentity } from '../server/update-routes.js';
+import type { ProjectService, RuntimeIdentity } from '@robopomelo/application';
 export interface ParentIdentity {
   launcherDirectory?: string;
   launcherVersion?: string;

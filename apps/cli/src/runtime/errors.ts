@@ -1,10 +1,1 @@
-export class RuntimeError extends Error {
-  constructor(
-    readonly code: string,
-    message: string,
-    readonly details?: unknown,
-  ) {
-    super(message);
-    this.name = 'RuntimeError';
-  }
-}
+export { RuntimeError } from '@robopomelo/application/runtime';
