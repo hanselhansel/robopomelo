@@ -14,7 +14,11 @@ in that URL or process arguments.
 Run `npm run test:desktop-smoke` on macOS with the reviewed Electron binary
 installed. The smoke opens a hidden real Electron window against a temporary
 local test page, verifies the isolated bridge and blocked external networking,
-closes the window/listener, then explicitly exits its test process. It does not
+closes the window/listener, then explicitly exits its test process. The parent
+requires the assertion marker, exit code zero and closed output streams. Its
+20-second deadline is independent of the Electron event loop. It owns a detached
+process group and awaits bounded cleanup (at most ten additional seconds), using
+the repository's existing process cleanup helper. It does not
 exercise native picker interaction, full application lifecycle, packaging,
 signing or notarization. Installed-app picker QA remains R3.
 
@@ -37,3 +41,22 @@ signing or notarization. Installed-app picker QA remains R3.
   disabled for Electron.
 - Security controls checked against
   https://www.electronjs.org/docs/latest/tutorial/security on 2026-09-07.
+
+## D1 review repair evidence
+
+The original smoke's window-close callback accessed BrowserWindow.webContents
+after destruction. A macOS process sample and the actual Electron error alert
+identified the resulting uncaught exception and native modal loop. That loop
+blocked the in-process timeout. The bridge now retains WebContents while alive,
+and its lifecycle regression test reproduces the destroyed accessor.
+
+The smoke emits stages, logs uncaught errors without opening Electron's default
+modal, and has a separate parent watchdog. Process tests prove a blocked child
+event loop is bounded, exit zero without assertion evidence fails, and a retained
+descendant is terminated even after its launcher exits. A live Electron44.2.0
+run reached every stage and exited zero after this repair.
+
+The import checker catches declared workspace aliases, built-in and selected
+network package subpaths, direct/global network constructors and simple assigned
+aliases. It is a static architecture check, not a JavaScript sandbox. Electron's
+runtime session policy enforces the renderer network boundary.

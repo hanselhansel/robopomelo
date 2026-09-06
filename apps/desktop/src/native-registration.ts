@@ -10,8 +10,9 @@ export function registerNativeBridge(
   uiOrigin: string,
   callbacks: Pick<NativeDependencies, 'confirm' | 'cancelRun'>,
 ) {
+  const contents = window.webContents;
   const handlers = createNativeHandlers({
-    sender: window.webContents,
+    sender: contents,
     uiOrigin,
     ...callbacks,
     async identity(path) {
@@ -79,9 +80,9 @@ export function registerNativeBridge(
   const invalidate = (_event: unknown, _url: string, _inPlace: boolean, isMainFrame: boolean) => {
     if (isMainFrame) handlers.dispose();
   };
-  window.webContents.on('did-start-navigation', invalidate);
+  contents.on('did-start-navigation', invalidate);
   const dispose = () => {
-    window.webContents.removeListener('did-start-navigation', invalidate);
+    contents.removeListener('did-start-navigation', invalidate);
     handlers.dispose();
     for (const channel of Object.values(channels)) ipcMain.removeHandler(channel);
   };

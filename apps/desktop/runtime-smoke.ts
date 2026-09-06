@@ -8,15 +8,26 @@ const server = createServer((_request, response) => {
   response.setHeader('Content-Type', 'text/html');
   response.end('<!doctype html><title>Desktop isolation smoke</title><p>Host isolation test</p>');
 });
+function fail(error: unknown) {
+  console.error(error);
+  app.exit(1);
+}
+process.on('uncaughtException', fail);
+process.on('unhandledRejection', fail);
+console.log('ELECTRON_SMOKE_STAGE module-loaded');
 async function run() {
+  console.log('ELECTRON_SMOKE_STAGE waiting-ready');
   await app.whenReady();
+  console.log('ELECTRON_SMOKE_STAGE app-ready');
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   const address = server.address();
   if (!address || typeof address === 'string') throw new Error('No smoke listener');
   const origin = 'http://127.0.0.1:' + address.port;
   const window = createDesktopWindow(origin, join(__dirname, 'preload.cjs'), false);
   registerNativeBridge(window, origin, { confirm: async () => {}, cancelRun: async () => {} });
+  console.log('ELECTRON_SMOKE_STAGE window-created');
   await window.loadURL(origin);
+  console.log('ELECTRON_SMOKE_STAGE ui-loaded');
   const state = await window.webContents.executeJavaScript(`({
   node:typeof require,
   bridge:Object.keys(window.robopomelo).sort(),
@@ -33,6 +44,7 @@ async function run() {
    fetch('https://example.com').then(()=>false,()=>true)
  `);
   assert.equal(blocked, true);
+  console.log('ELECTRON_SMOKE_STAGE assertions-passed');
   window.destroy();
   await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
   console.log('ELECTRON_SMOKE_OK ' + process.versions.electron);
