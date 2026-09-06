@@ -1,6 +1,6 @@
 # RoboPomelo agentic desktop: product design for review
 
-Date: 2026-09-07. Status: consolidated design awaiting Hansel's review. This document does not authorize implementation or claim that its capabilities exist in released v1.
+Date: 2026-09-07. Status: product design approved by Hansel in this conversation on 2026-09-07 as the basis for engineering review and implementation planning. This approval does not claim that these capabilities exist in released v1. Engineering-plan review remains before product implementation.
 
 The individual product decisions below were agreed during brainstorming. The implementation plan, engineering review, desktop runtime selection, exact compatibility/version decision and release acceptance remain separate gates. This proposal changes v1's model-free scope through explicit connected-AI authorization; it does not silently change existing installations.
 
