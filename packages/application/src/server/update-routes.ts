@@ -10,6 +10,8 @@ export interface UpdateStatus {
   lastOutcome: { status?: string; pendingVersion?: string | null; message?: string } | null;
   configuredPolicy?: { mode: string; offline: boolean };
   rollback?: { version: string; eligible: boolean; reason: string };
+  compatibility?: string;
+  capabilities?: { check: boolean; install: boolean; rollback: boolean };
 }
 export interface UpdaterApi {
   status(run?: RunPolicy): Promise<UpdateStatus>;
@@ -56,10 +58,10 @@ export function updateRoutes(updater: UpdaterApi, identity: RuntimeIdentity): Ro
           offlineForced: identity.offline === true,
           pendingVersion: status.selection.version !== identity.toolVersion ? status.selection.version : null,
           availableVersion,
-          compatibility: 'Selected runtime passed compatibility checks.',
-          checkEligible: !status.policy.offline && !run.sourceCheckout,
-          installEligible: installationAllowed,
-          rollbackEligible: status.rollback?.eligible ?? false,
+          compatibility: status.compatibility ?? 'Selected runtime passed compatibility checks.',
+          checkEligible: (status.capabilities?.check ?? true) && !status.policy.offline && !run.sourceCheckout,
+          installEligible: (status.capabilities?.install ?? true) && installationAllowed,
+          rollbackEligible: (status.capabilities?.rollback ?? true) && (status.rollback?.eligible ?? false),
           rollbackVersion: status.rollback?.version ?? null,
           rollbackReason: status.rollback?.reason ?? 'Rollback eligibility has not been reported.',
           versions: {

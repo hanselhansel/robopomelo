@@ -4,7 +4,7 @@ Started2026-09-07 from reviewed plan commit81ce15a, released maincafb740. Worktr
 
 ## Current checkpoint
 
-C1: native setup, shared service, connected adaptive discovery. D1 native host is implemented through b36cbda; independent spec recheck and quality review remain before D2. The complete checkpoint and release are not finished.
+C1: native setup, shared service, connected adaptive discovery. D1 native host passed independent spec and quality reviews; its network smoke was strengthened in b3aab43. D2 shared application extraction is committed in61557cc. Desktop service lifetime and truthful development-update status are under integration. The complete checkpoint and release are not finished.
 
 ## Gates
 
@@ -26,3 +26,7 @@ D1 implementation verification:17desktop tests and53tooling tests passed, plus t
 Metadata-only provider probes generated Codex0.153.4 schemas from an isolated cache installation, and fetched430OpenRouter model records from the public inventory. No paid model inference or live adapter-containment acceptance is claimed. Local macOS reports0valid code-signing identities and an available notarytool; local development tests can proceed, but public notarized distribution remains gated.
 
 Source changes use focused red-green tests and per-task spec/quality review. The final whole-branch review and release-owned checks remain separate and are not duplicated here.
+
+D2 focused verification2026-09-07:9desktop lifecycle/update-status tests and3application parity tests passed, as did typecheck, dependency boundaries and source limits. Tests cover startup failure, quit during startup, repeated shutdown and cleanup after a disposer failure. A failing test caught the shared update route incorrectly claiming verified compatibility for a desktop development build; status now respects adapter capabilities. These helpers are not yet wired into the desktop entry point and do not establish full installed-desktop acceptance.
+
+Testing without owned GPU hardware: use local deterministic simulator and export-contract checks during implementation, then run the finished reference on an authorized borrowed or temporary rented GPU. Only that actual run can establish Isaac acceptance. [NVIDIA requirements](https://docs.isaacsim.omniverse.nvidia.com/latest/installation/requirements.html) and [cloud deployment](https://docs.isaacsim.omniverse.nvidia.com/latest/installation/install_cloud.html), retrieved2026-09-07. No cloud account or paid resources were provisioned.
