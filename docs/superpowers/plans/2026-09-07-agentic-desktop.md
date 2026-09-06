@@ -8,13 +8,15 @@
 
 **Tech Stack:** TypeScript, React/Vite, Electron with a sandboxed renderer, existing Ajv/YAML/transaction packages, Three.js rendering, deterministic TypeScript worker simulation, PDF.js for local PDF extraction, OpenRouter HTTPS, Codex app-server and feasibility-gated Grok ACP/headless adapters. Isaac Sim 6.0.0 on Ubuntu 24.04 x86_64 is the proposed external reference runtime.
 
-Status: engineering plan under review. Product design is approved; no product code has been implemented by this plan. Implementation dependencies are tracked explicitly below. Exact new dependency pins are selected by the registry/license/security check in task D1, not guessed from remembered releases.
+Status: engineering plan reviewed through sequential product, design, DX and engineering passes with user-authorized Devin CLI outside reviews. Awaiting the final engineering-choice approval. Product design is approved; no product code has been implemented by this plan. Implementation dependencies are tracked explicitly below. Exact new dependency pins are selected by the registry/license/security check in task D1, not guessed from remembered releases.
 
 ## Execution order and review target
 
 Read the [approved product design](../specs/2026-09-07-agentic-desktop-design.md), [contracts and architecture](agentic-desktop/contracts.md), [desktop/discovery tasks](agentic-desktop/desktop-agent.md), [spatial/simulation tasks](agentic-desktop/spatial-simulation.md), [release and validation tasks](agentic-desktop/release-validation.md) and [review record](agentic-desktop/review.md).
 
-Execute integrated checkpoints: C1 = D1-D4+A1+A3+A4 (native intake -> question -> traceable draft); C2 = S1+S2+S2b+S3+S4 (fact -> editable scene -> one run); C3 = A5+S2a+S5+S6 (reusable template ->50robot alternatives); C4 = R1-R3+R5 (target execution -> second-engineer continuation); C5 = R4 (release). D0 and A2 account-adapter proofs can progress independently without delaying the first OpenRouter-backed checkpoint; requested account connections still need acceptance before full delivery. Each checkpoint runs a short retained usability/continuation test before the next expands. Tasks have red-test, minimal implementation, verification and explicit-path commit steps; completing one is not completion of the iteration.
+The [interface/lifecycle/compatibility supplement](agentic-desktop/interfaces.md) defines the CLI/API surface and contribution manifests; its assigned tasks are mandatory parts of the corresponding subplans.
+
+Execute integrated checkpoints: C1 = D1-D4+A1+A3+A4 (native intake -> question -> traceable draft); C2 = S1+S2+S2b+S3+S4 (fact -> editable scene -> one run); C3 = A5+S2a+S5+S6 (reusable template ->50-robot alternatives); C4 = R1-R3+R5 (target execution -> second-engineer continuation); C5 = R4 (release). D0 and A2 account-adapter proofs can progress independently without delaying the first OpenRouter-backed checkpoint; requested account connections still need acceptance before full delivery. Each checkpoint runs a short retained usability/continuation test before the next expands. Tasks have red-test, minimal implementation, verification and explicit-path commit steps; completing one is not completion of the iteration.
 
 Use `/Users/hansel/conductor/repos/robopomelo/.worktrees/v1`, branch `chore/agentic-desktop-design`, for planning only. Implementation begins on a fresh `feat/agentic-desktop` branch/worktree at the reviewed plan commit. Released canonical main is `cafb7409e6e653ea504e0087612e66fac37842a8`; verify live main again before creating the implementation worktree. No reset/stash/force or direct main commits.
 
@@ -69,6 +71,8 @@ CLI/Skills ------------------^  same core actions and validation
 
 Electron utility processes are process separation, NOT an OS sandbox. Only trusted application code runs there. Untrusted PDF parsing and arbitrary imported/generated code require the separately sandboxed/limited paths in D3 and S2. Keep provider-native shell/file/web capabilities disabled or the adapter unavailable.
 
+Enforced dependency map: spec -> none; spatial -> spec; core -> spec,spatial; simulation -> spec,spatial; project-fs -> spec,core,spatial; artifacts -> spec,core,spatial; providers -> spec; agent -> spec,core; ingestion -> spec; isaac-export -> spec,spatial; application -> spec,core,project-fs,artifacts,providers,agent,spatial,simulation,ingestion,isaac-export; desktop -> application,spec; cli -> application,spec,core,project-fs,artifacts; web -> spec,spatial. Pure packages and web may not import Node/Electron/network APIs. Desktop preload exposes only DTOs, with a separate import deny rule. Unknown owners hard-fail. This map is implemented and tested in D1/D2, with pure spatial geometry depending on spec only to avoid a core/spatial cycle.
+
 ## Firm engineering defaults proposed for approval
 
 1. Keep schema `specVersion: 1.0.0` initially with `extensions['robopomelo.spatial']` format `1.0.0` and required capability `spatial-planning-v1`. Task S1 proves released-v1 rejection of editing/approval and visible export limitations. If that fails, stop for a backed-up format migration decision; do not silently rely on an unknown-extension warning.
@@ -87,7 +91,7 @@ Electron utility processes are process separation, NOT an OS sandbox. Only trust
 | G0 product/plan review | Product code | Approved product spec and reviewed task plan | Product approved; plan pending |
 | G1 account-adapter containment | Advertise Codex/Grok integration | Pinned protocol, no ambient hooks/files/network, cancellation, fake-secret canaries | Not run; Grok macOS limitations documented |
 | G2 old-reader compatibility | New source writes | Actual npm v1 open/edit/approve/export matrix with spatial capability required | Not run |
-| G3 desktop architecture performance | Commit renderer/simulator scale promises | Named M4/24GiB development machine measured baseline; supported Intel target tested separately | Hardware known; new benchmark not run |
+| G3 desktop architecture performance | Commit renderer/simulator scale promises | Named M4 / 24 GiB development machine measured baseline; supported Intel target tested separately | Hardware known; new benchmark not run |
 | G4 Isaac runtime | Claim runnable handoff | RTX-compatible Ubuntu24.04 runner, driver, Isaac6.0.0 and licensed asset pack; real controller execution | No compatible runner established |
 | G5 signed distribution | Publish desktop installer/update | Developer ID/notarization authority and clean-machine install/update proof | Availability not established |
 
@@ -119,10 +123,14 @@ The prior stable npm release needed explicit verification-only recovery after ev
 | Old-reader behavior/spec and release semantics | S1, R4 |
 | Native/accessibility/security QA | D0, D4, A2, R2-R4 |
 
+Additional mandatory coverage: source-to-simulation RequirementBinding in S1; asset assembly/behavior/template/draft promotion in S2a; early feasibility in S2b; fixed baseline/field-source UX in S3/S6; no-account example in D3; account disconnect/API/contribution/version matrices in interfaces.md; second-engineer continuation and comparative evidence in R5.
+
 ## NOT in scope
 
 Windows desktop, remote GPU management, multi-floor elevators, arms/humanoids/drones, arbitrary vendor selection, detailed local sensor/contact physics, real robot/facility writes, hosted collaboration, telemetry collection and operator/safety certification. Retain post-v1 test-execution/result-assessment roadmap. Remote test hardware access is a verification dependency, not a new hosted product feature.
 
 ## GSTACK REVIEW REPORT
 
-Review in progress. Read the linked review record for completed phases, amendments, unavailable outside voices and remaining gates. This line must be replaced with the final assessed verdict before execution handoff.
+CEO: reviewed,6Devin findings incorporated. Design: reviewed,5Devin findings resolved/refined without changing the approved layout. DX: reviewed,4Devin findings incorporated. Engineering: reviewed,6Devin findings triaged into4clarifications/corrections and2already-assigned obligations; focused repair verification found one task-file omission, corrected by the primary reviewer. No residual contradiction is knowingly left in the reviewed repairs. Claude and the installed Codex CLI were unavailable; Devin was used with explicit user authorization. These are planning reviews, not executed feature acceptance or independent security certification.
+
+Verdict: ready for approval of staged implementation with G1-G5 enforced. Not cleared for publication or claims of completed provider/Isaac/desktop acceptance. Taste choices to confirm: Electron/shared Node host; constrained public-topic research with reviewed custom queries; two-Jetbot Isaac reference distinct from the50-robot local workload; proposed exploration/scene/performance bounds. Existing user-approved product scope remains intact. Prefer subagent-driven bounded implementation with one owner per shared contract and at most coordinator+two agents.

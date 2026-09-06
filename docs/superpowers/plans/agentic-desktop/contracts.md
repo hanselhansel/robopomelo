@@ -35,7 +35,7 @@ The full extension also contains scenario definitions, typed stations/queue slot
 
 Every user/AI-derived simulation value has an explicit field-level binding. Define `RequirementBinding { id, subjectId, sourceIds, target:{ scenarioId, recordId, field }, transform:'identity'|'unit-conversion'|'assumption', rationale, knowledgeState, confirmedAtRevision }` in spatial.ts. Target field is an enumerated semantic field (geometry extent, robot limit, task arrival/handling duration, objective threshold), not arbitrary JSONPath. Resolve the actual source value and transformation from validated records; no unconstrained executable expressions. A source edit marks linked derived values stale and invalidates only corresponding simulation-input hashes. Unknown/contradictory sources cannot become confirmed fields. User overrides create a new binding/rationale rather than erasing provenance. Test the full incomplete-notes/floor-plan -> fact -> geometry/workload/objective -> run -> corrected-fact path and prove unrelated bindings remain unchanged.
 
-Assets live under `assets/sha256/<digest>/`; verified original bytes cannot be replaced by an instance parameter edit. Source extents and loaded collision polygons are independent of decorative mesh scale. Result trajectories are stored under `runs/<runId>/`, not within the 8MiB YAML source.
+Assets live under `assets/sha256/<digest>/`; verified original bytes cannot be replaced by an instance parameter edit. Source extents and loaded collision polygons are independent of decorative mesh scale. Result trajectories are stored under `runs/<runId>/`, not within the 8 MiB YAML source.
 
 ## Provider and discovery boundary
 
@@ -101,15 +101,30 @@ This reduces automatic query expressiveness intentionally. The model can still r
 
 ```ts
 export type PickedFolder = { selectionId: string; displayPath: string };
+export type ConnectionStatus = {
+  connectionId: string; generation: number;
+  state: 'connected' | 'disconnected' | 'disabled-cleanup-required';
+  accountLabel: string | null;
+};
+export type AttachmentPreview = {
+  selectionId: string; state: 'parsed' | 'partial' | 'unsupported' | 'failed';
+  textExcerpt: string; pagePreviewIds: string[]; warnings: string[];
+};
 export interface DesktopBridge {
   chooseProjectFolder(mode: 'create' | 'open'): Promise<PickedFolder | null>;
   selectAttachments(): Promise<{ selectionId: string; name: string; bytes: number }[]>;
   confirmSetup(selectionId: string, presetId: 'recommended' | 'inspection'): Promise<void>;
   cancelRun(runId: string): Promise<void>;
+  disconnect(connectionId: string): Promise<ConnectionStatus>;
+  connectionStatus(connectionId: string): Promise<ConnectionStatus>;
+  inspectAttachment(selectionId: string): Promise<AttachmentPreview>;
+  cancelAttachment(selectionId: string): Promise<void>;
 }
 ```
 
 Main retains actual file paths behind short-lived selection IDs. Confirm verifies sender WebContents/main frame, active selection, root identity and displayed grant payload. Set nodeIntegration:false, contextIsolation:true, sandbox:true, webSecurity:true. Deny popups, new windows and permission requests by default. Open only exact supported OAuth destinations in the system browser after validating the generated URL. OAuth callback checks state+PKCE, binds connection/attempt, consumes once, rejects expiry and releases listener on cancel.
+
+inspectAttachment validates selection ownership, file identity and byte limits, then transfers the explicitly selected bytes over a main-owned MessagePort to a dedicated sandboxed parser renderer with Node and all network disabled. The application renderer receives bounded sanitized extraction results and origin/session-bound preview IDs only. A local preview protocol serves approved image bytes with fixed MIME, no file path exposure or external references. Selection cancellation invalidates parser generation; parser timeout/crash drops late output and retains the user's selection with an actionable status. No global readFile(path) bridge or arbitrary renderer fetch is added. Add tests for swapped selected-file identity, forged selectionId, byte/page overflow, preview token reuse across projects and parser process failure.
 
 Reuse current loopback HTTP service for renderer application requests initially, pinned to its exact origin and session token. Preload capability does not expose general network fetch. Provider keys remain in Electron main, protected with safeStorage encryption backed by Keychain; non-secret connection metadata may reach the service. Disable renderer outbound destinations and network-capable asset resolution. Service calls model APIs through a narrow broker; no key in renderer, logs, process arguments or project exports.
 
@@ -185,3 +200,22 @@ error: parse/auth/conflict/timeout -> named rescue -> retained draft + actionabl
 ```
 
 Other invalid transitions, such as callback-after-cancel, apply-without-grant, completion-without-receipt and success-with-unfinished-jobs, are forbidden by broker/core checks and explicit tests in the task files.
+
+## Interaction decisions from design review
+
+Each editable bound field displays a short state label (Confirmed, Assumed, Unknown, Stale) and an Inspect source action. Expanding shows readable source labels/links, transform and rationale; raw IDs are secondary. Override opens a value+rationale editor and writes a new RequirementBinding. Stale/conflicting fields have inline text indicators as well as conversation context. Derived values are never silently promoted by typing into an unrelated field.
+
+| Interrupted step | Retain | Clear/invalidate |
+|---|---|---|
+| Welcome/file picker | Description, already selected files and completed previews | Cancelled selection request only |
+| Folder selection | Intake and suggested project name | Unconfirmed native selection token |
+| Permission confirmation | Intake, displayed preset and connection choice | Unconfirmed grant; changing root invalidates prior pending grant |
+| OAuth | Intake, selected root, confirmed local grants, model preference | Attempt state/verifier/callback listener; no stale callback may reconnect |
+| Provider failure during drafting | Source, conversation checkpoint, unsent composer and selected files | Active run generation, uncommitted proposal authorization |
+| App restart | Durable project events/checkpoints and actual grants | Ephemeral paths/tokens/prompts; reselect unavailable unstaged files explicitly |
+
+Question validity is subject-dependent, not triggered by every source revision. A relevant answer/source/binding change marks the old question stale and disables its choices. Historical content remains readable; the composer stays enabled for fresh text and attachments, correlated to the new active question only when explicitly answered. Camera/cosmetic edits do not invalidate discovery. After a settled semantic edit, coalesce changes and permit at most one pending re-evaluation within the existing exploration budget; never dispatch a model request on every pointermove. Explicit Send interrupts the prior run and has priority over proactive work.
+
+Comparison baseline is a fixed completed run chosen by the user, defaulting once to the first valid completed run. It never silently advances with the next result. Keep its original source/input/workload hashes visible; changing semantic inputs marks affected runs stale, while cosmetic edits preserve their applicability. Selecting an alternative to become current creates a checked scenario/source revision. Export previews the selected scenario revision and optional exact result run; stale/partial result inclusion is explicitly labeled and cannot imply current validated execution. The user sees that selection before export, never an implicit latest-run lookup.
+
+Keyboard model: a focusable object list mirrors scene IDs and names. Selecting a row updates scene/inspector/context; Tab follows toolbar -> object list -> selected inspector -> playback without trapping focus in WebGL. With scene edit focus, arrows nudge one displayed snap increment; Shift+arrow uses ten; Enter focuses the first numeric transform field; Escape cancels the current preview and restores its baseline. Space controls playback only when playback has focus, never moves/selects objects from a text input. Numeric X/Y/Z/rotation/extents controls cover every drag operation. Announce final committed position/status, not every drag pixel. These mappings are tested with VoiceOver and reduced motion in R3.

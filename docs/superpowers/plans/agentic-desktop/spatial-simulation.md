@@ -8,6 +8,7 @@ Files: create `packages/spec/src/{spatial,simulation,agent,desktop}.ts`, `packag
 
 - [ ] Write a minimal known-spatial fixture and malformed fixtures before adding support. Assert required spatial capability, closed action schemas, typed units, referenced sources/assets and approval invalidation. Asset paths must be relative content-addressed paths, not arbitrary URLs or scripts.
 - [ ] Add narrowly typed place/move/resize/remove and scenario/workload/objective authoring operations. Dedicated evaluators produce object-level diff and feed the existing finishMutation path. Authoring cannot modify protected review/grant fields. Removing referenced objects requires explicit remapping or removal of dependents in the same checked mutation.
+- [ ] Extend `packages/spec/schemas/patch-1.0.0.schema.json` and PatchOperation with a closed `op:'spatial', action:SpatialAction` branch, and update `packages/core/src/mutation-capability.ts` to validate declared spatial write fields explicitly. Add `packages/core/src/spatial-actions.ts`; preserve core operation semantics and forbid access to other extensions. Support experimental capability only through explicit activation; stage availability alone is not authorization. Extend `buildReferenceIndex`/`checkReferences` and evidence traversal through spatial sourceIds. Tests must exercise wire schema, typed union, capability boundary, AST serialization and receipt recovery together.
 - [ ] Extend reference and evidence traversal to semantic spatial sourceIds. A source evidence edit must invalidate associated planning approval even though its reference lives in an extension.
 - [ ] Implement RequirementBinding from contracts.md in `packages/spatial/src/bindings.ts` and `tests/spatial/bindings.test.ts`. Assert explicit transformation/knowledge state for each derived field, targeted invalidation after source corrections, preserved unrelated inputs, conflict handling and source-to-export traversal. A complete engineering handoff must expose these bindings as readable explanations.
 - [ ] Serialize through the existing YAML AST transaction path, preserving unrelated extensions/comments. Drag end emits one operation, not a durable mutation per mousemove. Same mutation ID is replay-safe; conflicting source revisions retain the proposed action.
@@ -23,7 +24,7 @@ Files: create `packages/spatial/package.json`, `src/{catalog,geometry,compile,ha
 - [ ] Begin with wall, column, rack bay/row, pallet, door opening, station, charger and differential/omnidirectional robot assets. Each has a version/hash, dimensions, collision footprint/height, display mesh and export mapping. Include reviewed license/source metadata before bundling an external asset.
 - [ ] Test invalid parameters, duplicate IDs, missing geometry, loaded footprint larger than body, self-intersecting polygon, nonconvex unsupported collision shape, bounds and content hash mismatch.
 - [ ] Compile canonical instances into immutable geometry with right-handedZ-up meters/radians. Preserve drive-origin and load offsets. A simple box's collision shape is independent of decorative geometry. Generic primitives and parameterized assemblies are trusted library code, not new LLM-generated source per scene.
-- [ ] Import only bounded non-executable initial formats: embedded/static GLB geometry and reviewed catalog JSON, max25MiB per asset,50k triangles per model,2million per scene. Reject external URLs, unsupported GLTF extensions, skins/animations that affect unsupported collision behavior, decompression bombs and escaping symlinks. Complex USD/CAD goes through target-specific import capability rather than the renderer silently evaluating asset resolvers.
+- [ ] Import only bounded non-executable initial formats: embedded/static GLB geometry and reviewed catalog JSON, max25 MiB per asset,50k triangles per model,2 million per scene. Reject external URLs, unsupported GLTF extensions, skins/animations that affect unsupported collision behavior, decompression bombs and escaping symlinks. Complex USD/CAD goes through target-specific import capability rather than the renderer silently evaluating asset resolvers.
 - [ ] Stage original bytes through SafeRoot into content-addressed storage. A asset library record is a typed immutable member, not fake evidence to bypass existing export restrictions.
 - [ ] Run `npx --no-install vitest run tests/spatial/catalog.test.ts tests/spatial/geometry.test.ts tests/security/asset-import.test.ts`; commit the bounded catalog/compiler.
 
@@ -37,13 +38,13 @@ Files: create `packages/spatial/src/{assembly,behavior,template,draft}.ts`, `pac
 - [ ] Library upgrade previews show instance parameter/mapping changes and affected runs; applying creates a new source revision. Existing projects keep pinned versions. Test duplicate promotion/idempotency, interrupted library writes, downgrades, missing hashes and references shared by multiple projects.
 - [ ] Run `npx --no-install vitest run tests/spatial/asset-authoring.test.ts tests/runtime/asset-pinning.test.ts`; commit complete authorship lifecycle and fixture examples.
 
-## S2b. Early50robot feasibility spike
+## S2b. Early50-robot feasibility spike
 
 Files: create `scripts/probe-fleet-feasibility.mjs`, `fixtures/fleet-50.json`, `docs/verification/fleet-feasibility.md`; test `tests/simulation/feasibility-fixture.test.ts`.
 
 - [ ] Construct the final representative loaded footprints, intersections, holding poses and task demand before full S4/S5 implementation. Benchmark candidate bounded route/sweep/reservation kernels, independent trace-check cost, worker transfer and memory on the named M4 host.
 - [ ] Run `node scripts/probe-fleet-feasibility.mjs --report test-results/fleet-feasibility.json`; retain source/runtime/hardware and measured expansion counts/timings. Test the fixture itself for repeated IDs and impossible accidental station placements.
-- [ ] Decide the search representation/tolerances from evidence before committing full scheduling. Preserve50robots and loaded-footprint correctness; if target bounds are incompatible, surface the architecture or scope decision rather than weakening collision checking. This spike gates full S4/S5 build, while editor/discovery work continues.
+- [ ] Decide the search representation/tolerances from evidence before committing full scheduling. Preserve50-robots and loaded-footprint correctness; if target bounds are incompatible, surface the architecture or scope decision rather than weakening collision checking. This spike gates full S4/S5 build, while editor/discovery work continues.
 - [ ] Commit probe and results; replace the prototype kernels through tested production modules, without retaining a second authoritative simulator.
 
 ## S3. Approved scene editor and synchronized views
@@ -70,7 +71,8 @@ Files: create `packages/simulation/package.json`, `src/{types,clock,prng,motion,
 ```ts
 // packages/simulation/src/prng.ts
 export function xorshift32(seed: number): () => number {
-  let x = seed >>> 0 || 1;
+  if (!Number.isInteger(seed) || seed < 1 || seed > 0xffffffff) throw new Error('INVALID_SEED');
+  let x = seed >>> 0;
   return () => { x ^= x << 13; x ^= x >>> 17; x ^= x << 5; return (x >>> 0) / 4294967296; };
 }
 ```
@@ -82,6 +84,12 @@ it('reproduces the demand sequence for the same seed', () => {
   const a=xorshift32(7), b=xorshift32(7);
   expect(Array.from({length:100},a)).toEqual(Array.from({length:100},b));
 });
+it('rejects zero and out-of-range seeds instead of aliasing them', () => {
+  for (const seed of [0,-1,1.5,0x100000000,NaN,Infinity])
+    expect(() => xorshift32(seed)).toThrow('INVALID_SEED');
+  const a=xorshift32(1), b=xorshift32(2);
+  expect(Array.from({length:10},a)).not.toEqual(Array.from({length:10},b));
+});
 ```
 
 - [ ] Run `npx --no-install vitest run tests/simulation/motion.test.ts tests/simulation/sweep.test.ts tests/simulation/route.test.ts`; inspect a rendered narrow-corner fixture. Commit before multi-robot scheduling.
@@ -90,7 +98,7 @@ it('reproduces the demand sequence for the same seed', () => {
 
 Files: create `packages/simulation/src/{jobs,assignment,reservations,wait-graph,fleet,metrics}.ts`, `fixtures/fleet-50.json`; `tests/simulation/{reservations,fleet,deadlock,metrics}.test.ts`.
 
-- [ ] Build the reference workload with30differential and20omnidirectional instances, named lanes/stations/holding poses, seeded arrivals and1,000jobs. Fixture values are synthetic assumptions; label them in every report.
+- [ ] Build the reference workload with30 differential and20 omnidirectional instances, named lanes/stations/holding poses, seeded arrivals and1,000 jobs. Fixture values are synthetic assumptions; label them in every report.
 - [ ] Red-test opposing edge swaps, simultaneous intersection entry, exit blocked after entry, station queue overflow, priority starvation, charging eligibility, cancelled run and unresolved deadlock.
 - [ ] Baseline is FIFO released tasks + nearest eligible available robot. Second policy estimates travel/reservation/queue cost with deterministic tie-breaking. Load eligibility and charging availability are checked before assignment. No task disappears when reassigned or rejected.
 - [ ] Reserve spatial resources and intervals through full-footprint clearance; include edge direction and station approach/exit capacity. Do not enter a constrained resource if no valid exit/holding position is available. Waiting-time aging prevents indefinite low-priority starvation.
@@ -117,5 +125,5 @@ Files: create `packages/simulation/src/{objectives,compare,input-hash}.ts`, `pac
 - [ ] Run workers on immutable scenario snapshots with A5 budgets. Checkpoint atomically; emit ordered events and bounded summaries. Renderer receives interpolated poses and indexed events, not megabytes of JSON per frame. Repeated unchanged inputs reuse results by semantic input hash while preserving original source provenance.
 - [ ] Cosmetic selection/camera/material changes do not stale physics results. Footprint/workload/traffic/objective changes do. Every run/export still states the exact original source revision. Imported results cannot claim to belong to a different revision by rewriting the manifest.
 - [ ] Build playback and robot reason inspection from recorded events. Compare includes baseline and alternatives, same-workload confirmation, source/assumption status, partial labels and objective trade-offs. The agent cites recorded measurements rather than inventing results from scene appearance.
-- [ ] Benchmark on named AppleM4/24GiB macOS development hardware at1280x800: target30fps p95 frame time<=33ms in the50robot scene; p95 direct edit feedback<=100ms; UI pause acknowledgment<=250ms; worker stops<=2seconds; total resident memory<=1.5GiB for the reference workload; deterministic30minute horizon<=60seconds wall time. These are acceptance targets, not current measurements. Profile before changing any threshold.
+- [ ] Benchmark on named AppleM4 / 24 GiB macOS development hardware at1280x800: target30fps p95 frame time<=33ms in the50-robot scene; p95 direct edit feedback<=100ms; UI pause acknowledgment<=250ms; worker stops<=2 seconds; total resident memory<=1.5 GiB for the reference workload; deterministic30minute horizon<=60 seconds wall time. These are acceptance targets, not current measurements. Profile before changing any threshold.
 - [ ] Run `node scripts/benchmark-fleet.mjs --fixture fixtures/fleet-50.json --report test-results/fleet-benchmark.json`, focused Vitest and Playwright suites. If targets fail, optimize measured hotspots or surface a scope/threshold decision; do not silently lower fidelity or robot count. Commit after green.
