@@ -88,7 +88,7 @@ Enforced dependency map: spec -> none; spatial -> spec; core -> spec,spatial; si
 
 | Gate | Needed before | Required evidence | Status at planning |
 |---|---|---|---|
-| G0 product/plan review | Product code | Approved product spec and reviewed task plan | Product approved; plan pending |
+| G0 product/plan review | Product code | Approved product spec and reviewed task plan | Product and engineering plan approved |
 | G1 account-adapter containment | Advertise Codex/Grok integration | Pinned protocol, no ambient hooks/files/network, cancellation, fake-secret canaries | Not run; Grok macOS limitations documented |
 | G2 old-reader compatibility | New source writes | Actual npm v1 open/edit/approve/export matrix with spatial capability required | Not run |
 | G3 desktop architecture performance | Commit renderer/simulator scale promises | Named M4 / 24 GiB development machine measured baseline; supported Intel target tested separately | Hardware known; new benchmark not run |
@@ -133,4 +133,4 @@ Windows desktop, remote GPU management, multi-floor elevators, arms/humanoids/dr
 
 CEO: reviewed,6Devin findings incorporated. Design: reviewed,5Devin findings resolved/refined without changing the approved layout. DX: reviewed,4Devin findings incorporated. Engineering: reviewed,6Devin findings triaged into4clarifications/corrections and2already-assigned obligations; focused repair verification found one task-file omission, corrected by the primary reviewer. No residual contradiction is knowingly left in the reviewed repairs. Claude and the installed Codex CLI were unavailable; Devin was used with explicit user authorization. These are planning reviews, not executed feature acceptance or independent security certification.
 
-Verdict: ready for approval of staged implementation with G1-G5 enforced. Not cleared for publication or claims of completed provider/Isaac/desktop acceptance. Taste choices to confirm: Electron/shared Node host; constrained public-topic research with reviewed custom queries; two-Jetbot Isaac reference distinct from the50-robot local workload; proposed exploration/scene/performance bounds. Existing user-approved product scope remains intact. Prefer subagent-driven bounded implementation with one owner per shared contract and at most coordinator+two agents.
+Verdict: Hansel approved staged end-to-end implementation on2026-09-07, with G1-G5 enforced. Not cleared for publication or claims of completed provider/Isaac/desktop acceptance. Approved engineering choices: Electron/shared Node host; constrained public-topic research with reviewed custom queries; two-Jetbot Isaac reference distinct from the50-robot local workload; proposed exploration/scene/performance bounds. Existing user-approved product scope remains intact. Prefer subagent-driven bounded implementation with one owner per shared contract and at most coordinator+two agents.
