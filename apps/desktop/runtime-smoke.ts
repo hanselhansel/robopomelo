@@ -8,6 +8,12 @@ const server = createServer((_request, response) => {
   response.setHeader('Content-Type', 'text/html');
   response.end('<!doctype html><title>Desktop isolation smoke</title><p>Host isolation test</p>');
 });
+let blockedOriginRequests = 0;
+const blockedServer = createServer((_request, response) => {
+  blockedOriginRequests++;
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.end('reachable');
+});
 function fail(error: unknown) {
   console.error(error);
   app.exit(1);
@@ -23,6 +29,13 @@ async function run() {
   const address = server.address();
   if (!address || typeof address === 'string') throw new Error('No smoke listener');
   const origin = 'http://127.0.0.1:' + address.port;
+  await new Promise<void>((resolve) => blockedServer.listen(0, '127.0.0.1', resolve));
+  const blockedAddress = blockedServer.address();
+  if (!blockedAddress || typeof blockedAddress === 'string') throw new Error('No blocked-origin listener');
+  const blockedOrigin = 'http://127.0.0.1:' + blockedAddress.port;
+  assert.equal(await (await fetch(blockedOrigin)).text(), 'reachable');
+  assert.equal(blockedOriginRequests, 1, 'main must prove the second server is reachable');
+  blockedOriginRequests = 0;
   const window = createDesktopWindow(origin, join(__dirname, 'preload.cjs'), false);
   registerNativeBridge(window, origin, { confirm: async () => {}, cancelRun: async () => {} });
   console.log('ELECTRON_SMOKE_STAGE window-created');
@@ -41,18 +54,27 @@ async function run() {
  `);
   assert.equal(rejected, true);
   const blocked = await window.webContents.executeJavaScript(`
-   fetch('https://example.com').then(()=>false,()=>true)
+   fetch(${JSON.stringify(blockedOrigin)}).then(()=>false,()=>true)
  `);
   assert.equal(blocked, true);
+  assert.equal(
+    blockedOriginRequests,
+    0,
+    'session policy must block before the second server receives a request',
+  );
   console.log('ELECTRON_SMOKE_STAGE assertions-passed');
   window.destroy();
   await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+  await new Promise<void>((resolve, reject) =>
+    blockedServer.close((error) => (error ? reject(error) : resolve())),
+  );
   console.log('ELECTRON_SMOKE_OK ' + process.versions.electron);
   app.exit(0);
 }
 void run().catch((error) => {
   console.error(error);
   server.close();
+  blockedServer.close();
   app.exit(1);
 });
 setTimeout(() => {

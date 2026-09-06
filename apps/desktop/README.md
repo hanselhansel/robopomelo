@@ -13,7 +13,11 @@ in that URL or process arguments.
 
 Run `npm run test:desktop-smoke` on macOS with the reviewed Electron binary
 installed. The smoke opens a hidden real Electron window against a temporary
-local test page, verifies the isolated bridge and blocked external networking,
+local test page and a second loopback server with permissive CORS. Main first
+proves that second server is reachable. The renderer fetch must reject while
+the second server receives zero requests. This verifies the session boundary
+without depending on Internet availability, DNS or CORS failure. The smoke also
+verifies the isolated bridge,
 closes the window/listener, then explicitly exits its test process. The parent
 requires the assertion marker, exit code zero and closed output streams. Its
 20-second deadline is independent of the Electron event loop. It owns a detached
