@@ -1,0 +1,49 @@
+import { app } from 'electron';
+import { createServer } from 'node:http';
+import { join } from 'node:path';
+import assert from 'node:assert/strict';
+import { createDesktopWindow } from './src/window.js';
+import { registerNativeBridge } from './src/native-registration.js';
+const server = createServer((_request, response) => {
+  response.setHeader('Content-Type', 'text/html');
+  response.end('<!doctype html><title>Desktop isolation smoke</title><p>Host isolation test</p>');
+});
+async function run() {
+  await app.whenReady();
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const address = server.address();
+  if (!address || typeof address === 'string') throw new Error('No smoke listener');
+  const origin = 'http://127.0.0.1:' + address.port;
+  const window = createDesktopWindow(origin, join(__dirname, 'preload.cjs'), false);
+  registerNativeBridge(window, origin, { confirm: async () => {}, cancelRun: async () => {} });
+  await window.loadURL(origin);
+  const state = await window.webContents.executeJavaScript(`({
+  node:typeof require,
+  bridge:Object.keys(window.robopomelo).sort(),
+  invoke:typeof window.robopomelo.invoke
+ })`);
+  assert.equal(state.node, 'undefined');
+  assert.equal(state.invoke, 'undefined');
+  assert.deepEqual(state.bridge, ['cancelRun', 'chooseProjectFolder', 'confirmSetup', 'selectAttachments']);
+  const rejected = await window.webContents.executeJavaScript(`
+   window.robopomelo.chooseProjectFolder('invalid').then(()=>false,()=>true)
+ `);
+  assert.equal(rejected, true);
+  const blocked = await window.webContents.executeJavaScript(`
+   fetch('https://example.com').then(()=>false,()=>true)
+ `);
+  assert.equal(blocked, true);
+  window.destroy();
+  await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+  console.log('ELECTRON_SMOKE_OK ' + process.versions.electron);
+  app.exit(0);
+}
+void run().catch((error) => {
+  console.error(error);
+  server.close();
+  app.exit(1);
+});
+setTimeout(() => {
+  console.error('Desktop smoke timed out');
+  app.exit(1);
+}, 20000).unref();

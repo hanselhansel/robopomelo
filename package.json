@@ -5,7 +5,8 @@
   "allowScripts": {
     "node-pty": true,
     "esbuild": false,
-    "fsevents": false
+    "fsevents": false,
+    "electron": false
   },
   "type": "module",
   "workspaces": [
@@ -28,7 +29,10 @@
     "check:skills": "node scripts/check-skills.mjs",
     "check:plan-coverage": "node scripts/check-plan-coverage.mjs",
     "verify:package": "node scripts/verify-package.mjs",
-    "verify:release": "node scripts/verify-release.mjs"
+    "verify:release": "node scripts/verify-release.mjs",
+    "build:desktop": "node apps/desktop/build.mjs",
+    "start:desktop": "electron apps/desktop",
+    "test:desktop-smoke": "npm run build:desktop && node apps/desktop/smoke.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
@@ -51,6 +55,7 @@
     "prettier": "3.9.6",
     "typescript": "7.0.2",
     "vite": "8.2.2",
-    "vitest": "5.0.0"
+    "vitest": "5.0.0",
+    "electron": "44.2.0"
   }
 }
