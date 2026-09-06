@@ -75,7 +75,9 @@ for (const path of await files(root)) {
         (pure.has(current) || renderer || preload) &&
         (native.has(name) ||
           name.startsWith('node:') ||
-          ['electron', 'undici', 'axios', 'node-fetch'].includes(name)) &&
+          ['electron', 'undici', 'axios', 'node-fetch'].some(
+            (base) => name === base || name.startsWith(base + '/'),
+          )) &&
         !(preload && name === 'electron')
       )
         errors.push(`${path}: ${current} cannot import ${name}.`);
@@ -92,9 +94,13 @@ for (const path of await files(root)) {
       }
       if (
         (renderer || preload) &&
-        name.startsWith('.') &&
-        !name.endsWith('native-contracts.js') &&
-        !name.endsWith('native-contracts.ts')
+        ((name.startsWith('@robopomelo/') &&
+          name !== '@robopomelo/spec' &&
+          !name.startsWith('@robopomelo/spec/')) ||
+          (name.startsWith('.') &&
+            !['apps/desktop/src/native-contracts.js', 'apps/desktop/src/native-contracts.ts'].includes(
+              posix.normalize(posix.join(dirname(path), name)),
+            )))
       )
         errors.push(`${path}: renderer/preload cannot import host modules.`);
       const target = name.startsWith('@robopomelo/')
@@ -107,9 +113,9 @@ for (const path of await files(root)) {
     }
     if (
       (pure.has(current) || renderer || preload) &&
-      ts.isCallExpression(node) &&
-      /^(fetch|globalThis\.fetch|window\.fetch|WebSocket|XMLHttpRequest|EventSource)$/.test(
-        node.expression.getText(source),
+      (ts.isCallExpression(node) || ts.isNewExpression(node) || ts.isVariableDeclaration(node)) &&
+      /^(?:(?:globalThis|window|self)\.)?(fetch|WebSocket|XMLHttpRequest|EventSource)$/.test(
+        (ts.isVariableDeclaration(node) ? node.initializer : node.expression)?.getText(source) ?? '',
       ) &&
       current !== 'web'
     )

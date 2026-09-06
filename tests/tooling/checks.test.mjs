@@ -87,3 +87,40 @@ test('renderer and pure packages cannot import native capabilities', async () =>
     assert.equal(r.status, 1, path);
   }
 });
+
+test('desktop renderer and preload reject host packages through workspace aliases', async () => {
+  for (const path of ['apps/desktop/src/preload.ts', 'apps/desktop/src/renderer.ts']) {
+    for (const specifier of [
+      '@robopomelo/application',
+      '@robopomelo/application/server',
+      '@robopomelo/desktop/src/main.js',
+    ]) {
+      const r = await run('check-boundaries.mjs', { [path]: "import '" + specifier + "';" });
+      assert.equal(r.status, 1, path + ' ' + specifier);
+    }
+  }
+});
+test('pure packages reject network constructors and global forms', async () => {
+  for (const expression of [
+    'new WebSocket("wss://example.com")',
+    'new globalThis.WebSocket("wss://example.com")',
+    'new window.XMLHttpRequest()',
+    'new EventSource("/events")',
+    'const Socket=globalThis.WebSocket; new Socket("wss://example.com")',
+  ]) {
+    const r = await run('check-boundaries.mjs', { 'packages/core/src/a.ts': expression });
+    assert.equal(r.status, 1, expression);
+  }
+});
+test('pure packages reject native and network dependency subpaths', async () => {
+  for (const specifier of [
+    'axios/unsafe/adapters/http.js',
+    'undici/lib/api',
+    'node-fetch/src/index.js',
+    'electron/main',
+    'fs/promises',
+  ]) {
+    const r = await run('check-boundaries.mjs', { 'packages/core/src/a.ts': "import '" + specifier + "';" });
+    assert.equal(r.status, 1, specifier);
+  }
+});
