@@ -1,0 +1,249 @@
+{
+  "formatVersion": "1.0.0",
+  "entries": [
+    {
+      "id": "wall-segment",
+      "version": "1.0.0",
+      "kind": "object",
+      "title": "Wall segment",
+      "description": "Straight full-height wall segment. Length runs along local +X, thickness along local +Y.",
+      "note": "Synthetic reviewed defaults for planning; not measured from any site.",
+      "parameterSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lengthM": {"type": "number", "minimum": 0.1, "maximum": 200, "default": 6, "description": "Wall length along local X in meters."},
+          "widthM": {"type": "number", "minimum": 0.05, "maximum": 2, "default": 0.2, "description": "Wall thickness along local Y in meters."},
+          "heightM": {"type": "number", "minimum": 0.5, "maximum": 30, "default": 6, "description": "Wall height in meters."}
+        }
+      },
+      "collision": {"shape": "box", "extentsFromParams": {"lengthM": "lengthM", "widthM": "widthM"}, "heightFromParam": "heightM"},
+      "display": {"primitive": "box", "materialId": "concrete-ivory"},
+      "exportProfiles": {"isaac": {"usdPrimType": "Cube", "notes": "Scaled Cube prim with static collision."}},
+      "license": {"spdx": "Apache-2.0", "source": "RoboPomelo bundled primitive"},
+      "sha256": "854f4ffa87df37c4d23503e9a8523cfa9075f1134cf653cabc1da18cc3d646bc"
+    },
+    {
+      "id": "column",
+      "version": "1.0.0",
+      "kind": "object",
+      "title": "Structural column",
+      "description": "Square or rectangular building column. Collision is the conservative bounding box even when displayed as a cylinder.",
+      "note": "Synthetic reviewed defaults for planning; not measured from any site.",
+      "parameterSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lengthM": {"type": "number", "minimum": 0.1, "maximum": 3, "default": 0.5, "description": "Column size along local X in meters."},
+          "widthM": {"type": "number", "minimum": 0.1, "maximum": 3, "default": 0.5, "description": "Column size along local Y in meters."},
+          "heightM": {"type": "number", "minimum": 0.5, "maximum": 30, "default": 8, "description": "Column height in meters."}
+        }
+      },
+      "collision": {"shape": "box", "extentsFromParams": {"lengthM": "lengthM", "widthM": "widthM"}, "heightFromParam": "heightM"},
+      "display": {"primitive": "cylinder", "materialId": "concrete-grey"},
+      "exportProfiles": {"isaac": {"usdPrimType": "Cylinder", "notes": "Cylinder prim; collision exported as the bounding Cube."}},
+      "license": {"spdx": "Apache-2.0", "source": "RoboPomelo bundled primitive"},
+      "sha256": "7a7b0be7c7965beba30b5a72a93faf6e811fe8efbcbb4213dc6967a618d9b00f"
+    },
+    {
+      "id": "rack-bay",
+      "version": "1.0.0",
+      "kind": "object",
+      "title": "Rack bay",
+      "description": "Single selective pallet rack bay. Length is the beam span along local X, width is the rack depth along local Y.",
+      "note": "Synthetic reviewed defaults for planning; not measured from any site.",
+      "parameterSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lengthM": {"type": "number", "minimum": 0.8, "maximum": 4, "default": 2.7, "description": "Beam span along local X in meters."},
+          "widthM": {"type": "number", "minimum": 0.6, "maximum": 3, "default": 1.1, "description": "Rack depth along local Y in meters."},
+          "heightM": {"type": "number", "minimum": 1, "maximum": 15, "default": 6, "description": "Top of the highest beam in meters."}
+        }
+      },
+      "collision": {"shape": "box", "extentsFromParams": {"lengthM": "lengthM", "widthM": "widthM"}, "heightFromParam": "heightM"},
+      "display": {"primitive": "box", "materialId": "steel-green"},
+      "exportProfiles": {"isaac": {"usdPrimType": "Cube", "notes": "Scaled Cube prim with static collision."}},
+      "license": {"spdx": "Apache-2.0", "source": "RoboPomelo bundled primitive"},
+      "sha256": "425d978e52563aa1fb5d928eec63567ac9fd5a9e3d49abd2cfba125b1995302a"
+    },
+    {
+      "id": "rack-row",
+      "version": "1.0.0",
+      "kind": "assembly",
+      "title": "Rack row",
+      "description": "Row of identical rack bays sharing uprights. Length along local X covers all bays; width is the rack depth along local Y.",
+      "note": "Synthetic reviewed defaults for planning; not measured from any site. Depth is expressed as widthM to match instance dimensions.",
+      "parameterSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lengthM": {"type": "number", "minimum": 0.8, "maximum": 120, "default": 10.8, "description": "Total row length along local X in meters."},
+          "widthM": {"type": "number", "minimum": 0.6, "maximum": 3, "default": 1.1, "description": "Rack depth along local Y in meters."},
+          "heightM": {"type": "number", "minimum": 1, "maximum": 15, "default": 6, "description": "Top of the highest beam in meters."},
+          "bays": {"type": "number", "minimum": 1, "maximum": 40, "default": 4, "description": "Number of bays in the row."}
+        }
+      },
+      "collision": {"shape": "box", "extentsFromParams": {"lengthM": "lengthM", "widthM": "widthM"}, "heightFromParam": "heightM"},
+      "display": {"primitive": "box", "materialId": "steel-green"},
+      "exportProfiles": {"isaac": {"usdPrimType": "Xform", "notes": "Xform containing one Cube per bay; collision is the whole row box."}},
+      "license": {"spdx": "Apache-2.0", "source": "RoboPomelo bundled primitive"},
+      "sha256": "33c6e78bcf8adcd0dbb2d9728f448bd666ddb2ec0e038b9198a69ec0dd1eb3e4"
+    },
+    {
+      "id": "pallet",
+      "version": "1.0.0",
+      "kind": "object",
+      "title": "Pallet",
+      "description": "Loaded or empty pallet resting on the floor.",
+      "note": "Synthetic reviewed defaults for planning; not measured from any site.",
+      "parameterSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lengthM": {"type": "number", "minimum": 0.4, "maximum": 3, "default": 1.2, "description": "Pallet length along local X in meters."},
+          "widthM": {"type": "number", "minimum": 0.4, "maximum": 3, "default": 0.8, "description": "Pallet width along local Y in meters."},
+          "heightM": {"type": "number", "minimum": 0.1, "maximum": 3, "default": 1.2, "description": "Total height including load in meters."}
+        }
+      },
+      "collision": {"shape": "box", "extentsFromParams": {"lengthM": "lengthM", "widthM": "widthM"}, "heightFromParam": "heightM"},
+      "display": {"primitive": "box", "materialId": "timber"},
+      "exportProfiles": {"isaac": {"usdPrimType": "Cube", "notes": "Scaled Cube prim with static collision."}},
+      "license": {"spdx": "Apache-2.0", "source": "RoboPomelo bundled primitive"},
+      "sha256": "ab244000ff2b72854450e7a9d48f17d2e2bbaa5eed4b033e9b21f8334665b208"
+    },
+    {
+      "id": "door-opening",
+      "version": "1.0.0",
+      "kind": "object",
+      "title": "Door opening",
+      "description": "Opening in a wall. Only the header above clearanceM up to heightM collides, so robots below the clearance pass through.",
+      "note": "Synthetic reviewed defaults for planning; not measured from any site.",
+      "parameterSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lengthM": {"type": "number", "minimum": 0.6, "maximum": 12, "default": 2.4, "description": "Opening width along local X in meters."},
+          "widthM": {"type": "number", "minimum": 0.05, "maximum": 2, "default": 0.2, "description": "Wall thickness along local Y in meters."},
+          "heightM": {"type": "number", "minimum": 0.5, "maximum": 30, "default": 6, "description": "Top of the wall above the opening in meters."},
+          "clearanceM": {"type": "number", "minimum": 0.4, "maximum": 12, "default": 2.4, "description": "Clear height under the header in meters."}
+        }
+      },
+      "collision": {"shape": "box", "extentsFromParams": {"lengthM": "lengthM", "widthM": "widthM"}, "heightFromParam": "heightM", "zMinFromParam": "clearanceM"},
+      "display": {"primitive": "box", "materialId": "concrete-ivory"},
+      "exportProfiles": {"isaac": {"usdPrimType": "Cube", "notes": "Header Cube prim positioned above the clearance height."}},
+      "license": {"spdx": "Apache-2.0", "source": "RoboPomelo bundled primitive"},
+      "sha256": "32e4505fb6e9806cf74eeec72759d0c602266879923d83225a9dc48fbbb27843"
+    },
+    {
+      "id": "station",
+      "version": "1.0.0",
+      "kind": "object",
+      "title": "Work station",
+      "description": "Pickup, dropoff or holding position marked on the floor. Low collision volume so a robot can stop on it without obstruction above.",
+      "note": "Synthetic reviewed defaults for planning; not measured from any site.",
+      "parameterSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lengthM": {"type": "number", "minimum": 0.5, "maximum": 6, "default": 1.5, "description": "Station length along local X in meters."},
+          "widthM": {"type": "number", "minimum": 0.5, "maximum": 6, "default": 1.5, "description": "Station width along local Y in meters."},
+          "heightM": {"type": "number", "minimum": 0.01, "maximum": 0.5, "default": 0.02, "description": "Marker thickness in meters."}
+        }
+      },
+      "collision": {"shape": "box", "extentsFromParams": {"lengthM": "lengthM", "widthM": "widthM"}, "heightFromParam": "heightM"},
+      "display": {"primitive": "box", "materialId": "marker-coral"},
+      "exportProfiles": {"isaac": {"usdPrimType": "Cube", "notes": "Thin Cube prim marker without collision in Isaac."}},
+      "license": {"spdx": "Apache-2.0", "source": "RoboPomelo bundled primitive"},
+      "sha256": "dfbcaa5226875b9b7d637c1c4f2acbb417e607ce1dc14cfb534a763826900261"
+    },
+    {
+      "id": "charger",
+      "version": "1.0.0",
+      "kind": "object",
+      "title": "Charging dock",
+      "description": "Floor-standing charging dock. Robots approach along local -X.",
+      "note": "Synthetic reviewed defaults for planning; not measured from any site.",
+      "parameterSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lengthM": {"type": "number", "minimum": 0.1, "maximum": 2, "default": 0.3, "description": "Dock depth along local X in meters."},
+          "widthM": {"type": "number", "minimum": 0.1, "maximum": 3, "default": 0.6, "description": "Dock width along local Y in meters."},
+          "heightM": {"type": "number", "minimum": 0.1, "maximum": 2, "default": 0.4, "description": "Dock height in meters."}
+        }
+      },
+      "collision": {"shape": "box", "extentsFromParams": {"lengthM": "lengthM", "widthM": "widthM"}, "heightFromParam": "heightM"},
+      "display": {"primitive": "box", "materialId": "steel-grey"},
+      "exportProfiles": {"isaac": {"usdPrimType": "Cube", "notes": "Scaled Cube prim with static collision."}},
+      "license": {"spdx": "Apache-2.0", "source": "RoboPomelo bundled primitive"},
+      "sha256": "df3b7d93da821b03b83e2250e6597dc0e763f12c2f1b91da4a33cf01aa9fe962"
+    },
+    {
+      "id": "robot-differential",
+      "version": "1.0.0",
+      "kind": "object",
+      "title": "Differential-drive robot",
+      "description": "Generic differential-drive mobile robot. Body 0.8 x 0.6 m; loaded footprint 1.0 x 0.7 m centered on the load offset.",
+      "note": "Synthetic reviewed defaults for planning; not a vendor datasheet.",
+      "parameterSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lengthM": {"type": "number", "minimum": 0.3, "maximum": 3, "default": 0.8, "description": "Body length along local X in meters."},
+          "widthM": {"type": "number", "minimum": 0.3, "maximum": 3, "default": 0.6, "description": "Body width along local Y in meters."},
+          "heightM": {"type": "number", "minimum": 0.1, "maximum": 2.5, "default": 0.4, "description": "Body height in meters."}
+        }
+      },
+      "collision": {"shape": "convex-polygon", "footprintM": [[-0.4, -0.3], [0.4, -0.3], [0.4, 0.3], [-0.4, 0.3]], "heightFromParam": "heightM"},
+      "display": {"primitive": "box", "materialId": "robot-green"},
+      "exportProfiles": {"isaac": {"usdPrimType": "Xform", "notes": "Xform with a body Cube; drive articulation is mapped by the export capability."}},
+      "license": {"spdx": "Apache-2.0", "source": "RoboPomelo bundled primitive"},
+      "robot": {
+        "drive": "differential",
+        "loadedFootprintM": [[-0.5, -0.35], [0.5, -0.35], [0.5, 0.35], [-0.5, 0.35]],
+        "maxSpeedMps": 1.5,
+        "maxAngularRadps": 1.2,
+        "accelerationMps2": 0.6,
+        "decelerationMps2": 0.8,
+        "reverse": false,
+        "driveOriginOffsetM": [0, 0],
+        "loadOffsetM": [0.1, 0]
+      },
+      "sha256": "168c6452ccc7c3057295629cbd52309a9ade07f6ebb8a53d6d0082e8f4bbf881"
+    },
+    {
+      "id": "robot-omnidirectional",
+      "version": "1.0.0",
+      "kind": "object",
+      "title": "Omnidirectional robot",
+      "description": "Generic omnidirectional mobile robot. Body 0.8 x 0.6 m; loaded footprint 1.0 x 0.7 m centered on the body.",
+      "note": "Synthetic reviewed defaults for planning; not a vendor datasheet.",
+      "parameterSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lengthM": {"type": "number", "minimum": 0.3, "maximum": 3, "default": 0.8, "description": "Body length along local X in meters."},
+          "widthM": {"type": "number", "minimum": 0.3, "maximum": 3, "default": 0.6, "description": "Body width along local Y in meters."},
+          "heightM": {"type": "number", "minimum": 0.1, "maximum": 2.5, "default": 0.35, "description": "Body height in meters."}
+        }
+      },
+      "collision": {"shape": "convex-polygon", "footprintM": [[-0.4, -0.3], [0.4, -0.3], [0.4, 0.3], [-0.4, 0.3]], "heightFromParam": "heightM"},
+      "display": {"primitive": "box", "materialId": "robot-green"},
+      "exportProfiles": {"isaac": {"usdPrimType": "Xform", "notes": "Xform with a body Cube; holonomic base is mapped by the export capability."}},
+      "license": {"spdx": "Apache-2.0", "source": "RoboPomelo bundled primitive"},
+      "robot": {
+        "drive": "omnidirectional",
+        "loadedFootprintM": [[-0.5, -0.35], [0.5, -0.35], [0.5, 0.35], [-0.5, 0.35]],
+        "maxSpeedMps": 1.2,
+        "maxAngularRadps": 1.5,
+        "accelerationMps2": 0.5,
+        "decelerationMps2": 0.7,
+        "reverse": true,
+        "driveOriginOffsetM": [0, 0],
+        "loadOffsetM": [0, 0]
+      },
+      "sha256": "1935b1ed7f318a03ecab75b05c003b72aae1384098c3afa9f03e8e19edbb2c7c"
+    }
+  ]
+}

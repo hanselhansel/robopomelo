@@ -14,3 +14,4 @@ export { TrustStore } from './settings/trust.js';
 export { parseSource } from './yaml/parse.js';
 export { validateBinding, type ProjectBinding, type MachineSettings } from './settings/schema.js';
 export { sameBinding } from './settings/trust.js';
+export { importAsset, inspectGlb, type ImportAssetInput } from './assets/import.js'; export { AssetStore, ASSET_BYTE_LIMIT, ASSET_TRIANGLE_LIMIT, type AssetManifest, type AssetLicense } from './assets/store.js';

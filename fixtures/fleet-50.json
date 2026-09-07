@@ -1,0 +1,3010 @@
+{
+  "note": "Synthetic benchmark fixture. Every value is an assumption for feasibility and performance work, not a measurement.",
+  "generatedBy": "scripts/generate-fleet-fixture.mjs",
+  "robots": [
+    {
+      "instanceId": "robot-d-00",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-01",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-02",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-03",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-04",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-05",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-06",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-07",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-08",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-09",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-10",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-11",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-12",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-13",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-14",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-15",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-16",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-17",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-18",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-19",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-20",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-21",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-22",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-23",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-24",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-25",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-26",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-27",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-28",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-d-29",
+      "profileId": "profile-differential"
+    },
+    {
+      "instanceId": "robot-o-30",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-31",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-32",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-33",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-34",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-35",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-36",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-37",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-38",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-39",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-40",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-41",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-42",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-43",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-44",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-45",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-46",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-47",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-48",
+      "profileId": "profile-omnidirectional"
+    },
+    {
+      "instanceId": "robot-o-49",
+      "profileId": "profile-omnidirectional"
+    }
+  ],
+  "spatial": {
+    "formatVersion": "1.0.0",
+    "assets": [
+      {
+        "id": "rack-row",
+        "version": "1.0.0",
+        "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      {
+        "id": "station",
+        "version": "1.0.0",
+        "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      {
+        "id": "charger",
+        "version": "1.0.0",
+        "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      {
+        "id": "robot-differential",
+        "version": "1.0.0",
+        "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      {
+        "id": "robot-omnidirectional",
+        "version": "1.0.0",
+        "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      }
+    ],
+    "robotProfiles": [
+      {
+        "id": "profile-differential",
+        "drive": "differential",
+        "footprintM": [
+          [
+            -0.4,
+            -0.3
+          ],
+          [
+            0.4,
+            -0.3
+          ],
+          [
+            0.4,
+            0.3
+          ],
+          [
+            -0.4,
+            0.3
+          ]
+        ],
+        "loadedFootprintM": [
+          [
+            -0.6,
+            -0.45
+          ],
+          [
+            0.6,
+            -0.45
+          ],
+          [
+            0.6,
+            0.45
+          ],
+          [
+            -0.6,
+            0.45
+          ]
+        ],
+        "heightM": 1.6,
+        "maxSpeedMps": 1.5,
+        "maxAngularRadps": 1.2,
+        "accelerationMps2": 0.6,
+        "decelerationMps2": 0.9,
+        "reverse": false
+      },
+      {
+        "id": "profile-omnidirectional",
+        "drive": "omnidirectional",
+        "footprintM": [
+          [
+            -0.5,
+            -0.35
+          ],
+          [
+            0.5,
+            -0.35
+          ],
+          [
+            0.5,
+            0.35
+          ],
+          [
+            -0.5,
+            0.35
+          ]
+        ],
+        "loadedFootprintM": [
+          [
+            -0.65,
+            -0.5
+          ],
+          [
+            0.65,
+            -0.5
+          ],
+          [
+            0.65,
+            0.5
+          ],
+          [
+            -0.65,
+            0.5
+          ]
+        ],
+        "heightM": 1.6,
+        "maxSpeedMps": 1.2,
+        "maxAngularRadps": 1.5,
+        "accelerationMps2": 0.5,
+        "decelerationMps2": 0.8,
+        "reverse": true
+      }
+    ],
+    "scenes": [
+      {
+        "id": "scene-fleet-50",
+        "name": "Synthetic 120 x 60 m cross-dock",
+        "floor": {
+          "state": "known",
+          "value": {
+            "lengthM": 120,
+            "widthM": 60
+          },
+          "sourceIds": []
+        },
+        "instances": [
+          {
+            "id": "rack-r0-x30",
+            "asset": {
+              "id": "rack-row",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 30,
+              "yM": 12,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 36,
+                "widthM": 1.2,
+                "heightM": 6
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "rack-r0-x70",
+            "asset": {
+              "id": "rack-row",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 70,
+              "yM": 12,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 36,
+                "widthM": 1.2,
+                "heightM": 6
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "rack-r1-x30",
+            "asset": {
+              "id": "rack-row",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 30,
+              "yM": 18,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 36,
+                "widthM": 1.2,
+                "heightM": 6
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "rack-r1-x70",
+            "asset": {
+              "id": "rack-row",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 70,
+              "yM": 18,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 36,
+                "widthM": 1.2,
+                "heightM": 6
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "rack-r2-x30",
+            "asset": {
+              "id": "rack-row",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 30,
+              "yM": 24,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 36,
+                "widthM": 1.2,
+                "heightM": 6
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "rack-r2-x70",
+            "asset": {
+              "id": "rack-row",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 70,
+              "yM": 24,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 36,
+                "widthM": 1.2,
+                "heightM": 6
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "rack-r3-x30",
+            "asset": {
+              "id": "rack-row",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 30,
+              "yM": 30,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 36,
+                "widthM": 1.2,
+                "heightM": 6
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "rack-r3-x70",
+            "asset": {
+              "id": "rack-row",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 70,
+              "yM": 30,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 36,
+                "widthM": 1.2,
+                "heightM": 6
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "rack-r4-x30",
+            "asset": {
+              "id": "rack-row",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 30,
+              "yM": 36,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 36,
+                "widthM": 1.2,
+                "heightM": 6
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "rack-r4-x70",
+            "asset": {
+              "id": "rack-row",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 70,
+              "yM": 36,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 36,
+                "widthM": 1.2,
+                "heightM": 6
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "rack-r5-x30",
+            "asset": {
+              "id": "rack-row",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 30,
+              "yM": 42,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 36,
+                "widthM": 1.2,
+                "heightM": 6
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "rack-r5-x70",
+            "asset": {
+              "id": "rack-row",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 70,
+              "yM": 42,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 36,
+                "widthM": 1.2,
+                "heightM": 6
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-pickup-0",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 4,
+              "yM": 6,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-pickup-1",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 4,
+              "yM": 11.2,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-pickup-2",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 4,
+              "yM": 16.4,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-pickup-3",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 4,
+              "yM": 21.6,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-pickup-4",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 4,
+              "yM": 26.8,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-pickup-5",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 4,
+              "yM": 32,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-pickup-6",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 4,
+              "yM": 37.2,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-pickup-7",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 4,
+              "yM": 42.4,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-pickup-8",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 4,
+              "yM": 47.6,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-pickup-9",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 4,
+              "yM": 52.800000000000004,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-dropoff-0",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 116,
+              "yM": 8,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-dropoff-1",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 116,
+              "yM": 16,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-dropoff-2",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 116,
+              "yM": 24,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-dropoff-3",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 116,
+              "yM": 32,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-dropoff-4",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 116,
+              "yM": 40,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-dropoff-5",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 116,
+              "yM": 48,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-charger-0",
+            "asset": {
+              "id": "charger",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 20,
+              "yM": 57,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.2,
+                "widthM": 1,
+                "heightM": 1.5
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-charger-1",
+            "asset": {
+              "id": "charger",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 40,
+              "yM": 57,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.2,
+                "widthM": 1,
+                "heightM": 1.5
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-charger-2",
+            "asset": {
+              "id": "charger",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 60,
+              "yM": 57,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.2,
+                "widthM": 1,
+                "heightM": 1.5
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-charger-3",
+            "asset": {
+              "id": "charger",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 80,
+              "yM": 57,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.2,
+                "widthM": 1,
+                "heightM": 1.5
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-holding-0",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 14,
+              "yM": 3,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-holding-1",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 26,
+              "yM": 3,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-holding-2",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 38,
+              "yM": 3,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-holding-3",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 50,
+              "yM": 3,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-holding-4",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 62,
+              "yM": 3,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-holding-5",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 74,
+              "yM": 3,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-holding-6",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 86,
+              "yM": 3,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "station-holding-7",
+            "asset": {
+              "id": "station",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 98,
+              "yM": 3,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1.4,
+                "widthM": 1.4,
+                "heightM": 0.2
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-00",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 6,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-01",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 10.4,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-02",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 14.8,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-03",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 19.200000000000003,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-04",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 23.6,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-05",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 28,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-06",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 32.400000000000006,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-07",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 36.800000000000004,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-08",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 41.2,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-09",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 45.6,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-10",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 50,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-11",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 54.400000000000006,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-12",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 58.800000000000004,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-13",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 63.2,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-14",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 67.60000000000001,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-15",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 72,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-16",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 76.4,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-17",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 80.80000000000001,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-18",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 85.2,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-19",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 89.60000000000001,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-20",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 94,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-21",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 98.4,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-22",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 102.80000000000001,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-23",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 107.2,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-24",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 111.60000000000001,
+              "yM": 52,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-25",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 6,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-26",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 10.4,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-27",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 14.8,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-28",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 19.200000000000003,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-d-29",
+            "asset": {
+              "id": "robot-differential",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 23.6,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 0.8,
+                "widthM": 0.6,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-30",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 28,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-31",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 32.400000000000006,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-32",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 36.800000000000004,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-33",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 41.2,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-34",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 45.6,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-35",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 50,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-36",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 54.400000000000006,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-37",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 58.800000000000004,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-38",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 63.2,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-39",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 67.60000000000001,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-40",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 72,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-41",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 76.4,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-42",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 80.80000000000001,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-43",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 85.2,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-44",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 89.60000000000001,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-45",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 94,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-46",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 98.4,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-47",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 102.80000000000001,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-48",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 107.2,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          },
+          {
+            "id": "robot-o-49",
+            "asset": {
+              "id": "robot-omnidirectional",
+              "version": "1.0.0",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "pose": {
+              "xM": 111.60000000000001,
+              "yM": 54.5,
+              "zM": 0,
+              "yawRad": 0
+            },
+            "dimensions": {
+              "state": "known",
+              "value": {
+                "lengthM": 1,
+                "widthM": 0.7,
+                "heightM": 0.4
+              },
+              "sourceIds": []
+            },
+            "sourceIds": []
+          }
+        ]
+      }
+    ],
+    "scenarios": [
+      {
+        "id": "scenario-fleet-50",
+        "sceneId": "scene-fleet-50",
+        "name": "Reference 50-robot workload (synthetic)",
+        "robotProfileIds": [
+          "profile-differential",
+          "profile-omnidirectional"
+        ],
+        "fleetSize": {
+          "state": "known",
+          "value": 50,
+          "sourceIds": []
+        },
+        "stations": [
+          {
+            "id": "station-pickup-0",
+            "instanceId": "station-pickup-0",
+            "kind": "pickup",
+            "capacity": 2
+          },
+          {
+            "id": "station-pickup-1",
+            "instanceId": "station-pickup-1",
+            "kind": "pickup",
+            "capacity": 2
+          },
+          {
+            "id": "station-pickup-2",
+            "instanceId": "station-pickup-2",
+            "kind": "pickup",
+            "capacity": 2
+          },
+          {
+            "id": "station-pickup-3",
+            "instanceId": "station-pickup-3",
+            "kind": "pickup",
+            "capacity": 2
+          },
+          {
+            "id": "station-pickup-4",
+            "instanceId": "station-pickup-4",
+            "kind": "pickup",
+            "capacity": 2
+          },
+          {
+            "id": "station-pickup-5",
+            "instanceId": "station-pickup-5",
+            "kind": "pickup",
+            "capacity": 2
+          },
+          {
+            "id": "station-pickup-6",
+            "instanceId": "station-pickup-6",
+            "kind": "pickup",
+            "capacity": 2
+          },
+          {
+            "id": "station-pickup-7",
+            "instanceId": "station-pickup-7",
+            "kind": "pickup",
+            "capacity": 2
+          },
+          {
+            "id": "station-pickup-8",
+            "instanceId": "station-pickup-8",
+            "kind": "pickup",
+            "capacity": 2
+          },
+          {
+            "id": "station-pickup-9",
+            "instanceId": "station-pickup-9",
+            "kind": "pickup",
+            "capacity": 2
+          },
+          {
+            "id": "station-dropoff-0",
+            "instanceId": "station-dropoff-0",
+            "kind": "dropoff",
+            "capacity": 2
+          },
+          {
+            "id": "station-dropoff-1",
+            "instanceId": "station-dropoff-1",
+            "kind": "dropoff",
+            "capacity": 2
+          },
+          {
+            "id": "station-dropoff-2",
+            "instanceId": "station-dropoff-2",
+            "kind": "dropoff",
+            "capacity": 2
+          },
+          {
+            "id": "station-dropoff-3",
+            "instanceId": "station-dropoff-3",
+            "kind": "dropoff",
+            "capacity": 2
+          },
+          {
+            "id": "station-dropoff-4",
+            "instanceId": "station-dropoff-4",
+            "kind": "dropoff",
+            "capacity": 2
+          },
+          {
+            "id": "station-dropoff-5",
+            "instanceId": "station-dropoff-5",
+            "kind": "dropoff",
+            "capacity": 2
+          },
+          {
+            "id": "station-charger-0",
+            "instanceId": "station-charger-0",
+            "kind": "charger",
+            "capacity": 1
+          },
+          {
+            "id": "station-charger-1",
+            "instanceId": "station-charger-1",
+            "kind": "charger",
+            "capacity": 1
+          },
+          {
+            "id": "station-charger-2",
+            "instanceId": "station-charger-2",
+            "kind": "charger",
+            "capacity": 1
+          },
+          {
+            "id": "station-charger-3",
+            "instanceId": "station-charger-3",
+            "kind": "charger",
+            "capacity": 1
+          },
+          {
+            "id": "station-holding-0",
+            "instanceId": "station-holding-0",
+            "kind": "holding",
+            "capacity": 1
+          },
+          {
+            "id": "station-holding-1",
+            "instanceId": "station-holding-1",
+            "kind": "holding",
+            "capacity": 1
+          },
+          {
+            "id": "station-holding-2",
+            "instanceId": "station-holding-2",
+            "kind": "holding",
+            "capacity": 1
+          },
+          {
+            "id": "station-holding-3",
+            "instanceId": "station-holding-3",
+            "kind": "holding",
+            "capacity": 1
+          },
+          {
+            "id": "station-holding-4",
+            "instanceId": "station-holding-4",
+            "kind": "holding",
+            "capacity": 1
+          },
+          {
+            "id": "station-holding-5",
+            "instanceId": "station-holding-5",
+            "kind": "holding",
+            "capacity": 1
+          },
+          {
+            "id": "station-holding-6",
+            "instanceId": "station-holding-6",
+            "kind": "holding",
+            "capacity": 1
+          },
+          {
+            "id": "station-holding-7",
+            "instanceId": "station-holding-7",
+            "kind": "holding",
+            "capacity": 1
+          }
+        ],
+        "workload": {
+          "seed": 20260907,
+          "jobs": 1000,
+          "arrivalsPerHour": 400,
+          "mix": [
+            {
+              "fromStationId": "station-pickup-0",
+              "toStationId": "station-dropoff-0",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-0",
+              "toStationId": "station-dropoff-1",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-0",
+              "toStationId": "station-dropoff-2",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-0",
+              "toStationId": "station-dropoff-3",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-0",
+              "toStationId": "station-dropoff-4",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-0",
+              "toStationId": "station-dropoff-5",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-1",
+              "toStationId": "station-dropoff-0",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-1",
+              "toStationId": "station-dropoff-1",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-1",
+              "toStationId": "station-dropoff-2",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-1",
+              "toStationId": "station-dropoff-3",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-1",
+              "toStationId": "station-dropoff-4",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-1",
+              "toStationId": "station-dropoff-5",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-2",
+              "toStationId": "station-dropoff-0",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-2",
+              "toStationId": "station-dropoff-1",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-2",
+              "toStationId": "station-dropoff-2",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-2",
+              "toStationId": "station-dropoff-3",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-2",
+              "toStationId": "station-dropoff-4",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-2",
+              "toStationId": "station-dropoff-5",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-3",
+              "toStationId": "station-dropoff-0",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-3",
+              "toStationId": "station-dropoff-1",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-3",
+              "toStationId": "station-dropoff-2",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-3",
+              "toStationId": "station-dropoff-3",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-3",
+              "toStationId": "station-dropoff-4",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-3",
+              "toStationId": "station-dropoff-5",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-4",
+              "toStationId": "station-dropoff-0",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-4",
+              "toStationId": "station-dropoff-1",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-4",
+              "toStationId": "station-dropoff-2",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-4",
+              "toStationId": "station-dropoff-3",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-4",
+              "toStationId": "station-dropoff-4",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-4",
+              "toStationId": "station-dropoff-5",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-5",
+              "toStationId": "station-dropoff-0",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-5",
+              "toStationId": "station-dropoff-1",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-5",
+              "toStationId": "station-dropoff-2",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-5",
+              "toStationId": "station-dropoff-3",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-5",
+              "toStationId": "station-dropoff-4",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-5",
+              "toStationId": "station-dropoff-5",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-6",
+              "toStationId": "station-dropoff-0",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-6",
+              "toStationId": "station-dropoff-1",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-6",
+              "toStationId": "station-dropoff-2",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-6",
+              "toStationId": "station-dropoff-3",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-6",
+              "toStationId": "station-dropoff-4",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-6",
+              "toStationId": "station-dropoff-5",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-7",
+              "toStationId": "station-dropoff-0",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-7",
+              "toStationId": "station-dropoff-1",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-7",
+              "toStationId": "station-dropoff-2",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-7",
+              "toStationId": "station-dropoff-3",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-7",
+              "toStationId": "station-dropoff-4",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-7",
+              "toStationId": "station-dropoff-5",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-8",
+              "toStationId": "station-dropoff-0",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-8",
+              "toStationId": "station-dropoff-1",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-8",
+              "toStationId": "station-dropoff-2",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-8",
+              "toStationId": "station-dropoff-3",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-8",
+              "toStationId": "station-dropoff-4",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-8",
+              "toStationId": "station-dropoff-5",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-9",
+              "toStationId": "station-dropoff-0",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-9",
+              "toStationId": "station-dropoff-1",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-9",
+              "toStationId": "station-dropoff-2",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-9",
+              "toStationId": "station-dropoff-3",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-9",
+              "toStationId": "station-dropoff-4",
+              "share": 0.016666666666666666
+            },
+            {
+              "fromStationId": "station-pickup-9",
+              "toStationId": "station-dropoff-5",
+              "share": 0.016666666666666666
+            }
+          ]
+        },
+        "objectives": [
+          {
+            "id": "objective-throughput",
+            "kind": "throughput",
+            "direction": "maximize",
+            "threshold": 380,
+            "unit": "jobs/h",
+            "sourceIds": []
+          }
+        ]
+      }
+    ],
+    "bindings": []
+  }
+}
