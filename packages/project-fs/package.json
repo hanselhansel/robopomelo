@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@robopomelo/core": "*",
+    "@robopomelo/spatial": "*",
     "@robopomelo/spec": "*",
     "env-paths": "4.0.0",
     "yaml": "2.9.0",
