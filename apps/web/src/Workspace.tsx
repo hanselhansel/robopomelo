@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { Suspense, lazy, useEffect, useState, useSyncExternalStore } from 'react';
 import { fields, questions } from '@robopomelo/spec/browser';
 import { findingTarget, focusControl } from './lib/navigation.js';
 import type { Finding, ProjectSnapshot, StepId } from '@robopomelo/spec';
@@ -24,6 +24,10 @@ import { ExternalSourceNotice, canRefreshSource } from './components/ExternalSou
 import { ConflictDialog } from './components/ConflictDialog.js';
 import { ConversationPanel } from './features/agent/ConversationPanel.js';
 import { nativeBridge } from './features/intake/state.js';
+import { WorkspaceViewTabs, type WorkspaceView } from './features/scene/WorkspaceViewTabs.js';
+const ScenePanel = lazy(() =>
+  import('./features/scene/ScenePanel.js').then((m) => ({ default: m.ScenePanel })),
+);
 type Screen = StepId | 'review' | 'changes' | 'evidence' | 'history' | 'settings';
 const sections: [Screen, string][] = [
   ['frame', 'Frame'],
@@ -52,6 +56,7 @@ export function Workspace({
   const view = useSyncExternalStore(draft.subscribe, draft.getSnapshot);
   const [bridge] = useState(nativeBridge);
   const [screen, setScreen] = useState<Screen>('frame');
+  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>('specification');
   const [nav, setNav] = useState(false);
   const [findings, setFindings] = useState(false);
   const [guard, setGuard] = useState<Screen | 'switch' | null>(null);
@@ -174,6 +179,7 @@ export function Workspace({
     draft.loadProposal(proposal.patch, proposal.id);
     changeScreen('frame');
   };
+  const sceneView = Boolean(bridge) && workspaceView === 'scene';
   const navItems = (
     <nav aria-label="Project sections">
       {sections.map(([id, label], i) => (
@@ -253,14 +259,24 @@ export function Workspace({
             </button>
           </div>
         </header>
-        <div className={`content-layout${bridge ? ' with-conversation' : ''}`}>
+        {bridge && <WorkspaceViewTabs view={workspaceView} onChange={setWorkspaceView} />}
+        <div
+          className={`content-layout${bridge ? ' with-conversation' : ''}${sceneView ? ' scene-view' : ''}`}
+        >
           {bridge && (
             <ConversationPanel
               bridge={bridge}
               base={{ sourceRevision: view.committed.sourceRevision, sourceHash: view.committed.sourceHash }}
             />
           )}
-          <main id="main-content">
+          {sceneView && (
+            <main id="scene-content">
+              <Suspense fallback={<p className="help">Loading the scene editor.</p>}>
+                <ScenePanel />
+              </Suspense>
+            </main>
+          )}
+          <main id="main-content" hidden={sceneView}>
             <AuthorContext.Provider
               value={(actor) => {
                 draft.setActor(actor);
@@ -308,7 +324,7 @@ export function Workspace({
               />
             </AuthorContext.Provider>
           </main>
-          <aside className="inspector" aria-label="Validation findings" tabIndex={0}>
+          <aside className="inspector" aria-label="Validation findings" tabIndex={0} hidden={sceneView}>
             <Findings report={view.committed.validation} onFinding={onFinding} />
           </aside>
         </div>
