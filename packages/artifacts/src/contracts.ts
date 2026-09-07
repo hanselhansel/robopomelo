@@ -3,6 +3,9 @@ export interface ArtifactInput {
   source: string;
   snapshot: ProjectSnapshot;
   selectedEvidenceIds: string[];
+  /** Additional generated members (for example a target export package). They are
+   * listed in the manifest like every other member and must not collide with core paths. */
+  extraMembers?: ArtifactMember[];
 }
 export interface ArtifactMember {
   path: string;

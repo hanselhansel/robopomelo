@@ -11,7 +11,7 @@ const encode = (path: string, mediaType: string, text: string): ArtifactMember =
   mediaType,
   bytes: new TextEncoder().encode(text),
 });
-export function generateArtifacts({ source, snapshot: s, selectedEvidenceIds }: ArtifactInput): ArtifactPlan {
+export function generateArtifacts({ source, snapshot: s, selectedEvidenceIds, extraMembers = [] }: ArtifactInput): ArtifactPlan {
   if (
     sha256(source) !== s.sourceHash ||
     s.validation.sourceHash !== s.sourceHash ||
@@ -77,6 +77,11 @@ export function generateArtifacts({ source, snapshot: s, selectedEvidenceIds }: 
     encode('review.html', 'text/html', renderHtml(doc, s)),
     encode('engineering-handoff.md', 'text/markdown', handoff(doc, s)),
   ];
+  for (const extra of extraMembers) {
+    if (!/^[a-z0-9][a-z0-9._-]*(?:\/[a-z0-9][a-z0-9._-]*)+$/.test(extra.path) || members.some((m) => m.path === extra.path) || extra.path === 'manifest.json')
+      throw new ArtifactError('EXPORT_PATH_UNSAFE', `Unsafe or duplicate generated export path: ${extra.path}`);
+    members.push(extra);
+  }
   const manifest = {
     formatVersion: '1.0.0',
     sourceRevision: s.sourceRevision,

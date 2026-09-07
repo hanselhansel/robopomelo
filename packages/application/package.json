@@ -11,6 +11,7 @@
     "@robopomelo/agent": "*",
     "@robopomelo/artifacts": "*",
     "@robopomelo/core": "*",
+    "@robopomelo/isaac-export": "*",
     "@robopomelo/project-fs": "*",
     "@robopomelo/providers": "*",
     "@robopomelo/spatial": "*",

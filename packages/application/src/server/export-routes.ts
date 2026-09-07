@@ -1,6 +1,9 @@
 import { createHash } from 'node:crypto';
 import { generateArtifacts } from '@robopomelo/artifacts';
 import { ExportService, type ExportResult, type ProjectSession } from '@robopomelo/project-fs';
+import { SPATIAL_NAMESPACE, checkSchema, type SpatialExtension } from '@robopomelo/spec';
+import { bundledCatalog, SpatialError } from '@robopomelo/spatial';
+import { buildIsaacExport, IsaacExportError, type IsaacExportPlan } from '@robopomelo/isaac-export';
 import type { ProjectService, SelectedProject } from '../services/project.js';
 import type { Route } from './contracts.js';
 import { HttpError } from './security.js';
@@ -10,6 +13,30 @@ interface State {
   exports: ExportService;
   previews: Map<string, { sourceRevision: string; sourceHash: string }>;
   completed: Map<string, ExportResult>;
+}
+/** Optional Isaac reference package. The scene and scenario are named explicitly;
+ * the package states its own unsupported scope and never implies a validated run. */
+function isaacMembers(
+  value: unknown,
+  snapshot: { deployment: { project: { id: string; name: string }; extensions: Record<string, unknown> } },
+  expected: { sourceRevision: string; sourceHash: string },
+): { plan: IsaacExportPlan; members: { path: string; mediaType: string; bytes: Uint8Array }[] } {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new HttpError(400, 'INVALID_INPUT', 'Supply the Isaac scene and scenario.');
+  const body = value as Record<string, unknown>;
+  if (Object.keys(body).some((key) => !['sceneId', 'scenarioId', 'runId'].includes(key))) throw new HttpError(400, 'INVALID_INPUT', 'Unexpected Isaac export fields.');
+  const sceneId = requiredText(body.sceneId, 'scene', 128), scenarioId = requiredText(body.scenarioId, 'scenario', 128);
+  const raw = snapshot.deployment.extensions[SPATIAL_NAMESPACE];
+  if (!raw || checkSchema(raw, 'spatial').length) throw new HttpError(422, 'UNSUPPORTED_CAPABILITY', 'This project has no valid spatial extension to export.');
+  try {
+    return buildIsaacExport({
+      spatial: raw as SpatialExtension, sceneId, scenarioId, catalog: bundledCatalog(),
+      source: { ...expected, projectId: snapshot.deployment.project.id, projectName: snapshot.deployment.project.name },
+      run: null, generatedAt: '1970-01-01T00:00:00.000Z',
+    });
+  } catch (error) {
+    if (error instanceof IsaacExportError || error instanceof SpatialError) throw new HttpError(error.code === 'RECORD_NOT_FOUND' ? 404 : 422, error.code, error.message);
+    throw error;
+  }
 }
 export function exportRoutes(service: ProjectService): Route[] {
   const states = new WeakMap<ProjectSession, State>();
@@ -44,10 +71,12 @@ export function exportRoutes(service: ProjectService): Route[] {
           )
             throw new HttpError(409, 'STALE_BASE', 'Refresh before previewing this export.');
           const source = (await project.root.readFile('deployment.yaml')).toString('utf8');
+          const isaac = body.isaac === undefined ? null : isaacMembers(body.isaac, read.snapshot, expected);
           const plan = generateArtifacts({
             source,
             snapshot: read.snapshot,
             selectedEvidenceIds: body.selectedEvidenceIds as string[],
+            ...(isaac ? { extraMembers: isaac.members } : {}),
           });
           const value = state(project),
             preview = await value.exports.preview(plan, expected, service.authorization(project));
@@ -57,7 +86,7 @@ export function exportRoutes(service: ProjectService): Route[] {
             value.completed.delete(oldest);
           }
           value.previews.set(preview.previewId, expected);
-          return preview;
+          return isaac ? { ...preview, isaac: { mode: isaac.plan.mode, runnableBadge: isaac.plan.runnableBadge, remainingSetup: isaac.plan.remainingSetup, unsupported: isaac.plan.unsupported } } : preview;
         }),
     },
     {
