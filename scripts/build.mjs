@@ -19,6 +19,7 @@ await mkdir(output, { recursive: true });
 const banner = "import {createRequire} from 'node:module';const require=createRequire(import.meta.url);";
 const entries = [
   ['apps/cli/src/main.ts', 'runtime/main.mjs'],
+  ['packages/application/src/simulation/worker-entry.ts', 'runtime/worker-entry.mjs'],
   ['apps/cli/src/launcher-main.ts', 'bin/robopomelo.mjs'],
 ];
 const inputs = new Set();

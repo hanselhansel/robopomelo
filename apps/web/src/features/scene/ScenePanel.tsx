@@ -7,6 +7,7 @@ import { ObjectList } from './ObjectList.js';
 import { ObjectInspector, FIRST_FIELD_ID } from './ObjectInspector.js';
 import { AssetDrawer } from './AssetDrawer.js';
 import { publishSelection } from './SelectionContext.js';
+import { SimulationPanel } from '../simulation/SimulationPanel.js';
 import './scene.css';
 const ARROWS: Record<string, [number, number]> = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] };
 const isTextTarget = (target: EventTarget | null) => target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName);
@@ -17,6 +18,7 @@ export function ScenePanel({ createRenderer }: { createRenderer?: CreateRenderer
   const scene = useScene();
   const { store, state } = scene;
   const [drawer, setDrawer] = useState(false);
+  const [simulation, setSimulation] = useState(false);
   const fitRef = useRef<(() => void) | null>(null);
   const title = (assetId: string) => scene.catalog.find((e) => e.id === assetId)?.title ?? assetId;
   const selected = store.instance(state.selectedId);
@@ -89,6 +91,12 @@ export function ScenePanel({ createRenderer }: { createRenderer?: CreateRenderer
             {drawer && <AssetDrawer entries={scene.catalog} busy={scene.busy} onPlace={(entry) => void scene.place(entry)} onClose={() => setDrawer(false)} />}
           </div>
         </div>
+      )}
+      {scene.hasScene && (
+        <details className="scene-simulation" onToggle={(event) => setSimulation(event.currentTarget.open)}>
+          <summary>Fleet simulation</summary>
+          {simulation && <SimulationPanel />}
+        </details>
       )}
       <p className="visually-hidden" role="status" aria-live="polite" aria-label="Scene status">{scene.announcement}</p>
     </section>

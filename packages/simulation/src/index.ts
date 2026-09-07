@@ -32,3 +32,6 @@ export { sceneObstacles, floorBounds, snapPose, servicePoses } from './stations.
 export { planRoute, exitCells, cacheRoute, reserve, standingObstacle, type LegGoal, type PlannerContext, type CachedRoute, type ReserveOutcome, type StationHold } from './planner.js';
 export { runFleet } from './fleet.js';
 export { assertTaskConservation, computeMetrics } from './metrics.js';
+export { semanticInputHash, variantHash, workloadHash, assetHashes, type SemanticInput } from './input-hash.js';
+export { evaluateObjectives, validateObjectiveDefinitions, measure, type ObjectiveEvaluation, type ObjectiveContext } from './objectives.js';
+export { compareRuns, type RunSummary, type Comparison, type ComparedRun, type ObjectiveDelta, type Spread } from './compare.js';

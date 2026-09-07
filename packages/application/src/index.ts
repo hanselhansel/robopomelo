@@ -21,3 +21,6 @@ export { agentRoutes } from './agent/routes.js';
 export { ProviderBroker, fetchTransport, type ConnectionSource, type ConnectionSummary, type BrokerOptions } from './agent/broker.js';
 export { OAuthLoopbackFlow, OAuthFlowError, type OAuthFlowOptions } from './agent/oauth-flow.js';
 export { spatialRoutes } from './server/spatial-routes.js';
+export { simulationRoutes } from './simulation/routes.js';
+export { SimulationService, DEFAULT_RUN_LIMITS, MAX_TICKS_LIMIT, EVENT_WINDOW_LIMIT, type RunStatus, type RunDetail, type RunRecord, type RunLimits, type StartInput, type SimulationServiceOptions } from './simulation/service.js';
+export { SimulationRunner, inlineStrategy, workerStrategy, type ExecuteStrategy, type RunJob, type RunOutcome } from './simulation/worker.js';

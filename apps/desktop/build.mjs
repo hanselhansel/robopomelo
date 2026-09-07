@@ -14,6 +14,16 @@ for (const name of ['main', 'preload', 'parser-preload']) {
     external: ['electron'],
   });
 }
+// The simulation worker runs beside main.cjs as an ESM sibling the runner resolves at start.
+await build({
+  entryPoints: [resolve(root, 'packages/application/src/simulation/worker-entry.ts')],
+  outfile: resolve(root, 'apps/desktop/dist/worker-entry.mjs'),
+  bundle: true,
+  platform: 'node',
+  format: 'esm',
+  target: 'node22',
+  banner: { js: "import {createRequire} from 'node:module';const require=createRequire(import.meta.url);" },
+});
 await buildParser(root);
 await buildWeb({
   root: resolve(root, 'apps/web'),

@@ -96,6 +96,42 @@ async function run() {
   const events = await readdir(join(projectPath, 'conversations', 'main', 'events'));
   assert.deepEqual(events, ['00000001.json', '00000002.json', '00000003.json', '00000004.json']);
   assert.equal(JSON.stringify(requests).includes('sk-'), false);
+  // Spatial authoring and a real worker-thread simulation through the bundled app.
+  const api = (path: string, body?: unknown) => window.webContents.executeJavaScript(`fetch(${JSON.stringify(path)},{method:${JSON.stringify(body === undefined ? 'GET' : 'POST')},headers:{Authorization:'Bearer '+sessionStorage.getItem('rp.credential'),'X-RP-CSRF':sessionStorage.getItem('rp.csrf'),'X-RP-Project-Epoch':${JSON.stringify(service!.projectEpoch())},'Content-Type':'application/json'},${body === undefined ? '' : 'body:' + JSON.stringify(JSON.stringify(body)) + ','}}).then(r=>r.json())`);
+  const project = await api('/api/project');
+  const sourceBase = { sourceRevision: project.data.snapshot.sourceRevision, sourceHash: project.data.snapshot.sourceHash };
+  const catalog = await api('/api/catalog');
+  const asset = (id: string) => { const e = catalog.data.entries.find((x: { id: string }) => x.id === id); return { id: e.id, version: e.version, sha256: e.sha256 }; };
+  const known = (value: unknown) => ({ state: 'known', value, sourceIds: [] });
+  const pose = (xM: number, yM: number) => ({ xM, yM, zM: 0, yawRad: 0 });
+  const committed = await api('/api/scenes/actions', { ...sourceBase, mutationId: 'smoke-scene', purpose: 'Smoke cell', actions: [
+    { kind: 'activate', capability: 'spatial-planning-v1' },
+    { kind: 'define-scene', scene: { id: 'scene-1', name: 'Cell', floor: known({ lengthM: 20, widthM: 10 }) } },
+    { kind: 'register-asset', asset: asset('robot-differential') }, { kind: 'register-asset', asset: asset('station') },
+    { kind: 'place', sceneId: 'scene-1', instance: { id: 'robot-a', asset: asset('robot-differential'), pose: pose(2, 5), dimensions: known({ lengthM: 0.8, widthM: 0.6, heightM: 0.4 }), sourceIds: [] } },
+    { kind: 'place', sceneId: 'scene-1', instance: { id: 'pickup', asset: asset('station'), pose: pose(6, 5), dimensions: known({ lengthM: 1, widthM: 1, heightM: 0.2 }), sourceIds: [] } },
+    { kind: 'place', sceneId: 'scene-1', instance: { id: 'dropoff', asset: asset('station'), pose: pose(14, 5), dimensions: known({ lengthM: 1, widthM: 1, heightM: 0.2 }), sourceIds: [] } },
+    { kind: 'define-robot-profile', profile: { id: 'profile-diff', drive: 'differential', footprintM: [[-0.4, -0.3], [0.4, -0.3], [0.4, 0.3], [-0.4, 0.3]], loadedFootprintM: [[-0.5, -0.4], [0.5, -0.4], [0.5, 0.4], [-0.5, 0.4]], heightM: 0.4, maxSpeedMps: 1, maxAngularRadps: 1, accelerationMps2: 0.5, decelerationMps2: 0.5, reverse: false } },
+    { kind: 'define-scenario', scenario: { id: 'scenario-1', sceneId: 'scene-1', name: 'One robot', robotProfileIds: ['profile-diff'], fleetSize: known(1), stations: [{ id: 's-pick', instanceId: 'pickup', kind: 'pickup', capacity: 1 }, { id: 's-drop', instanceId: 'dropoff', kind: 'dropoff', capacity: 1 }], workload: { seed: 3, jobs: 2, arrivalsPerHour: 120, mix: [{ fromStationId: 's-pick', toStationId: 's-drop', share: 1 }] }, objectives: [] } },
+  ] });
+  assert.equal(committed.ok, true, JSON.stringify(committed).slice(0, 300));
+  assert.equal(committed.data.kind, 'committed');
+  const started = await api('/api/simulation/runs', { scenarioId: 'scenario-1', seed: 3, limits: { wallMs: 20000, maxTicks: 3000 } });
+  assert.equal(started.ok, true, JSON.stringify(started).slice(0, 300));
+  stage('simulation ' + started.data.state);
+  let status = started.data;
+  for (let i = 0; i < 150 && !['stored', 'failed', 'cancelled'].includes(status.state); i++) {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const listed = await api('/api/simulation/runs');
+    status = listed.data.runs.find((run: { runId: string }) => run.runId === started.data.runId) ?? status;
+  }
+  const detail = await api('/api/simulation/runs/' + started.data.runId);
+  assert.equal(detail.ok, true, JSON.stringify(detail).slice(0, 300));
+  assert.equal(status.state, 'stored', JSON.stringify(detail).slice(0, 400));
+  assert.ok(['completed', 'budget'].includes(status.termination), 'termination ' + status.termination);
+  const window50 = await api('/api/simulation/runs/' + started.data.runId + '/events?from=0&to=50');
+  assert.equal(window50.ok, true);
+  assert.ok((await readdir(join(projectPath, 'runs'))).length >= 1);
   window.destroy();
   await service.close();
   console.log('ELECTRON_SMOKE_OK ' + process.versions.electron);
