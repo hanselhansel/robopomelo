@@ -124,3 +124,24 @@ test('pure packages reject native and network dependency subpaths', async () => 
     assert.equal(r.status, 1, specifier);
   }
 });
+
+test('parser pure modules cannot import host capabilities', async () => {
+  for (const name of ['parser-contracts', 'parser-decode']) {
+    for (const code of [
+      "import 'node:fs';",
+      "import '@robopomelo/application';",
+      "fetch('https://example.com');",
+    ]) {
+      const r = await run('check-boundaries.mjs', { ['apps/desktop/src/' + name + '.ts']: code });
+      assert.equal(r.status, 1, name + ' ' + code);
+    }
+  }
+});
+test('parser renderer may use only its pure decoder contracts and ingestion package', async () => {
+  const r = await run('check-boundaries.mjs', {
+    'apps/desktop/src/parser-renderer.ts': "import './parser-decode.js'; import './parser-contracts.js';",
+    'apps/desktop/src/parser-decode.ts': "import '@robopomelo/ingestion'; import 'pdfjs-dist';",
+    'apps/desktop/src/parser-contracts.ts': "import '@robopomelo/ingestion';",
+  });
+  assert.equal(r.status, 0, r.stderr);
+});

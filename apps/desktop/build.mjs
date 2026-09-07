@@ -1,8 +1,9 @@
 import { build } from 'esbuild';
 import { build as buildWeb } from 'vite';
 import { resolve } from 'node:path';
+import { buildParser } from './build-parser.mjs';
 const root = resolve(import.meta.dirname, '../..');
-for (const name of ['main', 'preload']) {
+for (const name of ['main', 'preload', 'parser-preload']) {
   await build({
     entryPoints: [resolve(root, 'apps/desktop/src/' + name + '.ts')],
     outfile: resolve(root, 'apps/desktop/dist/' + name + '.cjs'),
@@ -13,6 +14,7 @@ for (const name of ['main', 'preload']) {
     external: ['electron'],
   });
 }
+await buildParser(root);
 await buildWeb({
   root: resolve(root, 'apps/web'),
   build: { outDir: resolve(root, 'apps/desktop/dist/ui'), emptyOutDir: true },

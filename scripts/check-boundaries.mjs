@@ -26,7 +26,7 @@ const allowed = {
     'ingestion',
     'isaac-export',
   ],
-  desktop: ['application', 'spec'],
+  desktop: ['application', 'spec', 'ingestion', 'project-fs'],
   cli: ['application', 'spec', 'core', 'project-fs', 'artifacts'],
   web: ['spec', 'spatial'],
 };
@@ -53,7 +53,9 @@ for (const path of await files(root)) {
     errors.push(`${path}: unknown source owner ${current ?? 'unowned'}.`);
     continue;
   }
-  const renderer = current === 'desktop' && /(?:^|[/.-])renderer(?:[/.-]|$)/.test(path);
+  const renderer =
+    current === 'desktop' &&
+    (/(?:^|[/.-])renderer(?:[/.-]|$)/.test(path) || /\/parser-(?:decode|contracts)\.[cm]?[jt]s$/.test(path));
   const preload = current === 'desktop' && /(?:^|[/.-])preload(?:[/.-]|$)/.test(path);
   const source = ts.createSourceFile(
     path,
@@ -95,12 +97,13 @@ for (const path of await files(root)) {
       if (
         (renderer || preload) &&
         ((name.startsWith('@robopomelo/') &&
-          name !== '@robopomelo/spec' &&
-          !name.startsWith('@robopomelo/spec/')) ||
+          !['spec', ...(renderer ? ['ingestion'] : [])].some(
+            (owner) => name === '@robopomelo/' + owner || name.startsWith('@robopomelo/' + owner + '/'),
+          )) ||
           (name.startsWith('.') &&
-            !['apps/desktop/src/native-contracts.js', 'apps/desktop/src/native-contracts.ts'].includes(
-              posix.normalize(posix.join(dirname(path), name)),
-            )))
+            !['native-contracts', ...(renderer ? ['parser-contracts', 'parser-decode'] : [])]
+              .flatMap((name) => ['apps/desktop/src/' + name + '.js', 'apps/desktop/src/' + name + '.ts'])
+              .includes(posix.normalize(posix.join(dirname(path), name)))))
       )
         errors.push(`${path}: renderer/preload cannot import host modules.`);
       const target = name.startsWith('@robopomelo/')

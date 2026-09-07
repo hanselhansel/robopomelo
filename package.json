@@ -32,7 +32,7 @@
     "verify:release": "node scripts/verify-release.mjs",
     "build:desktop": "node apps/desktop/build.mjs",
     "start:desktop": "electron apps/desktop",
-    "test:desktop-smoke": "npm run build:desktop && node apps/desktop/smoke.mjs && node apps/desktop/application-smoke.mjs"
+    "test:desktop-smoke": "npm run build:desktop && node apps/desktop/smoke.mjs && node apps/desktop/application-smoke.mjs && node apps/desktop/parser-smoke.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
