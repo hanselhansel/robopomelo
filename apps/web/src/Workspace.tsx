@@ -22,6 +22,8 @@ import { EditorPane } from './EditorPane.js';
 import { NavigationGuard } from './components/NavigationGuard.js';
 import { ExternalSourceNotice, canRefreshSource } from './components/ExternalSourceNotice.js';
 import { ConflictDialog } from './components/ConflictDialog.js';
+import { ConversationPanel } from './features/agent/ConversationPanel.js';
+import { nativeBridge } from './features/intake/state.js';
 type Screen = StepId | 'review' | 'changes' | 'evidence' | 'history' | 'settings';
 const sections: [Screen, string][] = [
   ['frame', 'Frame'],
@@ -48,6 +50,7 @@ export function Workspace({
     () => new DraftController(initial, (patch, supersedes) => api.patch(patch, supersedes)),
   );
   const view = useSyncExternalStore(draft.subscribe, draft.getSnapshot);
+  const [bridge] = useState(nativeBridge);
   const [screen, setScreen] = useState<Screen>('frame');
   const [nav, setNav] = useState(false);
   const [findings, setFindings] = useState(false);
@@ -250,7 +253,13 @@ export function Workspace({
             </button>
           </div>
         </header>
-        <div className="content-layout">
+        <div className={`content-layout${bridge ? ' with-conversation' : ''}`}>
+          {bridge && (
+            <ConversationPanel
+              bridge={bridge}
+              base={{ sourceRevision: view.committed.sourceRevision, sourceHash: view.committed.sourceHash }}
+            />
+          )}
           <main id="main-content">
             <AuthorContext.Provider
               value={(actor) => {

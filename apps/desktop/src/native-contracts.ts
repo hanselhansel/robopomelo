@@ -1,5 +1,5 @@
-import type { PresetId, FolderMode, PickedFolder, PickedAttachment, AttachmentPreview } from '@robopomelo/spec';
-export type { PresetId, FolderMode, PickedFolder, PickedAttachment, AttachmentPreview, DesktopBridge } from '@robopomelo/spec';
+import type { PresetId, FolderMode, PickedFolder, PickedAttachment, AttachmentPreview, ConnectionStatus } from '@robopomelo/spec';
+export type { PresetId, FolderMode, PickedFolder, PickedAttachment, AttachmentPreview, DesktopBridge, ConnectionStatus } from '@robopomelo/spec';
 export const channels = {
   chooseProjectFolder: 'native:choose-project-folder',
   selectAttachments: 'native:select-attachments',
@@ -8,7 +8,38 @@ export const channels = {
   cancelAttachment: 'native:cancel-attachment',
   confirmSetup: 'native:confirm-setup',
   cancelRun: 'native:cancel-run',
+  connectProvider: 'native:connect-provider',
+  listConnections: 'native:list-connections',
+  connectionStatus: 'native:connection-status',
+  disconnect: 'native:disconnect',
 } as const;
+export function checkedRoute(value: unknown): 'openrouter' {
+  if (value !== 'openrouter') throw new Error('Invalid provider route');
+  return value;
+}
+export function checkedConnectionStatus(value: unknown): ConnectionStatus {
+  if (!value || typeof value !== 'object') throw new Error('Invalid connection status');
+  const item = value as Record<string, unknown>;
+  if (
+    Object.keys(item).sort().join(',') !== 'accountLabel,connectionId,generation,route,state' ||
+    !['openrouter', 'codex', 'grok'].includes(String(item.route)) ||
+    !['connected', 'disconnected', 'disabled-cleanup-required'].includes(String(item.state)) ||
+    !Number.isSafeInteger(item.generation) ||
+    (item.accountLabel !== null && (typeof item.accountLabel !== 'string' || item.accountLabel.length > 200))
+  )
+    throw new Error('Invalid connection status');
+  return {
+    connectionId: checkedString(item.connectionId),
+    route: item.route as ConnectionStatus['route'],
+    generation: item.generation as number,
+    state: item.state as ConnectionStatus['state'],
+    accountLabel: item.accountLabel as string | null,
+  };
+}
+export function checkedConnectionStatuses(value: unknown): ConnectionStatus[] {
+  if (!Array.isArray(value) || value.length > 50) throw new Error('Invalid connection list');
+  return value.map(checkedConnectionStatus);
+}
 export function checkedString(value: unknown): string {
   if (typeof value !== 'string' || !value.length || value.length > 4096 || value.includes('\0'))
     throw new Error('Invalid string');

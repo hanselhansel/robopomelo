@@ -62,8 +62,9 @@ export class CredentialStore {
     return operation;
   }
   async #available():Promise<void> {
-    if (!await this.encryption.isAvailable()) throw new CredentialError('CREDENTIAL_ENCRYPTION_UNAVAILABLE');
+    if (!await this.available()) throw new CredentialError('CREDENTIAL_ENCRYPTION_UNAVAILABLE');
   }
+  available():Promise<boolean> {return this.encryption.isAvailable();}
   async #write(record:CredentialRecord,replace:boolean):Promise<void> {
     await this.#available();
     const ciphertext = await this.encryption.encrypt(JSON.stringify(record));

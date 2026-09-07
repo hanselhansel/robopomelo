@@ -19,3 +19,4 @@ export { RuntimeError, type RunPolicy } from './runtime.js';
 export { AgentService, type AgentState, type Selection } from './agent/service.js';
 export { agentRoutes } from './agent/routes.js';
 export { ProviderBroker, fetchTransport, type ConnectionSource, type ConnectionSummary, type BrokerOptions } from './agent/broker.js';
+export { OAuthLoopbackFlow, OAuthFlowError, type OAuthFlowOptions } from './agent/oauth-flow.js';

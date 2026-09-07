@@ -8,7 +8,7 @@ import type { NativeDependencies } from './native-dialogs.js';
 export function registerNativeBridge(
   window: BrowserWindow,
   uiOrigin: string,
-  callbacks: Pick<NativeDependencies, 'confirm' | 'cancelRun' | 'previewSetup'>,
+  callbacks: Pick<NativeDependencies, 'confirm' | 'cancelRun' | 'previewSetup' | 'connections'>,
   attachments: NativeDependencies['attachments'],
 ) {
   const contents = window.webContents;
@@ -72,9 +72,13 @@ export function registerNativeBridge(
     'cancelAttachment',
     'confirmSetup',
     'cancelRun',
+    'connectProvider',
+    'listConnections',
+    'connectionStatus',
+    'disconnect',
   ] as const) {
     ipcMain.handle(channels[method], async (event, ...args: unknown[]) => {
-      const count = method === 'selectAttachments' ? 0 : method === 'confirmSetup' ? 2 : 1;
+      const count = method === 'selectAttachments' || method === 'listConnections' ? 0 : method === 'confirmSetup' ? 2 : 1;
       if (args.length !== count) throw new Error('Invalid native argument count');
       try {
         switch (method) {
@@ -92,6 +96,14 @@ export function registerNativeBridge(
             return await handlers.confirmSetup(event, args[0], args[1]);
           case 'cancelRun':
             return await handlers.cancelRun(event, args[0]);
+          case 'connectProvider':
+            return await handlers.connectProvider(event, args[0]);
+          case 'listConnections':
+            return await handlers.listConnections(event);
+          case 'connectionStatus':
+            return await handlers.connectionStatus(event, args[0]);
+          case 'disconnect':
+            return await handlers.disconnect(event, args[0]);
         }
       } catch (error) {
         if (error instanceof Error && error.message === 'Setup confirmation cancelled') return { nativeFailure: 'cancelled' };

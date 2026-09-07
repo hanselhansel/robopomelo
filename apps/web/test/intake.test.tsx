@@ -27,6 +27,10 @@ function bridge(): DesktopBridge {
     cancelAttachment: vi.fn().mockResolvedValue(undefined),
     confirmSetup: vi.fn().mockResolvedValue(undefined),
     cancelRun: vi.fn(),
+    connectProvider: vi.fn(),
+    listConnections: vi.fn().mockResolvedValue([]),
+    connectionStatus: vi.fn(),
+    disconnect: vi.fn(),
   };
 }
 function mount(native: DesktopBridge, onOpen = vi.fn()) {

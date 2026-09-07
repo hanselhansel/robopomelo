@@ -41,8 +41,12 @@ async function run() {
       'cancelRun',
       'chooseProjectFolder',
       'confirmSetup',
+      'connectProvider',
+      'connectionStatus',
+      'disconnect',
       'dropAttachments',
       'inspectAttachment',
+      'listConnections',
       'selectAttachments',
     ]);
     await window.webContents.executeJavaScript(`document.fonts.ready.then(() =>

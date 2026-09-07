@@ -8,6 +8,9 @@ import {
   checkedAttachments,
   checkedVoid,
   checkedAttachmentPreview,
+  checkedRoute,
+  checkedConnectionStatus,
+  checkedConnectionStatuses,
 } from './native-contracts.js';
 import type { DesktopBridge } from './native-contracts.js';
 async function invokeNative(channel: (typeof channels)[keyof typeof channels], ...args: unknown[]): Promise<unknown> {
@@ -48,6 +51,18 @@ const bridge: DesktopBridge = Object.freeze<DesktopBridge>({
   },
   async cancelRun(id) {
     checkedVoid(await invokeNative(channels.cancelRun, checkedString(id)));
+  },
+  async connectProvider(route) {
+    return checkedConnectionStatus(await invokeNative(channels.connectProvider, checkedRoute(route)));
+  },
+  async listConnections() {
+    return checkedConnectionStatuses(await invokeNative(channels.listConnections));
+  },
+  async connectionStatus(id) {
+    return checkedConnectionStatus(await invokeNative(channels.connectionStatus, checkedString(id)));
+  },
+  async disconnect(id) {
+    return checkedConnectionStatus(await invokeNative(channels.disconnect, checkedString(id)));
   },
 });
 contextBridge.exposeInMainWorld('robopomelo', bridge);

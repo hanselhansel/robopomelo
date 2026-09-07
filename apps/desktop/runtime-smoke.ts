@@ -66,8 +66,12 @@ async function run() {
     'cancelRun',
     'chooseProjectFolder',
     'confirmSetup',
+    'connectProvider',
+    'connectionStatus',
+    'disconnect',
     'dropAttachments',
     'inspectAttachment',
+    'listConnections',
     'selectAttachments',
   ]);
   const rejected = await window.webContents.executeJavaScript(`

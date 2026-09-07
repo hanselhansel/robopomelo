@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { allowedUI } from './navigation.js';
-import { checkedMode, checkedPreset, checkedString, checkedAttachmentPreview } from './native-contracts.js';
-import type { FolderMode, PresetId, PickedAttachment } from './native-contracts.js';
+import { checkedMode, checkedPreset, checkedString, checkedAttachmentPreview, checkedRoute } from './native-contracts.js';
+import type { FolderMode, PresetId, PickedAttachment, ConnectionStatus } from './native-contracts.js';
 import type { AttachmentBroker } from './attachment-broker.js';
 export type NativeSender = { id: number; mainFrame: object; isDestroyed(): boolean };
 export type NativeEvent = { sender: NativeSender; senderFrame: object | null };
@@ -20,6 +20,12 @@ export interface NativeDependencies {
   previewSetup?(path: string, preset: PresetId, mode: FolderMode): Promise<{ revision: string; detail: string }>;
   confirm(path: string, preset: PresetId, mode: FolderMode, revision?: string): Promise<void>;
   cancelRun(runId: string): Promise<void>;
+  connections?: {
+    connect(route: 'openrouter'): Promise<ConnectionStatus>;
+    statuses(): Promise<ConnectionStatus[]>;
+    status(connectionId: string): Promise<ConnectionStatus>;
+    disconnect(connectionId: string): Promise<ConnectionStatus>;
+  };
   attachments: Pick<AttachmentBroker, 'select' | 'inspect' | 'cancel' | 'clear' | 'contextKey'>;
 }
 export function createNativeHandlers(deps: NativeDependencies) {
@@ -141,9 +147,37 @@ export function createNativeHandlers(deps: NativeDependencies) {
     authenticate(event);
     await deps.cancelRun(checkedString(id));
   }
+  const connections = () => {
+    if (!deps.connections) throw new Error('Account connections are unavailable in this build.');
+    return deps.connections;
+  };
+  async function connectProvider(event: NativeEvent, route: unknown) {
+    authenticate(event);
+    const started = generation;
+    const status = await connections().connect(checkedRoute(route));
+    authenticate(event);
+    if (started !== generation) throw new Error('Selection invalidated');
+    return status;
+  }
+  async function listConnections(event: NativeEvent) {
+    authenticate(event);
+    return connections().statuses();
+  }
+  async function connectionStatus(event: NativeEvent, id: unknown) {
+    authenticate(event);
+    return connections().status(checkedString(id));
+  }
+  async function disconnect(event: NativeEvent, id: unknown) {
+    authenticate(event);
+    return connections().disconnect(checkedString(id));
+  }
   return {
     chooseProjectFolder,
     confirmSetup,
+    connectProvider,
+    listConnections,
+    connectionStatus,
+    disconnect,
     selectAttachments,
     dropAttachments,
     inspectAttachment,
