@@ -6,10 +6,12 @@ attachment parsing and selected-byte access. D4 owns durable permission grants.
 The current main entry rejects setup confirmation and run cancellation until
 those service callbacks are connected. It does not claim an operational agent.
 
-Build with `npm run build:desktop`. To exercise the current web workflow, explicitly
-start its local service, then set ROBOPOMELO_DESKTOP_UI_ORIGIN to its exact
-http://127.0.0.1:<port> URL and run `npm run start:desktop`. Never put credentials
-in that URL or process arguments.
+Build with `npm run build:desktop`, then run `npm run start:desktop`.
+The desktop owns the shared application service on an ephemeral loopback port,
+loads the bundled apps/web UI with a one-use bootstrap link, and waits for service
+cleanup on window close or app quit. No separate CLI server or origin environment
+variable is required. Development builds report desktop updates unavailable;
+they never invoke the standalone CLI runtime updater.
 
 Run `npm run test:desktop-smoke` on macOS with the reviewed Electron binary
 installed. The smoke opens a hidden real Electron window against a temporary
@@ -23,8 +25,17 @@ requires the assertion marker, exit code zero and closed output streams. Its
 20-second deadline is independent of the Electron event loop. It owns a detached
 process group and awaits bounded cleanup (at most ten additional seconds), using
 the repository's existing process cleanup helper. It does not
-exercise native picker interaction, full application lifecycle, packaging,
+exercise native picker interaction, packaging,
 signing or notarization. Installed-app picker QA remains R3.
+
+A second smoke loads the actual desktop entry point and bundled UI with temporary
+machine settings. It checks a rendered welcome screen, consumed bootstrap,
+isolated bridge, and closed service socket after both window close and app quit.
+The parent removes temporary settings after Electron exits, so Chromium cannot
+race directory cleanup. The captured UI is in test-results/desktop-smoke/workspace.png.
+This verifies development startup, not the unfinished agent/intake workflows.
+Lifecycle semantics were checked against Electron's app and BrowserWindow API
+documentation on2026-09-07.
 
 ## Dependency review, 2026-09-07
 

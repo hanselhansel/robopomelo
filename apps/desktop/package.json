@@ -1,7 +1,11 @@
 {
   "name": "@robopomelo/desktop",
+  "productName": "RoboPomelo",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "dist/main.cjs"
+  "main": "dist/main.cjs",
+  "dependencies": {
+    "@robopomelo/application": "*"
+  }
 }
