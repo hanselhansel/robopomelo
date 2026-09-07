@@ -9,12 +9,14 @@ export function registerNativeBridge(
   window: BrowserWindow,
   uiOrigin: string,
   callbacks: Pick<NativeDependencies, 'confirm' | 'cancelRun'>,
+  attachments: NativeDependencies['attachments'],
 ) {
   const contents = window.webContents;
   const handlers = createNativeHandlers({
     sender: contents,
     uiOrigin,
     ...callbacks,
+    attachments,
     async identity(path) {
       const resolved = await realpath(path),
         info = await stat(resolved, { bigint: true });
@@ -61,7 +63,14 @@ export function registerNativeBridge(
       },
     },
   });
-  for (const method of ['chooseProjectFolder', 'selectAttachments', 'confirmSetup', 'cancelRun'] as const) {
+  for (const method of [
+    'chooseProjectFolder',
+    'selectAttachments',
+    'inspectAttachment',
+    'cancelAttachment',
+    'confirmSetup',
+    'cancelRun',
+  ] as const) {
     ipcMain.handle(channels[method], async (event, ...args: unknown[]) => {
       const count = method === 'selectAttachments' ? 0 : method === 'confirmSetup' ? 2 : 1;
       if (args.length !== count) throw new Error('Invalid native argument count');
@@ -70,6 +79,10 @@ export function registerNativeBridge(
           return handlers.chooseProjectFolder(event, args[0]);
         case 'selectAttachments':
           return handlers.selectAttachments(event);
+        case 'inspectAttachment':
+          return handlers.inspectAttachment(event, args[0]);
+        case 'cancelAttachment':
+          return handlers.cancelAttachment(event, args[0]);
         case 'confirmSetup':
           return handlers.confirmSetup(event, args[0], args[1]);
         case 'cancelRun':
@@ -77,8 +90,8 @@ export function registerNativeBridge(
       }
     });
   }
-  const invalidate = (_event: unknown, _url: string, _inPlace: boolean, isMainFrame: boolean) => {
-    if (isMainFrame) handlers.dispose();
+  const invalidate = (_event: unknown, _url: string, isInPlace: boolean, isMainFrame: boolean) => {
+    if (isMainFrame && !isInPlace) handlers.dispose();
   };
   contents.on('did-start-navigation', invalidate);
   const dispose = () => {

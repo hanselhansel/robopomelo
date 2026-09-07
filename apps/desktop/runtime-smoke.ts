@@ -37,7 +37,20 @@ async function run() {
   assert.equal(blockedOriginRequests, 1, 'main must prove the second server is reachable');
   blockedOriginRequests = 0;
   const window = createDesktopWindow(origin, join(__dirname, 'preload.cjs'), false);
-  registerNativeBridge(window, origin, { confirm: async () => {}, cancelRun: async () => {} });
+  registerNativeBridge(
+    window,
+    origin,
+    { confirm: async () => {}, cancelRun: async () => {} },
+    {
+      contextKey: () => '0',
+      select: async () => [],
+      inspect: async () => {
+        throw new Error('No selection');
+      },
+      cancel: () => {},
+      clear: () => {},
+    },
+  );
   console.log('ELECTRON_SMOKE_STAGE window-created');
   await window.loadURL(origin);
   console.log('ELECTRON_SMOKE_STAGE ui-loaded');
@@ -48,7 +61,14 @@ async function run() {
  })`);
   assert.equal(state.node, 'undefined');
   assert.equal(state.invoke, 'undefined');
-  assert.deepEqual(state.bridge, ['cancelRun', 'chooseProjectFolder', 'confirmSetup', 'selectAttachments']);
+  assert.deepEqual(state.bridge, [
+    'cancelAttachment',
+    'cancelRun',
+    'chooseProjectFolder',
+    'confirmSetup',
+    'inspectAttachment',
+    'selectAttachments',
+  ]);
   const rejected = await window.webContents.executeJavaScript(`
    window.robopomelo.chooseProjectFolder('invalid').then(()=>false,()=>true)
  `);

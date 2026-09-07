@@ -4,6 +4,23 @@ import { createDesktopWindow } from './window.js';
 import { registerNativeBridge } from './native-registration.js';
 import { startDesktopService } from './application-service.js';
 import { DesktopServiceLifetime } from './service-lifecycle.js';
+import { AttachmentBroker } from './attachment-broker.js';
+import { PreviewStore } from './preview-protocol.js';
+import { parseAttachment, registerParserScheme } from './parser-window.js';
+
+registerParserScheme();
+let application: Awaited<ReturnType<typeof startDesktopService>> | undefined;
+const previews = new PreviewStore();
+const attachments = new AttachmentBroker({
+  context: () => application?.projectEpoch() ?? '0',
+  previews,
+  parse: (input, signal) =>
+    parseAttachment(input, {
+      assetRoot: join(__dirname, 'parser'),
+      preload: join(__dirname, 'parser-preload.cjs'),
+      signal,
+    }),
+});
 
 let ownedWindow: BrowserWindow | undefined;
 let quitReady = false;
@@ -14,10 +31,13 @@ function fail(error: unknown) {
 export const lifetime = new DesktopServiceLifetime({
   async startService() {
     await app.whenReady();
-    return startDesktopService({
+    application = await startDesktopService({
       assetRoot: join(__dirname, 'ui'),
       configDirectory: join(app.getPath('userData'), 'settings'),
+      previews,
+      onClose: () => attachments.close(),
     });
+    return application;
   },
   createWindow(origin) {
     const window = createDesktopWindow(origin, join(__dirname, 'preload.cjs'));
@@ -38,14 +58,19 @@ export const lifetime = new DesktopServiceLifetime({
   },
   registerBridge(_window, service) {
     if (!ownedWindow) throw new Error('Desktop window is unavailable');
-    return registerNativeBridge(ownedWindow, service.url, {
-      async confirm() {
-        throw new Error('Project permission persistence is not connected yet.');
+    return registerNativeBridge(
+      ownedWindow,
+      service.url,
+      {
+        async confirm() {
+          throw new Error('Project permission persistence is not connected yet.');
+        },
+        async cancelRun() {
+          throw new Error('Application run management is not connected yet.');
+        },
       },
-      async cancelRun() {
-        throw new Error('Application run management is not connected yet.');
-      },
-    });
+      attachments,
+    );
   },
   onWindowClose: () => app.quit(),
   onError: fail,

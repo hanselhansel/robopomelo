@@ -1,10 +1,18 @@
 # Desktop host foundation
 
-D1 supplies the native host and four-method sandbox bridge. The frontend remains
+D1 supplied the native host and initial four-method sandbox bridge. D3 adds
+selection-scoped attachment inspection and cancellation. The frontend remains
 in apps/web. D2 owns starting and stopping the shared application service. D3 owns
 attachment parsing and selected-byte access. D4 owns durable permission grants.
 The current main entry rejects setup confirmation and run cancellation until
 those service callbacks are connected. It does not claim an operational agent.
+
+Attachment selection, bounded parsing and authenticated preview downloads are
+connected behind the six-method bridge. Selected paths remain in opaque
+main-process tokens. The broker retains inputs across cancelled choosers and
+in-page navigation, limits parsing to two workers, rejects stale project contexts,
+and revokes previews when an input is removed. The visible intake UI and durable
+project import are still under construction.
 
 Build with `npm run build:desktop`, then run `npm run start:desktop`.
 The desktop owns the shared application service on an ephemeral loopback port,

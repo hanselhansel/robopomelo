@@ -3,6 +3,7 @@ import { createNativeHandlers } from '../../apps/desktop/src/native-dialogs.js';
 function fixture() {
   let time = 0,
     identity = 'folder-1';
+  let attachmentContext = '0';
   const frame = {};
   const sender = { id: 1, mainFrame: frame, isDestroyed: () => false };
   const event = { sender, senderFrame: frame };
@@ -12,7 +13,24 @@ function fixture() {
     chooseFiles: vi.fn(async () => ['/project/a.png']),
     confirmPreset: vi.fn(async () => true),
   };
+  const selectFiles = vi.fn(async (paths: string[]) =>
+    paths.map((_path, index) => ({ selectionId: 'file-' + index, name: 'a.png', bytes: 12 })),
+  );
+  const inspectFiles = vi.fn(async (selectionId: string) => ({
+    selectionId,
+    state: 'parsed' as const,
+    textExcerpt: 'Dock',
+    pagePreviewIds: [] as string[],
+    warnings: [] as string[],
+  }));
   const handlers = createNativeHandlers({
+    attachments: {
+      contextKey: () => attachmentContext,
+      select: selectFiles,
+      inspect: inspectFiles,
+      cancel: vi.fn(),
+      clear: vi.fn(),
+    },
     sender,
     uiOrigin: 'http://127.0.0.1:3000',
     dialogs,
@@ -27,6 +45,11 @@ function fixture() {
     event,
     dialogs,
     confirm,
+    selectFiles,
+    inspectFiles,
+    switchProject: () => {
+      attachmentContext = '1';
+    },
     expire: () => {
       time = 300001;
     },
@@ -42,6 +65,58 @@ it('rejects an invalid sender and subframe before opening dialogs', async () => 
   ).rejects.toThrow();
   await expect(f.handlers.chooseProjectFolder({ ...f.event, senderFrame: {} }, 'open')).rejects.toThrow();
   expect(f.dialogs.chooseFolder).not.toHaveBeenCalled();
+});
+
+it('rejects stale chooser completion before it inserts attachment selections', async () => {
+  const f = fixture();
+  let finish!: (paths: string[]) => void;
+  f.dialogs.chooseFiles.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const pending = f.handlers.selectAttachments(f.event);
+  f.handlers.dispose();
+  finish(['/project/a.png']);
+  await expect(pending).rejects.toThrow('Selection invalidated');
+  expect(f.selectFiles).not.toHaveBeenCalled();
+});
+
+it('rejects chooser completion after a project switch without navigation', async () => {
+  const f = fixture();
+  let finish!: (paths: string[]) => void;
+  f.dialogs.chooseFiles.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const pending = f.handlers.selectAttachments(f.event);
+  f.switchProject();
+  finish(['/project/a.png']);
+  await expect(pending).rejects.toThrow('Selection invalidated');
+  expect(f.selectFiles).not.toHaveBeenCalled();
+});
+
+it('drops inspection output when its project changes before native delivery', async () => {
+  const f = fixture();
+  f.inspectFiles.mockImplementationOnce(async (selectionId) => {
+    f.switchProject();
+    return { selectionId, state: 'parsed', textExcerpt: 'Old project', pagePreviewIds: [], warnings: [] };
+  });
+  await expect(f.handlers.inspectAttachment(f.event, 'file-0')).rejects.toThrow('Selection invalidated');
+});
+
+it('restricts attachment inspection and cancellation to the owned main frame', async () => {
+  const f = fixture();
+  expect(await f.handlers.inspectAttachment(f.event, 'file-0')).toMatchObject({
+    selectionId: 'file-0',
+    state: 'parsed',
+  });
+  const foreign = { ...f.event, senderFrame: {} };
+  await expect(f.handlers.inspectAttachment(foreign, 'file-0')).rejects.toThrow();
+  await expect(f.handlers.cancelAttachment(foreign, 'file-0')).rejects.toThrow();
 });
 it('cancellation returns null without confirmation or replacement state', async () => {
   const f = fixture();

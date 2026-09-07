@@ -5,11 +5,13 @@ import { reviewRoutes } from './review-routes.js';
 import { evidenceRoutes } from './evidence-routes.js';
 import { exportRoutes } from './export-routes.js';
 import { updateRoutes, type UpdaterApi, type RuntimeIdentity } from './update-routes.js';
+import type { Route } from './contracts.js';
 export async function startApplication(
   project: ProjectService,
   updater: UpdaterApi,
   identity: RuntimeIdentity,
   assetRoot: string,
+  extensions: { routes?: Route[]; onClose?: () => Promise<void> } = {},
 ) {
   let host: Awaited<ReturnType<typeof startServer>>;
   host = await startServer({
@@ -21,8 +23,15 @@ export async function startApplication(
       ...evidenceRoutes(project),
       ...exportRoutes(project),
       ...updateRoutes(updater, identity),
+      ...(extensions.routes ?? []),
     ],
-    onClose: () => project.close(),
+    onClose: async () => {
+      try {
+        await project.close();
+      } finally {
+        await extensions.onClose?.();
+      }
+    },
   });
   host.setProjectStatus(project.status());
   return host;

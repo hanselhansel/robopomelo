@@ -11,10 +11,9 @@ Limits:20 files,25MiB per file,100MiB total,100 PDF pages after decoding and
 20 million image pixels. Ten tests cover limits, malformed/truncated headers,
 misleading extensions, typed-array slices, JPEG metadata traversal and filenames.
 
-The sandbox parser component is implemented and has actual Electron smoke
-coverage. The selected-file broker, preview protocol, retained intake UI and
-permission persistence remain pending. Do not mark D3 complete or expose file
-extraction until those integrations pass their runtime and security checks.
+The sandbox parser, selected-file broker and authenticated preview protocol are
+implemented with actual Electron smoke coverage. The retained intake UI and
+permission/import persistence remain pending. D3 is not complete.
 
 ## PDF dependency, checked2026-09-07
 
@@ -79,3 +78,41 @@ independently reran16parser/ingestion tests. Root ran43desktop/ingestion tests,
 61tooling tests, typecheck, dependency/source checks and the actual desktop smoke
 sequence. These component reviews do not replace the final whole-branch review
 or signed installed-app acceptance.
+
+## Native attachment integration,2026-09-07
+
+The chooser creates opaque main-process file tokens. Canonical parent identity
+and nanosecond file fingerprints are verified around bounded reads; no path or
+directory authority is returned for attachments. Filesystem tests cover replaced
+files/parents, same-inode edits, symlinks, forged tokens and growth during reading.
+This inherits SafeRoot's documented limit against an unrestricted same-user
+process racing path ancestors; it is not kernel-enforced filesystem confinement.
+
+The broker reserves20file/100MiB limits across chooser calls and permits at most
+two parsers. It caches selected bytes after reading, preserves failed selections
+for retry, distinguishes unsupported content, drops cancelled/stale output, and
+awaits owned work during shutdown. Raw selected bytes remain memory-only until
+the later confirmed project import step.
+
+Preview IDs map only to bounded normalized PNG bytes. The loopback preview route
+uses the existing session/origin/project-epoch checks, fixed image/png MIME and
+no-store headers. Copies prevent mutation of cached previews; cancellation
+revokes their IDs. Cross-project and unauthorized preview requests are denied.
+
+Actual application smoke stubs only the native chooser response and exercises
+preload selection, cancelled second chooser, in-page navigation, real isolated
+parsing, authenticated PNG download and404after cancellation. Both normal app
+exit paths pass. The visible intake UI and real user-driven chooser QA remain
+separate gates.
+
+Scoped reviews found and closed navigation and project-context races. In-page
+navigation retains inputs; document replacement invalidates them. Choosers bind
+their starting project context before awaiting the native dialog, and both
+selection and inspection recheck context before delivery. Regression tests were
+observed failing before each repair. The final quality recheck passed17native
+bridge tests, with no remaining findings in this component scope.
+
+Final combined verification passed59desktop/parity tests, typecheck, dependency
+boundaries and source limits. The complete native isolation/application/parser
+smoke sequence passed after the context repairs. The CLI rebuilt after the
+shared-service extension hook and passed all nine fresh installed-package checks.

@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { allowedUI } from './navigation.js';
-import { checkedMode, checkedPreset, checkedString } from './native-contracts.js';
+import { checkedMode, checkedPreset, checkedString, checkedAttachmentPreview } from './native-contracts.js';
 import type { FolderMode, PresetId, PickedAttachment } from './native-contracts.js';
+import type { AttachmentBroker } from './attachment-broker.js';
 export type NativeSender = { id: number; mainFrame: object; isDestroyed(): boolean };
 export type NativeEvent = { sender: NativeSender; senderFrame: object | null };
 type Identity = { identity: string; name: string; bytes: number; directory: boolean };
@@ -18,10 +19,10 @@ export interface NativeDependencies {
   now?: () => number;
   confirm(path: string, preset: PresetId, mode: FolderMode): Promise<void>;
   cancelRun(runId: string): Promise<void>;
+  attachments: Pick<AttachmentBroker, 'select' | 'inspect' | 'cancel' | 'clear' | 'contextKey'>;
 }
 export function createNativeHandlers(deps: NativeDependencies) {
   const selections = new Map<string, Selection>();
-  const attachments = new Map<string, { path: string; identity: string; expires: number }>();
   let generation = 0;
   const now = deps.now ?? Date.now;
   function authenticate(event: NativeEvent) {
@@ -34,8 +35,7 @@ export function createNativeHandlers(deps: NativeDependencies) {
       throw new Error('Unauthorized native sender');
   }
   function prune() {
-    for (const map of [selections, attachments])
-      for (const [id, value] of map) if (value.expires <= now()) map.delete(id);
+    for (const map of [selections]) for (const [id, value] of map) if (value.expires <= now()) map.delete(id);
   }
   async function chooseProjectFolder(event: NativeEvent, mode: unknown) {
     authenticate(event);
@@ -43,6 +43,7 @@ export function createNativeHandlers(deps: NativeDependencies) {
     const validMode = checkedMode(mode);
     const path = await deps.dialogs.chooseFolder(validMode);
     authenticate(event);
+    if (started !== generation) throw new Error('Selection invalidated');
     if (path === null) return null;
     const identity = await deps.identity(path);
     authenticate(event);
@@ -84,24 +85,31 @@ export function createNativeHandlers(deps: NativeDependencies) {
   async function selectAttachments(event: NativeEvent): Promise<PickedAttachment[]> {
     authenticate(event);
     const started = generation;
+    const context = deps.attachments.contextKey();
     const paths = await deps.dialogs.chooseFiles();
     authenticate(event);
+    if (started !== generation || context !== deps.attachments.contextKey())
+      throw new Error('Selection invalidated');
     if (paths.length > 20) throw new Error('Select at most 20 attachments');
-    prune();
-    attachments.clear();
-    const selected: PickedAttachment[] = [];
-    for (const path of paths) {
-      const identity = await deps.identity(path);
-      if (identity.directory || !Number.isSafeInteger(identity.bytes) || identity.bytes < 0)
-        throw new Error('Invalid selected file');
-      // D3 owns byte access and parsing. These IDs deliberately grant no filesystem API.
-      const selectionId = randomUUID();
-      attachments.set(selectionId, { path, identity: identity.identity, expires: now() + 300000 });
-      selected.push({ selectionId, name: identity.name, bytes: identity.bytes });
-    }
+    const selected = await deps.attachments.select(paths);
     authenticate(event);
-    if (started !== generation) throw new Error('Selection invalidated');
+    if (started !== generation || context !== deps.attachments.contextKey())
+      throw new Error('Selection invalidated');
     return selected;
+  }
+  async function inspectAttachment(event: NativeEvent, id: unknown) {
+    authenticate(event);
+    const started = generation;
+    const context = deps.attachments.contextKey();
+    const result = await deps.attachments.inspect(checkedString(id));
+    authenticate(event);
+    if (started !== generation || context !== deps.attachments.contextKey())
+      throw new Error('Selection invalidated');
+    return checkedAttachmentPreview(result);
+  }
+  async function cancelAttachment(event: NativeEvent, id: unknown) {
+    authenticate(event);
+    deps.attachments.cancel(checkedString(id));
   }
   async function cancelRun(event: NativeEvent, id: unknown) {
     authenticate(event);
@@ -111,11 +119,13 @@ export function createNativeHandlers(deps: NativeDependencies) {
     chooseProjectFolder,
     confirmSetup,
     selectAttachments,
+    inspectAttachment,
+    cancelAttachment,
     cancelRun,
     dispose: () => {
       generation++;
       selections.clear();
-      attachments.clear();
+      deps.attachments.clear();
     },
   };
 }
