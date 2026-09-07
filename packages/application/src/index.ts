@@ -16,3 +16,6 @@ export {
 export { ProjectService, type ProjectServiceOptions, type SelectedProject, type ExpectedProject } from './services/project.js';
 export { AgentGrantStore, type NativePresetConfirmation } from './agent-grants.js';
 export { RuntimeError, type RunPolicy } from './runtime.js';
+export { AgentService, type AgentState, type Selection } from './agent/service.js';
+export { agentRoutes } from './agent/routes.js';
+export { ProviderBroker, fetchTransport, type ConnectionSource, type ConnectionSummary, type BrokerOptions } from './agent/broker.js';

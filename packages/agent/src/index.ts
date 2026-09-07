@@ -10,3 +10,4 @@ export {
   type SubjectRecord,
 } from './conversation.js';
 export { buildContext, collectSubjects, type BuiltContext, type ContextInput, type SourceExcerpt } from './context.js';
+export { DiscoveryOrchestrator, type DiscoveryDeps, type ProviderAdapterLike, type TurnResult } from './orchestrator.js';
