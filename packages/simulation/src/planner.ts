@@ -1,9 +1,10 @@
 import type { Pose, RobotProfile } from '@robopomelo/spec';
 import { ticksFor } from './clock.js';
 import type { FleetTuning } from './fleet-types.js';
-import { activeFootprint, applyPrimitive, checkMove } from './motion.js';
+import { activeFootprint, applyPrimitive } from './motion.js';
 import { cellsBounds, pathReservations, pathResources, standingCells, stationResourceId, type Conflict, type PathResources, type Reservation, type ReservationTable } from './reservations.js';
 import { findRoute, type Bounds, type RouteResult, type RouteTransition } from './route.js';
+import { RasterOracle } from './raster.js';
 import { circumradius } from './sweep.js';
 import { robotZInterval, type MotionPrimitive, type PathStep, type RobotState, type StaticObstacle, type Tick, type Tolerances } from './types.js';
 
@@ -13,7 +14,14 @@ export type PlannerContext = {
   obstacles: readonly StaticObstacle[]; bounds: Bounds; tol: Tolerances; tuning: FleetTuning; expansionLimit: number; table: ReservationTable;
   /** Static route results keyed by profile, load state, start and goal; static obstacles never change within a run. */
   routeCache: Map<string, RouteResult>;
+  /** Rasterized static-scene clearance per robot profile; conservative, see raster.ts. */
+  oracles: Map<string, RasterOracle>;
 };
+export function oracleFor(profile: RobotProfile, ctx: PlannerContext): RasterOracle {
+  let oracle = ctx.oracles.get(profile.id);
+  if (!oracle) { oracle = new RasterOracle(profile, ctx.obstacles, ctx.bounds, ctx.tol); ctx.oracles.set(profile.id, oracle); }
+  return oracle;
+}
 /** A statically verified route with its swept resources, cached until the robot moves. */
 export type CachedRoute = { steps: PathStep[]; res: PathResources; exits: string[][]; template: Reservation[]; firstTouch: Tick };
 export type StationHold = { stationId: string; from: Tick };
@@ -44,8 +52,9 @@ function searchRoute(profile: RobotProfile, start: RobotState, goal: LegGoal, ex
   const reach = Math.max(circumradius(activeFootprint(profile, false)), circumradius(activeFootprint(profile, true))) + ctx.tol.sweepBoundM + ctx.tol.gridM;
   const search = (bounds: Bounds): RouteResult => {
     const wide = { minXM: bounds.minXM - reach, maxXM: bounds.maxXM + reach, minYM: bounds.minYM - reach, maxYM: bounds.maxYM + reach };
-    const obstacles = [...ctx.obstacles, ...extra].filter((o) => meets(aabb(o.polygon), wide));
-    return findRoute(profile, start, { pose: goal.pose, transition: goal.transition }, obstacles, { bounds, tolerances: ctx.tol, expansionLimit: limit, heuristicWeight: ctx.tuning.heuristicWeight });
+    // The static scene is answered by the memoized oracle; only dynamic extras travel as obstacles.
+    const dynamic = extra.filter((o) => meets(aabb(o.polygon), wide));
+    return findRoute(profile, start, { pose: goal.pose, transition: goal.transition }, dynamic, { bounds, tolerances: ctx.tol, expansionLimit: limit, heuristicWeight: ctx.tuning.heuristicWeight, staticOracle: oracleFor(profile, ctx) });
   };
   const m = ctx.tuning.routeMarginM, b = ctx.bounds;
   const corridor: Bounds = {
@@ -66,7 +75,7 @@ export function exitCells(profile: RobotProfile, goal: LegGoal, ctx: PlannerCont
   for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) primitives.push({ kind: 'translate', dxM: dx! * g, dyM: dy! * g });
   const out: string[][] = [];
   for (const primitive of primitives) {
-    if (checkMove(profile, state, primitive, ctx.obstacles, ctx.tol).kind !== 'clear') continue;
+    if (oracleFor(profile, ctx).check(state, primitive).kind !== 'clear') continue;
     const res = pathResources(profile, state, [{ pose: applyPrimitive(goal.pose, primitive), tick: 1, primitive }], ctx.tol);
     out.push([...new Set([...res.steps[0]!.cells, ...res.finalCells])]);
   }

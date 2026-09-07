@@ -35,3 +35,5 @@ export { assertTaskConservation, computeMetrics } from './metrics.js';
 export { semanticInputHash, variantHash, workloadHash, assetHashes, type SemanticInput } from './input-hash.js';
 export { evaluateObjectives, validateObjectiveDefinitions, measure, type ObjectiveEvaluation, type ObjectiveContext } from './objectives.js';
 export { compareRuns, type RunSummary, type Comparison, type ComparedRun, type ObjectiveDelta, type Spread } from './compare.js';
+export { StaticMoveCache, type StaticOracle } from './occupancy.js';
+export { RasterOracle, OccupancyField } from './raster.js';

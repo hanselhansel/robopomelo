@@ -27,7 +27,7 @@ export function runFleet(input: FleetInput, limits: FleetLimits): FleetResult {
   const { jobs, stations, tol, obstacles, bounds } = prepared;
   const table = new ReservationTable(new Map([...stations.values()].map((s) => [stationResourceId(s.id), s.capacity])));
   const ledger = new JobLedger(), log = new EventLog();
-  const shared: EngineShared = { ctx: { obstacles, bounds, tol, tuning, expansionLimit: limits.maxExpansionsPerRoute, table, routeCache: new Map() }, tuning, ledger, log, robots: prepared.robots, stations };
+  const shared: EngineShared = { ctx: { obstacles, bounds, tol, tuning, expansionLimit: limits.maxExpansionsPerRoute, table, routeCache: new Map(), oracles: new Map() }, tuning, ledger, log, robots: prepared.robots, stations };
   const order = orderRobotIds([...prepared.robots.keys()]).map((id) => prepared.robots.get(id)!);
   const jobById = new Map(jobs.map((j) => [j.id, j]));
   const rejected = new Set<string>();

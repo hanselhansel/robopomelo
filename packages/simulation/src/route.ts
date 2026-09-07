@@ -1,6 +1,7 @@
 import type { Pose, RobotProfile } from '@robopomelo/spec';
 import { secondsFor, ticksForSeconds } from './clock.js';
-import { assertDrive, checkMove, primitiveSeconds, standingClear } from './motion.js';
+import { assertDrive, checkMove, primitiveSeconds, standingClear, type MoveCheck } from './motion.js';
+import type { StaticOracle } from './occupancy.js';
 import { SimulationError, type MotionPrimitive, type PathStep, type RobotState, type StaticObstacle, type Tick, type Tolerances } from './types.js';
 
 export type Bounds = { minXM: number; maxXM: number; minYM: number; maxYM: number };
@@ -8,7 +9,7 @@ export type RouteTransition = 'none' | 'load' | 'unload';
 export type RouteGoal = { pose: Pose; transition: RouteTransition };
 /** `heuristicWeight` (default 1, exact A*) above 1 gives bounded-suboptimal weighted A*:
  * the path costs at most weight times the optimum, with far fewer expansions in open space. */
-export type RouteOptions = { bounds: Bounds; tolerances: Tolerances; expansionLimit?: number; heuristicWeight?: number };
+export type RouteOptions = { bounds: Bounds; tolerances: Tolerances; expansionLimit?: number; /** Memoized static-scene checks; `obstacles` then carries only dynamic extras. */ staticOracle?: StaticOracle; heuristicWeight?: number };
 export const DEFAULT_EXPANSION_LIMIT = 20000;
 export type InfeasibleReason = 'EXHAUSTED' | 'START_BLOCKED' | 'GOAL_BLOCKED' | 'STATION_CLEARANCE';
 export type RouteResult =
@@ -91,18 +92,34 @@ export function findRoute(profile: RobotProfile, start: RobotState, goal: RouteG
   const inBounds = (ix: number, iy: number): boolean =>
     ix * tol.gridM >= bounds.minXM - LATTICE_EPS && ix * tol.gridM <= bounds.maxXM + LATTICE_EPS && iy * tol.gridM >= bounds.minYM - LATTICE_EPS && iy * tol.gridM <= bounds.maxYM + LATTICE_EPS;
 
-  const blocked = (check: ReturnType<typeof standingClear>, reason: InfeasibleReason): RouteResult | null =>
+  const oracle = options.staticOracle;
+  // With an oracle the static scene is answered from the cache and `obstacles` holds only dynamic extras,
+  // which are checked through a small raster of their own when the oracle supports it.
+  const extras = oracle && obstacles.length ? oracle.forExtras?.(obstacles) : undefined;
+  const stand = (pose: Pose, loaded: boolean): MoveCheck => {
+    const state = { profileId: start.profileId, pose, loaded };
+    const fixed = oracle ? oracle.standing(state) : { kind: 'clear' as const };
+    if (fixed.kind !== 'clear' || (oracle && obstacles.length === 0)) return fixed;
+    return extras ? extras.standing(state) : standingClear(profile, pose, loaded, obstacles, tol);
+  };
+  const move = (pose: Pose, primitive: MotionPrimitive): MoveCheck => {
+    if (!oracle) return checkMove(profile, { ...start, pose }, primitive, obstacles, tol);
+    const fixed = oracle.check({ ...start, pose }, primitive);
+    if (fixed.kind !== 'clear' || obstacles.length === 0) return fixed;
+    return extras ? extras.check({ ...start, pose }, primitive) : checkMove(profile, { ...start, pose }, primitive, obstacles, tol);
+  };
+  const blocked = (check: MoveCheck, reason: InfeasibleReason): RouteResult | null =>
     check.kind === 'blocked' ? { kind: 'infeasible', reason, obstacleId: check.obstacleId, expansions: 0 } : null;
-  const startBlocked = blocked(standingClear(profile, start.pose, start.loaded, obstacles, tol), 'START_BLOCKED');
+  const startBlocked = blocked(stand(start.pose, start.loaded), 'START_BLOCKED');
   if (startBlocked) return startBlocked;
   if (goal.transition !== 'none') {
     // A load/unload transition must fit the station in both load states.
     for (const loaded of [false, true]) {
-      const station = blocked(standingClear(profile, goal.pose, loaded, obstacles, tol), 'STATION_CLEARANCE');
+      const station = blocked(stand(goal.pose, loaded), 'STATION_CLEARANCE');
       if (station) return station;
     }
   } else {
-    const goalBlocked = blocked(standingClear(profile, goal.pose, start.loaded, obstacles, tol), 'GOAL_BLOCKED');
+    const goalBlocked = blocked(stand(goal.pose, start.loaded), 'GOAL_BLOCKED');
     if (goalBlocked) return goalBlocked;
   }
 
@@ -142,7 +159,7 @@ export function findRoute(profile: RobotProfile, start: RobotState, goal: RouteG
       const key = keyOf(ix, iy, iyaw);
       const seconds = node.seconds + primitiveSeconds(profile, primitive);
       if ((best.get(key) ?? Infinity) <= seconds + SECONDS_EPS) continue;
-      const check = checkMove(profile, { ...start, pose }, primitive, obstacles, tol);
+      const check = move(pose, primitive);
       if (check.kind === 'unresolved') return { kind: 'unresolved', reason: 'SWEEP_BOUND', expansions };
       if (check.kind !== 'clear') continue;
       best.set(key, seconds);
