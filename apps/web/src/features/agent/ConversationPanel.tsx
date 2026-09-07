@@ -4,6 +4,7 @@ import { useConversation } from './useConversation.js';
 import { Conversation } from './Conversation.js';
 import { QuestionCard } from './QuestionCard.js';
 import { Composer } from './Composer.js';
+import { SelectedObjectChip, publishSelection, useSelectedObject } from '../scene/SelectionContext.js';
 import { ModelSelector } from './ModelSelector.js';
 import { RunStatus } from './RunStatus.js';
 import './agent.css';
@@ -27,6 +28,10 @@ export function ConversationPanel({
     ...(pollMs === undefined ? {} : { pollMs }),
   });
   const state = agent.state;
+  const selectedObject = useSelectedObject();
+  // The chip binds the message to a stable scene ID; the model never receives renderer state.
+  const send = (text: string, attachmentIds: string[]) =>
+    agent.send(selectedObject ? `[scene object ${selectedObject.id} "${selectedObject.name}"] ${text}` : text, attachmentIds);
   const active = state?.conversation.active ?? null;
   const sendReason = state === null ? 'Loading the conversation.' : null;
   return (
@@ -38,7 +43,8 @@ export function ConversationPanel({
       </div>
       <div className="agent-dock">
         <RunStatus run={state?.run ?? null} events={agent.events} status={agent.status} busy={agent.busy} onCancel={agent.cancel} onExtend={agent.extend} />
-        <Composer bridge={bridge} busy={agent.busy} disabledReason={sendReason} onSend={agent.send} />
+        <SelectedObjectChip onClear={() => publishSelection(null)} />
+        <Composer bridge={bridge} busy={agent.busy} disabledReason={sendReason} onSend={send} />
         <ModelSelector
           inventory={agent.inventory}
           selection={state?.selection ?? null}
