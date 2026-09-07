@@ -7,6 +7,7 @@ export { machineDirectory } from './fs/machine-paths.js';
 export { acquireLock } from './fs/lock.js';
 export { initializeProject, requireExpectedRoot, sameRootIdentity, type InitializeOptions } from './init.js';
 export { ProjectSession } from './session.js';
+export { ConversationStore, CONVERSATION_STORE_LIMIT, type LoadedConversation } from './conversations/store.js';
 export { SettingsStore } from './settings/store.js';
 export type { SettingsAuthority, TrustGrant, TrustMode, UpdatePolicy } from './settings/schema.js';
 export { TrustStore } from './settings/trust.js';
