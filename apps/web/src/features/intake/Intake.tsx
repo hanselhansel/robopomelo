@@ -3,9 +3,10 @@ import type { DesktopBridge, PickedAttachment } from '@robopomelo/spec';
 import { api, errorMessage } from '../../lib/api.js';
 import type { ProjectRead, Session } from '../../lib/api.js';
 import { ErrorNotice } from '../../components/ui.js';
-import type { IntakeState, SetIntake } from './state.js';
+import type { IntakeState, SetIntake, SetupStatus } from './state.js';
 import { initialIntake } from './state.js';
 import { Attachments } from './Attachments.js';
+import { Recovery } from './Recovery.js';
 import './intake.css';
 export function Intake({
   bridge,
@@ -84,22 +85,63 @@ export function Intake({
       }),
     );
   }
+  async function openProject() {
+    const read = await api.request<ProjectRead>('/api/project');
+    setState(initialIntake());
+    onOpen(read);
+  }
+  /** The project may exist even when the confirmation call failed. Refresh the
+   * session regardless, then read back the setup operation before reporting. */
+  async function settle(revision: string, failure: unknown) {
+    api.setSession(await api.request<Session>('/api/session', undefined, false));
+    const status = await api.request<SetupStatus>('/api/intake/status', undefined, false);
+    if (status.state !== 'idle' && status.revision === revision) {
+      if (status.state === 'completed') return openProject();
+      const { state: _state, ...recovery } = status;
+      update({ recovery });
+      return;
+    }
+    throw failure;
+  }
   async function continueSetup() {
     if (!state.folder || parsing || (state.preset === 'inspection' && !inspectionAllowed)) return;
     const name =
       state.name.trim() || state.folder.displayPath.split('/').filter(Boolean).at(-1) || 'Deployment plan';
-    await api.request('/api/intake/prepare', {
+    const { revision } = await api.request<{ revision: string }>('/api/intake/prepare', {
       name,
       seed: state.mode === 'example' ? 'inbound-pallet' : 'blank',
       description: state.preset === 'inspection' ? '' : state.description,
       attachmentIds: state.attachments.map((file) => file.selectionId),
     });
-    await bridge.confirmSetup(state.folder.selectionId, state.preset);
-    const session = await api.request<Session>('/api/session', undefined, false);
-    api.setSession(session);
-    const read = await api.request<ProjectRead>('/api/project');
-    setState(initialIntake());
-    onOpen(read);
+    try {
+      await bridge.confirmSetup(state.folder.selectionId, state.preset);
+    } catch (failure) {
+      if (errorMessage(failure) === 'Setup confirmation cancelled') throw failure;
+      return settle(revision, failure);
+    }
+    api.setSession(await api.request<Session>('/api/session', undefined, false));
+    await openProject();
+  }
+  async function resumeImport() {
+    if (!state.recovery) return;
+    const status = await api.request<SetupStatus>(
+      '/api/intake/resume',
+      { revision: state.recovery.revision },
+      false,
+    );
+    if (status.state === 'completed') return openProject();
+    if (status.state === 'pending') {
+      const { state: _state, ...recovery } = status;
+      update({ recovery });
+    }
+  }
+  async function discardImport() {
+    if (!state.recovery) return;
+    try {
+      await api.request('/api/intake/discard', { revision: state.recovery.revision }, false);
+    } finally {
+      update({ recovery: null });
+    }
   }
   return (
     <main className="desktop-intake" id="main-content">
@@ -265,12 +307,21 @@ export function Intake({
             </p>
           </fieldset>
           <ErrorNotice message={error} />
-          <div className="intake-submit">
-            <span className="help">Your plan and original files stay in your project folder.</span>
-            <button className="primary" disabled={busy || parsing || !state.folder}>
-              {busy ? 'Working locally…' : 'Continue'}
-            </button>
-          </div>
+          {state.recovery ? (
+            <Recovery
+              recovery={state.recovery}
+              busy={busy}
+              onResume={() => void run(resumeImport)}
+              onDiscard={() => void run(discardImport)}
+            />
+          ) : (
+            <div className="intake-submit">
+              <span className="help">Your plan and original files stay in your project folder.</span>
+              <button className="primary" disabled={busy || parsing || !state.folder}>
+                {busy ? 'Working locally…' : 'Continue'}
+              </button>
+            </div>
+          )}
         </form>
         <footer>Local files. Vendor-neutral planning. No robot control.</footer>
       </div>

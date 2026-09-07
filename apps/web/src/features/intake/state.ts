@@ -12,6 +12,15 @@ export interface IntakeAttachment extends PickedAttachment {
   pagePreviewIds: string[];
   warnings: string[];
 }
+/** Server-side setup operation status. The project exists once state leaves idle. */
+export interface IntakeRecovery {
+  revision: string;
+  projectEpoch: string;
+  imported: number;
+  total: number;
+  error?: string;
+}
+export type SetupStatus = { state: 'idle' } | ({ state: 'pending' | 'completed' } & IntakeRecovery);
 export interface IntakeState {
   mode: 'create' | 'open' | 'example';
   name: string;
@@ -19,6 +28,8 @@ export interface IntakeState {
   folder: PickedFolder | null;
   preset: PresetId;
   attachments: IntakeAttachment[];
+  /** An interrupted import waiting on the already-created project. */
+  recovery: IntakeRecovery | null;
 }
 export const initialIntake = (): IntakeState => ({
   mode: 'create',
@@ -27,6 +38,7 @@ export const initialIntake = (): IntakeState => ({
   folder: null,
   preset: 'recommended',
   attachments: [],
+  recovery: null,
 });
 export type SetIntake = Dispatch<SetStateAction<IntakeState>>;
 export function nativeBridge(): DesktopBridge | undefined {

@@ -26,6 +26,11 @@ interface Upload {
 export class EvidenceService {
   #uploads = new Map<string, Upload>();
   constructor(private readonly session: ProjectSession) {}
+  /** Evidence identity is derived from the mutation identity, so a retried
+   * import can be reconciled against the committed source by readback. */
+  static idFor(mutationId: string): string {
+    return `evidence-${byteHash(mutationId).slice(0, 32)}`;
+  }
   #record(input: EvidenceInput, location: Evidence['location']): Evidence {
     return {
       description: null,
@@ -34,7 +39,7 @@ export class EvidenceService {
       extensions: {},
       required: false,
       ...input.metadata,
-      id: `evidence-${byteHash(input.mutationId).slice(0, 32)}`,
+      id: EvidenceService.idFor(input.mutationId),
       location,
     };
   }
@@ -80,7 +85,7 @@ export class EvidenceService {
     const uploadId = randomUUID(),
       suffix = extname(selected.name);
     const extension = /^\.[A-Za-z0-9]{1,12}$/.test(suffix) ? suffix.toLowerCase() : '.bin';
-    const evidenceId = `evidence-${byteHash(input.mutationId).slice(0, 32)}`,
+    const evidenceId = EvidenceService.idFor(input.mutationId),
       finalPath = `evidence/${evidenceId}${extension}`,
       stagedPath = `.robopomelo/recovery/uploads/${uploadId}.part`;
     const record = this.#record(input, {

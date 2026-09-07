@@ -96,6 +96,81 @@ it('prepares exact intake before setup and refreshes the new project session', a
   expect(screen.getByLabelText('What are you planning?')).toHaveProperty('value', '');
   expect(screen.queryByText('/Planning/Test')).toBeNull();
 });
+it('refreshes the session after a failed confirmation and resumes the interrupted import in place', async () => {
+  const native = bridge();
+  const onOpen = vi.fn();
+  const order: string[] = [];
+  let imported = 1;
+  vi.mocked(native.confirmSetup).mockRejectedValueOnce(new Error('Disk interruption'));
+  vi.spyOn(api, 'request').mockImplementation(async (path, body) => {
+    order.push(path);
+    if (path === '/api/intake/prepare') return { revision: 'rev-1' };
+    if (path === '/api/session') return { projectEpoch: 'new', projectOpen: true, toolVersion: '1' };
+    if (path === '/api/intake/status')
+      return { state: 'pending', revision: 'rev-1', projectEpoch: 'new', imported, total: 3, error: 'Disk interruption' };
+    if (path === '/api/intake/resume') {
+      expect(body).toEqual({ revision: 'rev-1' });
+      imported = 3;
+      return { state: 'completed', revision: 'rev-1', projectEpoch: 'new', imported, total: 3 };
+    }
+    if (path === '/api/project') return { kind: 'inspection', rawText: '', problems: [] };
+    throw new Error('Unexpected ' + path);
+  });
+  mount(native, onOpen);
+  fireEvent.change(screen.getByLabelText('What are you planning?'), { target: { value: 'Move pallets' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Choose project folder' }));
+  await screen.findByText('/Planning/Test');
+  fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+  await screen.findByText(/1 of 3 planning inputs saved/);
+  expect(api.session?.projectEpoch).toBe('new');
+  expect(screen.getByLabelText('What are you planning?')).toHaveProperty('value', 'Move pallets');
+  expect(order).toEqual(['/api/intake/prepare', '/api/session', '/api/intake/status']);
+  expect(onOpen).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', { name: 'Resume import' }));
+  await waitFor(() => expect(onOpen).toHaveBeenCalledOnce());
+  expect(order.slice(3)).toEqual(['/api/intake/resume', '/api/project']);
+  expect(screen.getByLabelText('What are you planning?')).toHaveProperty('value', '');
+});
+it('opens the created project when the confirmation response was lost after completion', async () => {
+  const native = bridge();
+  const onOpen = vi.fn();
+  vi.mocked(native.confirmSetup).mockRejectedValueOnce(new Error('Selection invalidated'));
+  const request = vi.spyOn(api, 'request').mockImplementation(async (path) => {
+    if (path === '/api/intake/prepare') return { revision: 'rev-2' };
+    if (path === '/api/session') return { projectEpoch: 'new', projectOpen: true, toolVersion: '1' };
+    if (path === '/api/intake/status') return { state: 'completed', revision: 'rev-2', projectEpoch: 'new', imported: 1, total: 1 };
+    if (path === '/api/project') return { kind: 'inspection', rawText: '', problems: [] };
+    throw new Error('Unexpected ' + path);
+  });
+  mount(native, onOpen);
+  fireEvent.click(screen.getByRole('button', { name: 'Choose project folder' }));
+  await screen.findByText('/Planning/Test');
+  fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+  await waitFor(() => expect(onOpen).toHaveBeenCalledOnce());
+  expect(request.mock.calls.filter(([path]) => path === '/api/intake/prepare')).toHaveLength(1);
+  expect(native.confirmSetup).toHaveBeenCalledOnce();
+  expect(screen.queryByRole('alert')).toBeNull();
+});
+it('shows a pending import found at startup and lets the user discard it', async () => {
+  const native = bridge();
+  const request = vi.spyOn(api, 'request').mockImplementation(async (path) => {
+    if (path === '/api/intake/discard') return { state: 'idle' };
+    throw new Error('Unexpected ' + path);
+  });
+  function Harness() {
+    const [state, setState] = useState<IntakeState>(() => ({
+      ...initialIntake(),
+      recovery: { revision: 'rev-3', projectEpoch: 'new', imported: 2, total: 4, error: 'Power loss' },
+    }));
+    return <Intake bridge={native} state={state} setState={setState} onOpen={vi.fn()} />;
+  }
+  render(<Harness />);
+  await screen.findByText(/2 of 4 planning inputs saved/);
+  expect(screen.getByText(/Power loss/)).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: 'Discard remaining files' }));
+  await waitFor(() => expect(request).toHaveBeenCalledWith('/api/intake/discard', { revision: 'rev-3' }, false));
+  await waitFor(() => expect(screen.queryByText(/planning inputs saved/)).toBeNull());
+});
 it('does not discard selected files to enter inspection or on setup failure', async () => {
   const native = bridge();
   mount(native);

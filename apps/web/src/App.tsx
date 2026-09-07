@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api, errorMessage } from './lib/api.js';
 import type { ProjectRead, Session } from './lib/api.js';
 import { Intake } from './features/intake/Intake.js';
-import { initialIntake, nativeBridge } from './features/intake/state.js';
+import { initialIntake, nativeBridge, type SetupStatus } from './features/intake/state.js';
 import { Welcome } from './screens/Welcome.js';
 import { ErrorNotice } from './components/ui.js';
 import { Workspace } from './Workspace.js';
@@ -18,6 +18,15 @@ export function App() {
       .bootstrap()
       .then(async (s) => {
         setSession(s);
+        // A setup import interrupted before this load keeps its bytes server-side; surface it first.
+        const setup = bridge
+          ? await api.request<SetupStatus>('/api/intake/status', undefined, false)
+          : ({ state: 'idle' } as SetupStatus);
+        if (setup.state === 'pending') {
+          const { state: _state, ...recovery } = setup;
+          setIntake((current) => ({ ...current, recovery }));
+          return;
+        }
         if (s.projectOpen) setRead(await api.request<ProjectRead>('/api/project'));
       })
       .catch((e) => setError(errorMessage(e)));

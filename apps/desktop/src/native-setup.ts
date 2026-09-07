@@ -1,25 +1,41 @@
-import { randomUUID, createHash } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { AgentGrantStore, HttpError, type ProjectService, type Route } from '@robopomelo/application';
-import { SafeRoot, EvidenceService, ProjectFsError, parseSource, validateBinding, sameRootIdentity } from '@robopomelo/project-fs';
+import { SafeRoot, ProjectFsError, parseSource, validateBinding, sameRootIdentity } from '@robopomelo/project-fs';
 import type { FolderMode, PresetId } from '@robopomelo/spec';
 import type { AttachmentBroker } from './attachment-broker.js';
-type Input = { id: string; name: string; bytes: Uint8Array };
-interface Prepared { revision: string; context: string; name: string; seed: 'blank' | 'inbound-pallet'; description: string; inputs: Input[] }
+import { runSetupImport, setupStatus, type SetupInput, type SetupOperation, type SetupStatus } from './native-setup-import.js';
+interface Prepared { revision: string; context: string; name: string; seed: 'blank' | 'inbound-pallet'; description: string; inputs: SetupInput[] }
 interface Bound { revision: string; prepared: Prepared; path: string; preset: PresetId; mode: FolderMode; root: ReturnType<SafeRoot['identity']>; projectId: string | null }
 const changed = () => new Error('SETUP_CHANGED: Project setup changed. Review it again before confirming.');
+const REVISION = /^[a-f0-9-]{36}$/;
 export class NativeSetupService {
   #prepared: Prepared | undefined;
   #bound: Bound | undefined;
+  #operation: SetupOperation | undefined;
   #busy = false;
   readonly grants: AgentGrantStore;
   constructor(private readonly project: ProjectService, private readonly attachments: AttachmentBroker, private readonly onStatus: () => void) {
     this.grants = new AgentGrantStore(project.settings);
   }
   routes(): Route[] {
-    return [{ method: 'POST', path: '/api/intake/prepare', handler: context => this.prepare(context.body) }];
+    return [
+      { method: 'POST', path: '/api/intake/prepare', handler: context => this.prepare(context.body) },
+      { method: 'GET', path: '/api/intake/status', projectScoped: false, handler: async () => this.status() },
+      { method: 'POST', path: '/api/intake/resume', projectScoped: false, handler: context => this.resume(this.#revision(context.body)) },
+      { method: 'POST', path: '/api/intake/discard', projectScoped: false, handler: async context => this.discard(this.#revision(context.body)) },
+    ];
   }
+  #revision(value: unknown): string {
+    const body = value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+    if (Object.keys(body).join(',') !== 'revision' || typeof body.revision !== 'string' || !REVISION.test(body.revision))
+      throw new HttpError(400, 'INVALID_INPUT', 'Supply the setup revision to continue.');
+    return body.revision;
+  }
+  status(): SetupStatus { return setupStatus(this.#operation); }
   async prepare(value: unknown): Promise<{ revision: string }> {
     if (this.#busy) throw new HttpError(409, 'SETUP_BUSY', 'Project setup is already in progress.');
+    if (this.#operation?.state === 'pending')
+      throw new HttpError(409, 'SETUP_PENDING', 'An interrupted import is waiting. Resume it or discard it before starting another setup.');
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new HttpError(400, 'INVALID_INPUT', 'Supply project setup details.');
     const body = value as Record<string, unknown>;
     if (Object.keys(body).sort().join(',') !== 'attachmentIds,description,name,seed' ||
@@ -27,7 +43,7 @@ export class NativeSetupService {
       typeof body.description !== 'string' || body.description.length > 16000 ||
       !['blank', 'inbound-pallet'].includes(String(body.seed)) ||
       !Array.isArray(body.attachmentIds) || body.attachmentIds.length > 20 ||
-      body.attachmentIds.some(id => typeof id !== 'string' || !/^[a-f0-9-]{36}$/.test(id)))
+      body.attachmentIds.some(id => typeof id !== 'string' || !REVISION.test(id)))
       throw new HttpError(400, 'INVALID_INPUT', 'Check the project name, notes and selected attachments.');
     const context = this.project.epoch;
     const name = body.name.trim(), description = body.description, seed = body.seed as Prepared['seed'], ids = [...body.attachmentIds] as string[];
@@ -36,7 +52,7 @@ export class NativeSetupService {
       const inputs = await this.attachments.collect(ids);
       if (context !== this.project.epoch) throw changed();
       const prepared: Prepared = { revision: randomUUID(), context, inputs, name, seed, description };
-      this.#prepared = prepared; this.#bound = undefined;
+      this.#prepared = prepared; this.#bound = undefined; this.#operation = undefined;
       return { revision: prepared.revision };
     } finally { this.#busy = false; }
   }
@@ -85,42 +101,54 @@ export class NativeSetupService {
         if (error instanceof ProjectFsError && (error.code === 'ROOT_CHANGED' || error.code === 'PROJECT_CHANGED')) throw changed();
         throw error;
       }
-      await this.project.withProject(async selected => {
+      // The prepared intent is consumed once its project exists; the operation below carries the bytes.
+      this.#prepared = undefined; this.attachments.clear();
+      const operation = await this.project.withProject(async selected => {
         const identity = selected.root.identity();
         if (!sameRootIdentity(identity, bound.root)) throw changed();
         if (mode === 'open' && selected.projectId !== bound.projectId) throw changed();
         if (!selected.projectId) {
-          if (preset === 'inspection') { selected.writeGrant = null; return; }
+          if (preset === 'inspection') { selected.writeGrant = null; return undefined; }
           throw changed();
         }
         const binding = { ...identity, projectId: selected.projectId };
         const confirmation = await this.grants.issueNativeConfirmation(binding, preset);
         const granted = await this.grants.confirmPreset(binding, preset, confirmation);
         selected.writeGrant = granted.trustGrant;
-        if (preset === 'recommended') {
-          const inputs = [...bound.prepared.inputs];
-          if (bound.prepared.description.trim()) inputs.unshift({ id: 'brief', name: 'initial-brief.txt', bytes: new TextEncoder().encode(bound.prepared.description) });
-          const session = this.project.requireSession(selected);
-          const evidence = new EvidenceService(session);
-          for (const input of inputs) {
-            await this.grants.check(binding, { grantId: granted.agentGrant.grantId, generation: granted.agentGrant.generation }, ['import-attachments']);
-            const read = await session.open();
-            if (read.kind !== 'readable') throw new Error('The project source needs inspection before import.');
-            const upload = await evidence.prepare({
-              expected: { sourceRevision: read.snapshot.sourceRevision, sourceHash: read.snapshot.sourceHash },
-              mutationId: 'intake-' + bound.prepared.revision + '-' + input.id,
-              authorization: granted.trustGrant, actor: { kind: 'human', name: 'Local project author' },
-              metadata: { title: input.name, purpose: 'planning', relatedIds: [],
-                provenance: { state: 'provided', value: input.id === 'brief' ? 'Entered during native project setup.' : 'Selected locally during native project setup.' },
-                extensions: { 'robopomelo.intake': { formatVersion: '1.0.0', kind: input.id === 'brief' ? 'brief' : 'file' } } },
-              selected: { name: input.name, size: input.bytes.byteLength, sha256: createHash('sha256').update(input.bytes).digest('hex') },
-            });
-            const result = await evidence.accept(upload.uploadId, (async function* () { yield input.bytes; })());
-            if (result.kind !== 'committed') throw new Error('Planning input import requires completion before continuing.');
-          }
-        }
+        const inputs = preset === 'recommended' ? [...bound.prepared.inputs] : [];
+        if (preset === 'recommended' && bound.prepared.description.trim())
+          inputs.unshift({ id: 'brief', name: 'initial-brief.txt', bytes: new TextEncoder().encode(bound.prepared.description) });
+        const operation: SetupOperation = {
+          revision: bound.prepared.revision, projectEpoch: this.project.epoch, binding, preset,
+          authorization: { grantId: granted.agentGrant.grantId, generation: granted.agentGrant.generation },
+          trustGrant: granted.trustGrant, inputs, imported: new Set(), state: 'pending',
+        };
+        return operation;
       });
-      this.attachments.clear(); this.#prepared = undefined;
+      if (!operation) return;
+      this.#operation = operation;
+      this.onStatus();
+      await runSetupImport(this.project, this.grants, operation);
     } finally { this.#busy = false; this.onStatus(); }
+  }
+  /** Continue an interrupted import against the same confirmed project. Completed
+   * operations return their status so a lost response can be read back. */
+  async resume(revision: string): Promise<SetupStatus> {
+    const operation = this.#operation;
+    if (!operation || operation.revision !== revision) throw new HttpError(404, 'SETUP_NOT_FOUND', 'No matching project setup is waiting.');
+    if (this.#busy || operation.state === 'importing') throw new HttpError(409, 'SETUP_BUSY', 'Project setup is already in progress.');
+    if (operation.state === 'completed') return this.status();
+    this.#busy = true;
+    try {
+      await runSetupImport(this.project, this.grants, operation);
+      return this.status();
+    } finally { this.#busy = false; this.onStatus(); }
+  }
+  discard(revision: string): SetupStatus {
+    const operation = this.#operation;
+    if (!operation || operation.revision !== revision) throw new HttpError(404, 'SETUP_NOT_FOUND', 'No matching project setup is waiting.');
+    if (this.#busy || operation.state === 'importing') throw new HttpError(409, 'SETUP_BUSY', 'Project setup is already in progress.');
+    this.#operation = undefined;
+    return this.status();
   }
 }

@@ -208,6 +208,25 @@
   background: #fbf2ec;
   font-size: 15px;
 }
+.intake-recovery {
+  margin-top: 24px;
+  padding: 16px 20px;
+  border: 1px solid #d9c3a3;
+  border-left: 3px solid #c77059;
+  background: #fbf6ee;
+}
+.intake-recovery h2 {
+  font-size: 17px;
+  margin: 0 0 8px;
+}
+.intake-recovery p {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+.intake-recovery .intake-submit {
+  justify-content: flex-end;
+  margin-top: 12px;
+}
 .intake-body footer {
   text-align: center;
   color: var(--muted);
