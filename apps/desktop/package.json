@@ -6,6 +6,7 @@
   "type": "module",
   "main": "dist/main.cjs",
   "dependencies": {
-    "@robopomelo/application": "*"
+    "@robopomelo/application": "*",
+    "pdfjs-dist": "6.3.289"
   }
 }
