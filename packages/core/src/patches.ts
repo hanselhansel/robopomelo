@@ -12,6 +12,7 @@ import { DomainError } from './errors.js';
 import { checkDeclaredCapability } from './mutation-capability.js';
 import { assertMutationBase, finishMutation } from './mutation-common.js';
 import { checkRecordPermissions, requireScope } from './permissions.js';
+import { SpatialEvaluator } from './spatial-actions.js';
 const allowlist = new Map<Collection | 'project', Set<string>>();
 for (const field of fields) {
   const set = allowlist.get(field.collection) ?? new Set<string>();
@@ -48,7 +49,12 @@ export function evaluatePatch(d: Deployment, patch: PatchEnvelope, c: PatchConte
   requireScope(c, 'author');
   checkDeclaredCapability(patch, d.specVersion);
   const candidate = structuredClone(d);
+  const spatial = new SpatialEvaluator(candidate);
   for (const op of patch.operations) {
+    if (op.op === 'spatial') {
+      spatial.apply(op.action);
+      continue;
+    }
     if (op.op === 'project') {
       assignAllowed(candidate.project as unknown as Record<string, unknown>, 'project', op.fields);
       continue;
@@ -76,5 +82,6 @@ export function evaluatePatch(d: Deployment, patch: PatchEnvelope, c: PatchConte
       }
     }
   }
+  spatial.finish();
   return finishMutation(d, candidate, c);
 }

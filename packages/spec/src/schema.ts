@@ -5,7 +5,7 @@ import { checkInputLimits } from './input-limits.js';
 import { schemas } from './schema-registry.js';
 export { schemas } from './schema-registry.js';
 
-export type SchemaKind = 'deployment' | 'patch' | 'review';
+export type SchemaKind = 'deployment' | 'patch' | 'review' | 'spatial';
 const ajv = new Ajv2020({ strict: true, allErrors: true, ownProperties: true });
 addFormats(ajv, { mode: 'full', formats: ['date-time'] });
 for (const schema of schemas) ajv.addSchema(schema);
@@ -13,6 +13,7 @@ const schemaNames: Record<SchemaKind, string> = {
   deployment: 'deployment-1.0.0',
   patch: 'patch-1.0.0',
   review: 'review-command-1.0.0',
+  spatial: 'spatial-1.0.0',
 };
 const validators = Object.fromEntries(
   Object.entries(schemaNames).map(([kind, name]) => {

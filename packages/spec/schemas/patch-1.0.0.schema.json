@@ -74,6 +74,15 @@
             },
             "required": ["op","fields"],
             "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": {"const": "spatial"},
+              "action": {"$ref": "spatial-1.0.0.schema.json#/$defs/action"}
+            },
+            "required": ["op","action"],
+            "additionalProperties": false
           }
         ]
       }

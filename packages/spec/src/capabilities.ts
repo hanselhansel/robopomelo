@@ -115,7 +115,21 @@ const future: Capability[] = [
   fieldsWritten: [],
   commands: [],
 }));
+/** Available but not enabled by default: a project opts in through an explicit
+ * activate action recorded atomically with its first spatial write. */
+const spatial: Capability = {
+  id: 'spatial-planning-v1',
+  kind: 'adapter',
+  stage: 'experimental',
+  specRange: '^1.0.0',
+  enabledByDefault: false,
+  available: true,
+  dependencies: ['deployment-planning'],
+  fieldsRead: ['*'],
+  fieldsWritten: ['extensions.robopomelo.spatial', 'extensions.robopomelo.capabilities'],
+  commands: ['scene show', 'scene apply', 'capabilities'],
+};
 export const capabilities: readonly Capability[] = Object.freeze(
-  [core, ...skills, ...future].map((value) => Object.freeze(value)),
+  [core, ...skills, spatial, ...future].map((value) => Object.freeze(value)),
 );
-export const knownExtensionNamespaces = Object.freeze(['robopomelo.example', 'robopomelo.capabilities']);
+export const knownExtensionNamespaces = Object.freeze(['robopomelo.example', 'robopomelo.capabilities', 'robopomelo.spatial']);

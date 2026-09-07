@@ -1,6 +1,7 @@
 import type { Deployment, Json } from '@robopomelo/spec';
 import { canonicalJson } from './canonical.js';
 import { sha256 } from './hash.js';
+import { spatialSourceIds } from './spatial-actions.js';
 const collections = new Set([
   'stakeholders',
   'needs',
@@ -51,6 +52,7 @@ function planningEvidence(d: Deployment): Set<string> {
   for (const [key, value] of Object.entries(d))
     if (!['meta', 'review', 'extensions', 'evidence', 'decisions'].includes(key)) collect(value);
   collect(d.decisions.filter((item) => item.state === 'accepted'));
+  for (const id of spatialSourceIds(d)) selected.add(id);
   const byId = new Map(d.evidence.map((e) => [e.id, e]));
   // Set iteration visits new additions too, so support chains are included once.
   for (const id of selected) {

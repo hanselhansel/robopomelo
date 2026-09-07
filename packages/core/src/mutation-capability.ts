@@ -33,6 +33,12 @@ export function assertCapabilitySupport(
     );
 }
 export function checkCapabilityOperation(op: PatchOperation, writes: readonly string[]): void {
+  if (op.op === 'spatial') {
+    // Skills declare ordinary collections; spatial writes need the explicit extension field.
+    if (!writes.includes('extensions.robopomelo.spatial'))
+      throw new DomainError('FIELD_NOT_ALLOWED', 'Declared Skill cannot write extensions.robopomelo.spatial.', { field: 'extensions.robopomelo.spatial' });
+    return;
+  }
   const collection = op.op === 'project' ? 'project' : op.collection;
   const required =
     op.op === 'add' || op.op === 'remove'

@@ -80,6 +80,12 @@ const collections = new Set([
   'evidence',
   'decisions',
   'challengeAnswers',
+  'spatial.assets',
+  'spatial.robotProfiles',
+  'spatial.scenes',
+  'spatial.instances',
+  'spatial.scenarios',
+  'spatial.bindings',
 ]);
 export function validDiff(value: unknown): value is FieldDiff[] {
   return (

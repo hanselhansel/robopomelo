@@ -1,0 +1,254 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hanselhansel/robopomelo/v1.0.0/packages/spec/schemas/spatial-1.0.0.schema.json",
+  "type": "object",
+  "properties": {
+    "formatVersion": {"const": "1.0.0"},
+    "assets": {"type": "array", "maxItems": 500, "items": {"$ref": "#/$defs/assetRef"}},
+    "robotProfiles": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/robotProfile"}},
+    "scenes": {"type": "array", "maxItems": 20, "items": {"$ref": "#/$defs/scene"}},
+    "scenarios": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/scenario"}},
+    "bindings": {"type": "array", "maxItems": 2000, "items": {"$ref": "#/$defs/binding"}}
+  },
+  "required": ["formatVersion", "assets", "robotProfiles", "scenes", "scenarios", "bindings"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": {"$ref": "common.schema.json#/$defs/id"},
+    "meters": {"type": "number", "minimum": -10000, "maximum": 10000},
+    "extent": {"type": "number", "exclusiveMinimum": 0, "maximum": 10000},
+    "positive": {"type": "number", "exclusiveMinimum": 0, "maximum": 1000000},
+    "sourceIds": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/id"}},
+    "pose": {
+      "type": "object",
+      "properties": {
+        "xM": {"$ref": "#/$defs/meters"},
+        "yM": {"$ref": "#/$defs/meters"},
+        "zM": {"$ref": "#/$defs/meters"},
+        "yawRad": {"type": "number", "minimum": -6.2831853072, "maximum": 6.2831853072}
+      },
+      "required": ["xM", "yM", "zM", "yawRad"],
+      "additionalProperties": false
+    },
+    "extents": {
+      "type": "object",
+      "properties": {
+        "lengthM": {"$ref": "#/$defs/extent"},
+        "widthM": {"$ref": "#/$defs/extent"},
+        "heightM": {"$ref": "#/$defs/extent"}
+      },
+      "required": ["lengthM", "widthM", "heightM"],
+      "additionalProperties": false
+    },
+    "floorExtents": {
+      "type": "object",
+      "properties": {"lengthM": {"$ref": "#/$defs/extent"}, "widthM": {"$ref": "#/$defs/extent"}},
+      "required": ["lengthM", "widthM"],
+      "additionalProperties": false
+    },
+    "knowledgeUnknown": {
+      "type": "object",
+      "properties": {"state": {"enum": ["unknown", "not-applicable"]}, "reason": {"type": "string", "minLength": 1, "maxLength": 1000}},
+      "required": ["state", "reason"],
+      "additionalProperties": false
+    },
+    "knowledgeExtents": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {"state": {"enum": ["known", "unverified"]}, "value": {"$ref": "#/$defs/extents"}, "sourceIds": {"$ref": "#/$defs/sourceIds"}},
+          "required": ["state", "value", "sourceIds"],
+          "additionalProperties": false
+        },
+        {"$ref": "#/$defs/knowledgeUnknown"}
+      ]
+    },
+    "knowledgeFloor": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {"state": {"enum": ["known", "unverified"]}, "value": {"$ref": "#/$defs/floorExtents"}, "sourceIds": {"$ref": "#/$defs/sourceIds"}},
+          "required": ["state", "value", "sourceIds"],
+          "additionalProperties": false
+        },
+        {"$ref": "#/$defs/knowledgeUnknown"}
+      ]
+    },
+    "knowledgeCount": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {"state": {"enum": ["known", "unverified"]}, "value": {"type": "integer", "minimum": 0, "maximum": 1000}, "sourceIds": {"$ref": "#/$defs/sourceIds"}},
+          "required": ["state", "value", "sourceIds"],
+          "additionalProperties": false
+        },
+        {"$ref": "#/$defs/knowledgeUnknown"}
+      ]
+    },
+    "assetRef": {
+      "type": "object",
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+        "sha256": {"$ref": "common.schema.json#/$defs/hash"}
+      },
+      "required": ["id", "version", "sha256"],
+      "additionalProperties": false
+    },
+    "instance": {
+      "type": "object",
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "asset": {"$ref": "#/$defs/assetRef"},
+        "pose": {"$ref": "#/$defs/pose"},
+        "dimensions": {"$ref": "#/$defs/knowledgeExtents"},
+        "sourceIds": {"$ref": "#/$defs/sourceIds"}
+      },
+      "required": ["id", "asset", "pose", "dimensions", "sourceIds"],
+      "additionalProperties": false
+    },
+    "sceneHeader": {
+      "type": "object",
+      "properties": {"id": {"$ref": "#/$defs/id"}, "name": {"type": "string", "minLength": 1, "maxLength": 200}, "floor": {"$ref": "#/$defs/knowledgeFloor"}},
+      "required": ["id", "name", "floor"],
+      "additionalProperties": false
+    },
+    "scene": {
+      "type": "object",
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "name": {"type": "string", "minLength": 1, "maxLength": 200},
+        "floor": {"$ref": "#/$defs/knowledgeFloor"},
+        "instances": {"type": "array", "maxItems": 5000, "items": {"$ref": "#/$defs/instance"}}
+      },
+      "required": ["id", "name", "floor", "instances"],
+      "additionalProperties": false
+    },
+    "polygon": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 64,
+      "items": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/meters"}}
+    },
+    "robotProfile": {
+      "type": "object",
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "drive": {"enum": ["differential", "omnidirectional"]},
+        "footprintM": {"$ref": "#/$defs/polygon"},
+        "loadedFootprintM": {"$ref": "#/$defs/polygon"},
+        "heightM": {"$ref": "#/$defs/extent"},
+        "maxSpeedMps": {"$ref": "#/$defs/positive"},
+        "maxAngularRadps": {"$ref": "#/$defs/positive"},
+        "accelerationMps2": {"$ref": "#/$defs/positive"},
+        "decelerationMps2": {"$ref": "#/$defs/positive"},
+        "reverse": {"type": "boolean"}
+      },
+      "required": ["id", "drive", "footprintM", "loadedFootprintM", "heightM", "maxSpeedMps", "maxAngularRadps", "accelerationMps2", "decelerationMps2", "reverse"],
+      "additionalProperties": false
+    },
+    "station": {
+      "type": "object",
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "instanceId": {"$ref": "#/$defs/id"},
+        "kind": {"enum": ["pickup", "dropoff", "charger", "holding"]},
+        "capacity": {"type": "integer", "minimum": 1, "maximum": 1000}
+      },
+      "required": ["id", "instanceId", "kind", "capacity"],
+      "additionalProperties": false
+    },
+    "workload": {
+      "type": "object",
+      "properties": {
+        "seed": {"type": "integer", "minimum": 1, "maximum": 4294967295},
+        "jobs": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "arrivalsPerHour": {"type": "number", "minimum": 0, "maximum": 100000},
+        "mix": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "type": "object",
+            "properties": {
+              "fromStationId": {"$ref": "#/$defs/id"},
+              "toStationId": {"$ref": "#/$defs/id"},
+              "share": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+            },
+            "required": ["fromStationId", "toStationId", "share"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["seed", "jobs", "arrivalsPerHour", "mix"],
+      "additionalProperties": false
+    },
+    "objective": {
+      "type": "object",
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "kind": {"enum": ["throughput", "fleet-count", "cost", "max-wait"]},
+        "direction": {"enum": ["maximize", "minimize"]},
+        "threshold": {"type": ["number", "null"]},
+        "unit": {"type": "string", "minLength": 1, "maxLength": 32},
+        "sourceIds": {"$ref": "#/$defs/sourceIds"}
+      },
+      "required": ["id", "kind", "direction", "threshold", "unit", "sourceIds"],
+      "additionalProperties": false
+    },
+    "scenario": {
+      "type": "object",
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "sceneId": {"$ref": "#/$defs/id"},
+        "name": {"type": "string", "minLength": 1, "maxLength": 200},
+        "robotProfileIds": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/id"}},
+        "fleetSize": {"$ref": "#/$defs/knowledgeCount"},
+        "stations": {"type": "array", "maxItems": 500, "items": {"$ref": "#/$defs/station"}},
+        "workload": {"oneOf": [{"$ref": "#/$defs/workload"}, {"type": "null"}]},
+        "objectives": {"type": "array", "maxItems": 20, "items": {"$ref": "#/$defs/objective"}}
+      },
+      "required": ["id", "sceneId", "name", "robotProfileIds", "fleetSize", "stations", "workload", "objectives"],
+      "additionalProperties": false
+    },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "subjectId": {"$ref": "#/$defs/id"},
+        "sourceIds": {"$ref": "#/$defs/sourceIds"},
+        "target": {
+          "type": "object",
+          "properties": {
+            "scenarioId": {"$ref": "#/$defs/id"},
+            "recordId": {"$ref": "#/$defs/id"},
+            "field": {"enum": ["instance.dimensions", "robot.maxSpeedMps", "robot.footprintM", "scenario.fleetSize", "workload.arrivalsPerHour", "workload.jobs", "objective.threshold"]}
+          },
+          "required": ["scenarioId", "recordId", "field"],
+          "additionalProperties": false
+        },
+        "transform": {"enum": ["identity", "unit-conversion", "assumption"]},
+        "rationale": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "knowledgeState": {"enum": ["known", "unverified", "assumed", "stale"]},
+        "confirmedAtRevision": {"$ref": "#/$defs/id"}
+      },
+      "required": ["id", "subjectId", "sourceIds", "target", "transform", "rationale", "knowledgeState", "confirmedAtRevision"],
+      "additionalProperties": false
+    },
+    "action": {
+      "oneOf": [
+        {"type": "object", "properties": {"kind": {"const": "activate"}, "capability": {"const": "spatial-planning-v1"}}, "required": ["kind", "capability"], "additionalProperties": false},
+        {"type": "object", "properties": {"kind": {"const": "register-asset"}, "asset": {"$ref": "#/$defs/assetRef"}}, "required": ["kind", "asset"], "additionalProperties": false},
+        {"type": "object", "properties": {"kind": {"const": "define-scene"}, "scene": {"$ref": "#/$defs/sceneHeader"}}, "required": ["kind", "scene"], "additionalProperties": false},
+        {"type": "object", "properties": {"kind": {"const": "remove-scene"}, "id": {"$ref": "#/$defs/id"}}, "required": ["kind", "id"], "additionalProperties": false},
+        {"type": "object", "properties": {"kind": {"const": "place"}, "sceneId": {"$ref": "#/$defs/id"}, "instance": {"$ref": "#/$defs/instance"}}, "required": ["kind", "sceneId", "instance"], "additionalProperties": false},
+        {"type": "object", "properties": {"kind": {"const": "move"}, "sceneId": {"$ref": "#/$defs/id"}, "id": {"$ref": "#/$defs/id"}, "pose": {"$ref": "#/$defs/pose"}}, "required": ["kind", "sceneId", "id", "pose"], "additionalProperties": false},
+        {"type": "object", "properties": {"kind": {"const": "resize"}, "sceneId": {"$ref": "#/$defs/id"}, "id": {"$ref": "#/$defs/id"}, "dimensions": {"$ref": "#/$defs/knowledgeExtents"}}, "required": ["kind", "sceneId", "id", "dimensions"], "additionalProperties": false},
+        {"type": "object", "properties": {"kind": {"const": "remove"}, "sceneId": {"$ref": "#/$defs/id"}, "id": {"$ref": "#/$defs/id"}, "replacementId": {"oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]}}, "required": ["kind", "sceneId", "id", "replacementId"], "additionalProperties": false},
+        {"type": "object", "properties": {"kind": {"const": "define-robot-profile"}, "profile": {"$ref": "#/$defs/robotProfile"}}, "required": ["kind", "profile"], "additionalProperties": false},
+        {"type": "object", "properties": {"kind": {"const": "define-scenario"}, "scenario": {"$ref": "#/$defs/scenario"}}, "required": ["kind", "scenario"], "additionalProperties": false},
+        {"type": "object", "properties": {"kind": {"const": "remove-scenario"}, "id": {"$ref": "#/$defs/id"}}, "required": ["kind", "id"], "additionalProperties": false},
+        {"type": "object", "properties": {"kind": {"const": "bind"}, "binding": {"$ref": "#/$defs/binding"}}, "required": ["kind", "binding"], "additionalProperties": false},
+        {"type": "object", "properties": {"kind": {"const": "unbind"}, "id": {"$ref": "#/$defs/id"}}, "required": ["kind", "id"], "additionalProperties": false}
+      ]
+    }
+  }
+}

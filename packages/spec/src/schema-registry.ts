@@ -44,6 +44,7 @@ import schema42 from '../schemas/patch-decision.schema.json';
 import schema43 from '../schemas/patch-challenge-answer.schema.json';
 import schema44 from '../schemas/patch-1.0.0.schema.json';
 import schema45 from '../schemas/review-command-1.0.0.schema.json';
+import schema46 from '../schemas/spatial-1.0.0.schema.json';
 
 export const schemas = [
   schema0,
@@ -92,4 +93,5 @@ export const schemas = [
   schema43,
   schema44,
   schema45,
+  schema46,
 ];

@@ -1,6 +1,7 @@
 import type { Actor, Id, Json } from './common.js';
 import type { Deployment } from './deployment.js';
 import type { Acknowledgment, Waiver, Approval, Revocation } from './review.js';
+import type { SpatialAction } from './spatial.js';
 
 export interface Finding {
   ruleId: string;
@@ -85,7 +86,8 @@ export type PatchOperation =
   | { op: 'add'; collection: Collection; record: Json }
   | { op: 'update'; collection: Collection; id: Id; fields: Record<string, Json> }
   | { op: 'remove'; collection: Collection; id: Id }
-  | { op: 'project'; fields: Record<string, Json> };
+  | { op: 'project'; fields: Record<string, Json> }
+  | { op: 'spatial'; action: SpatialAction };
 export interface PatchEnvelope {
   formatVersion: '1.0.0';
   id: Id;

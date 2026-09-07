@@ -69,6 +69,7 @@ export function operationsBetween(base: Deployment, candidate: Deployment): Patc
 }
 export function applyLocal(deployment: Deployment, operation: PatchOperation): Deployment {
   const next = structuredClone(deployment);
+  if (operation.op === 'spatial') return next;
   if (operation.op === 'project') Object.assign(next.project, operation.fields);
   else {
     const rows = next[operation.collection] as unknown as Record<string, Json>[];

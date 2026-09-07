@@ -14,6 +14,8 @@ const asJson = (value: unknown): Json => (value ?? null) as Json;
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 export function conflictItems(base: Deployment, current: Deployment, desired: Deployment): ConflictItem[] {
   return operationsBetween(base, desired).flatMap<ConflictItem>((operation) => {
+    // Spatial edits are reconciled object-by-object in the scene editor, not in the field dialog.
+    if (operation.op === 'spatial') return [];
     const row = (deployment: Deployment) =>
       operation.op === 'project'
         ? deployment.project

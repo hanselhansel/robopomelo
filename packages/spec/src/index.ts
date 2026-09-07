@@ -14,4 +14,5 @@ export * from './capabilities.js';
 export { checkInputLimits, INPUT_LIMITS } from './input-limits.js';
 export * from './agent-grants.js';
 export * from './agent.js';
+export * from './spatial.js';
 export * from './desktop.js';

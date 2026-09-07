@@ -35,3 +35,4 @@ export { createInboundExample } from './example.js';
 export { semanticDiff } from './diff.js';
 export { promptApplies } from './rules/flows.js';
 export { isReferenceTarget } from './reference-checks.js';
+export { SpatialEvaluator, spatialExtension, spatialSourceIds } from './spatial-actions.js';

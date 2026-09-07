@@ -1,5 +1,6 @@
 import type { Deployment, FieldDiff, Json } from '@robopomelo/spec';
 import { same } from './permissions.js';
+import { extensionsWithoutSpatial, spatialDiff } from './spatial-diff.js';
 const collections = [
   'stakeholders',
   'needs',
@@ -29,7 +30,8 @@ export function semanticDiff(before: Deployment, after: Deployment): FieldDiff[]
         });
   };
   fields('project', before.project.id, { ...before.project }, { ...after.project });
-  fields('root', before.project.id, { extensions: before.extensions }, { extensions: after.extensions });
+  fields('root', before.project.id, { extensions: extensionsWithoutSpatial(before) }, { extensions: extensionsWithoutSpatial(after) });
+  diff.push(...spatialDiff(before, after));
   for (const collection of collections) {
     const old = new Map(before[collection].map((r) => [r.id, r]));
     const next = new Map(after[collection].map((r) => [r.id, r]));

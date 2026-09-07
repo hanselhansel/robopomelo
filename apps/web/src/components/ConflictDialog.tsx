@@ -88,7 +88,7 @@ export function ConflictDialog({ draft, onClose }: { draft: DraftController; onC
                 op.op === 'project' || op.op === 'update' ? Object.keys(op.fields)[0] : undefined;
               const definition = fields.find(
                 (f) =>
-                  f.collection === (op.op === 'project' ? 'project' : op.collection) && f.path === fieldName,
+                  op.op !== 'spatial' && f.collection === (op.op === 'project' ? 'project' : op.collection) && f.path === fieldName,
               );
               return (
                 <fieldset key={item.key}>
