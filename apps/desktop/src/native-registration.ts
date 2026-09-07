@@ -8,7 +8,7 @@ import type { NativeDependencies } from './native-dialogs.js';
 export function registerNativeBridge(
   window: BrowserWindow,
   uiOrigin: string,
-  callbacks: Pick<NativeDependencies, 'confirm' | 'cancelRun'>,
+  callbacks: Pick<NativeDependencies, 'confirm' | 'cancelRun' | 'previewSetup'>,
   attachments: NativeDependencies['attachments'],
 ) {
   const contents = window.webContents;
@@ -42,7 +42,7 @@ export function registerNativeBridge(
         });
         return result.canceled ? [] : result.filePaths;
       },
-      async confirmPreset(path, preset) {
+      async confirmPreset(path, preset, setupDetail) {
         const result = await dialog.showMessageBox(window, {
           type: 'question',
           buttons: ['Cancel', 'Confirm'],
@@ -56,7 +56,8 @@ export function registerNativeBridge(
             preset +
             (preset === 'recommended'
               ? '\nRecommended enables connected AI and public research when configured.'
-              : '\nInspection keeps connected AI and public research disabled.'),
+              : '\nInspection keeps connected AI and public research disabled.') +
+            (setupDetail ? '\n\n' + setupDetail : ''),
           noLink: true,
         });
         return result.response === 1;
@@ -66,6 +67,7 @@ export function registerNativeBridge(
   for (const method of [
     'chooseProjectFolder',
     'selectAttachments',
+    'dropAttachments',
     'inspectAttachment',
     'cancelAttachment',
     'confirmSetup',
@@ -74,19 +76,26 @@ export function registerNativeBridge(
     ipcMain.handle(channels[method], async (event, ...args: unknown[]) => {
       const count = method === 'selectAttachments' ? 0 : method === 'confirmSetup' ? 2 : 1;
       if (args.length !== count) throw new Error('Invalid native argument count');
-      switch (method) {
-        case 'chooseProjectFolder':
-          return handlers.chooseProjectFolder(event, args[0]);
-        case 'selectAttachments':
-          return handlers.selectAttachments(event);
-        case 'inspectAttachment':
-          return handlers.inspectAttachment(event, args[0]);
-        case 'cancelAttachment':
-          return handlers.cancelAttachment(event, args[0]);
-        case 'confirmSetup':
-          return handlers.confirmSetup(event, args[0], args[1]);
-        case 'cancelRun':
-          return handlers.cancelRun(event, args[0]);
+      try {
+        switch (method) {
+          case 'chooseProjectFolder':
+            return await handlers.chooseProjectFolder(event, args[0]);
+          case 'selectAttachments':
+            return await handlers.selectAttachments(event);
+          case 'dropAttachments':
+            return await handlers.dropAttachments(event, args[0]);
+          case 'inspectAttachment':
+            return await handlers.inspectAttachment(event, args[0]);
+          case 'cancelAttachment':
+            return await handlers.cancelAttachment(event, args[0]);
+          case 'confirmSetup':
+            return await handlers.confirmSetup(event, args[0], args[1]);
+          case 'cancelRun':
+            return await handlers.cancelRun(event, args[0]);
+        }
+      } catch (error) {
+        if (error instanceof Error && error.message === 'Setup confirmation cancelled') return { nativeFailure: 'cancelled' };
+        throw error;
       }
     });
   }

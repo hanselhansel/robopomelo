@@ -1,5 +1,5 @@
 import { isAbsolute } from 'node:path';
-import type { Scope } from '@robopomelo/spec';
+import { agentScopes, type AgentGrant, type Scope } from '@robopomelo/spec';
 import { ProjectFsError } from '../errors.js';
 import type { RootIdentity } from '../fs/safe-fs.js';
 import type { Authorization } from '../contracts.js';
@@ -34,6 +34,7 @@ export interface MachineSettings {
   version: 1;
   generation: number;
   grants: TrustGrant[];
+  agentGrants?: AgentGrant[];
   updates: UpdateSettings;
 }
 export interface SettingsAuthority {
@@ -97,7 +98,13 @@ export function validateMode(value: unknown): asserts value is TrustMode {
 export function validateSettings(value: unknown): asserts value is MachineSettings {
   if (
     !object(value) ||
-    !keys(value, ['version', 'generation', 'grants', 'updates']) ||
+    !keys(value, [
+      'version',
+      'generation',
+      'grants',
+      'updates',
+      ...(Object.hasOwn(value, 'agentGrants') ? ['agentGrants'] : []),
+    ]) ||
     value.version !== 1 ||
     !generation(value.generation) ||
     !Array.isArray(value.grants) ||
@@ -123,7 +130,45 @@ export function validateSettings(value: unknown): asserts value is MachineSettin
     validateScopes(grant.scopes);
     validateMode(grant.mode);
   }
+  if (Object.hasOwn(value, 'agentGrants')) validateAgentGrants(value.agentGrants, Number(value.generation));
   validateUpdates(value.updates);
+}
+function validateAgentGrants(value: unknown, currentGeneration: number): void {
+  if (!Array.isArray(value) || value.length > 1000) invalid();
+  const ids = new Set<string>();
+  for (const grant of value) {
+    if (
+      !object(grant) ||
+      !keys(grant, [
+        'grantId',
+        'trustGrantId',
+        'generation',
+        'binding',
+        'preset',
+        'scopes',
+        'grantedAt',
+        'revokedAt',
+      ]) ||
+      typeof grant.grantId !== 'string' ||
+      !/^[a-f0-9-]{36}$/.test(grant.grantId) ||
+      ids.has(grant.grantId) ||
+      typeof grant.trustGrantId !== 'string' ||
+      !/^[a-f0-9-]{36}$/.test(grant.trustGrantId) ||
+      !generation(grant.generation) ||
+      Number(grant.generation) > currentGeneration ||
+      !['recommended', 'inspection'].includes(String(grant.preset)) ||
+      !Array.isArray(grant.scopes) ||
+      grant.scopes.length > agentScopes.length ||
+      new Set(grant.scopes).size !== grant.scopes.length ||
+      grant.scopes.some((scope) => !agentScopes.includes(scope)) ||
+      (grant.preset === 'inspection' && grant.scopes.length !== 0) ||
+      !date(grant.grantedAt) ||
+      (grant.revokedAt !== null && !date(grant.revokedAt))
+    )
+      invalid();
+    ids.add(grant.grantId);
+    validateBinding(grant.binding);
+  }
 }
 function validatePolicy(value: unknown): asserts value is UpdatePolicy {
   if (

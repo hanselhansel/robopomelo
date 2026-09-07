@@ -3,14 +3,32 @@ import { resolve, dirname, basename } from 'node:path';
 import { stringify } from 'yaml';
 import { checkSchema, type Deployment, type Scope } from '@robopomelo/spec';
 import { sha256 } from '@robopomelo/core';
-import { SafeRoot } from './fs/safe-fs.js';
+import { SafeRoot, type RootIdentity } from './fs/safe-fs.js';
 import { ProjectFsError } from './errors.js';
 import { parseSource } from './yaml/parse.js';
 import { writeInitialHistory } from './history.js';
+export interface InitializeOptions {
+  /** Identity pinned when the user confirmed this folder. When supplied, the
+   * folder must already exist with exactly this identity; nothing is created
+   * or written into a missing or replacement directory. */
+  expectedRoot?: RootIdentity;
+}
+export function sameRootIdentity(actual: RootIdentity, expected: RootIdentity): boolean {
+  return (
+    actual.canonicalPath === expected.canonicalPath &&
+    actual.device === expected.device &&
+    actual.fileId === expected.fileId
+  );
+}
+export function requireExpectedRoot(root: SafeRoot, expected: RootIdentity | undefined): void {
+  if (expected && !sameRootIdentity(root.identity(), expected))
+    throw new ProjectFsError('ROOT_CHANGED', 'The confirmed project folder was replaced before it was used.');
+}
 export async function initializeProject(
   folder: string,
   deployment: Deployment,
   scopes: readonly Scope[],
+  options: InitializeOptions = {},
 ): Promise<{ path: string; projectId: string; sourceHash: string }> {
   if (!scopes.includes('author'))
     throw new ProjectFsError('SCOPE_DENIED', 'Creating a project requires explicit author authority.');
@@ -31,9 +49,12 @@ export async function initializeProject(
     } catch (error) {
       if ((error as { code?: string }).code !== 'ENOENT') throw error;
     }
+    if (!exists && options.expectedRoot)
+      throw new ProjectFsError('ROOT_CHANGED', 'The confirmed project folder is no longer available.');
     if (!exists) await parent.mkdir(basename(target));
     const root = await SafeRoot.open(target);
     try {
+      requireExpectedRoot(root, options.expectedRoot);
       if ((await root.list()).length)
         throw new ProjectFsError(
           'PROJECT_NOT_EMPTY',

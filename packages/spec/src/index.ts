@@ -12,3 +12,6 @@ export * from './fields.js';
 export * from './questions.js';
 export * from './capabilities.js';
 export { checkInputLimits, INPUT_LIMITS } from './input-limits.js';
+export * from './agent-grants.js';
+
+export * from './desktop.js';

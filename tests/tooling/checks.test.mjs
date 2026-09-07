@@ -145,3 +145,9 @@ test('parser renderer may use only its pure decoder contracts and ingestion pack
   });
   assert.equal(r.status, 0, r.stderr);
 });
+
+test('only the UI preload may resolve an explicitly dropped native File', async () => {
+  const code = "import {webUtils} from 'electron';";
+  assert.equal((await run('check-boundaries.mjs', { 'apps/desktop/src/preload.ts': code })).status, 0);
+  assert.equal((await run('check-boundaries.mjs', { 'apps/desktop/src/parser-preload.ts': code })).status, 1);
+});

@@ -1,10 +1,11 @@
 import { it, expect } from 'vitest';
-import { mkdtemp, readFile, mkdir, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, mkdir, writeFile, rm, rename, realpath } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createBlankProject } from '@robopomelo/core';
 import { initializeProject } from '../../packages/project-fs/src/init.js';
 import { parseSource } from '../../packages/project-fs/src/yaml/parse.js';
+import { SafeRoot } from '../../packages/project-fs/src/fs/safe-fs.js';
 const draft = () =>
   createBlankProject({
     id: 'project-new',
@@ -39,6 +40,33 @@ it('rejects missing authority and never overwrites a nonempty selected folder', 
       code: 'PROJECT_NOT_EMPTY',
     });
     expect(await readFile(join(existing, 'keep.txt'), 'utf8')).toBe('original');
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+it('initializes only the pinned expected root and refuses a replacement or missing directory', async () => {
+  const parent = await realpath(await mkdtemp(join(tmpdir(), 'robopomelo-init-')));
+  try {
+    const path = join(parent, 'Pinned');
+    await mkdir(path);
+    const pinned = await SafeRoot.open(path);
+    const expectedRoot = pinned.identity();
+    await pinned.close();
+    await rename(path, path + '-original');
+    await mkdir(path);
+    await expect(initializeProject(path, draft(), ['author'], { expectedRoot })).rejects.toMatchObject({
+      code: 'ROOT_CHANGED',
+    });
+    await expect(readFile(join(path, 'deployment.yaml'))).rejects.toMatchObject({ code: 'ENOENT' });
+    await rm(path, { recursive: true });
+    await expect(initializeProject(path, draft(), ['author'], { expectedRoot })).rejects.toMatchObject({
+      code: 'ROOT_CHANGED',
+    });
+    await expect(readFile(join(path, 'deployment.yaml'))).rejects.toMatchObject({ code: 'ENOENT' });
+    await rename(path + '-original', path);
+    const result = await initializeProject(path, draft(), ['author'], { expectedRoot });
+    expect(result.path).toBe(path);
+    expect(parseSource(await readFile(join(path, 'deployment.yaml'))).value.project).toMatchObject({ id: 'project-new' });
   } finally {
     await rm(parent, { recursive: true, force: true });
   }

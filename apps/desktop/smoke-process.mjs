@@ -3,7 +3,9 @@ import { cleanupFor } from '../../scripts/test-process-cleanup.mjs';
 /** Own a separate process group. A child timer cannot bound native modal hangs. */
 export async function runSmokeProcess(binary, args, { timeoutMs = 20000, onOutput = () => {} } = {}) {
   const ownsGroup = process.platform !== 'win32';
-  const child = spawn(binary, args, { stdio: ['ignore', 'pipe', 'pipe'], detached: ownsGroup });
+  // IDE-hosted shells export ELECTRON_RUN_AS_NODE, which would turn the app binary into plain Node.
+  const { ELECTRON_RUN_AS_NODE: _ignored, ...env } = process.env;
+  const child = spawn(binary, args, { stdio: ['ignore', 'pipe', 'pipe'], detached: ownsGroup, env });
   const cleanup = cleanupFor(child, ownsGroup);
   let output = '',
     timer;

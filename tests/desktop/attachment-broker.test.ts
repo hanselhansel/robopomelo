@@ -172,3 +172,15 @@ it('reserves the 100 MiB aggregate budget across separate chooser calls', async 
   expect(f.parse).not.toHaveBeenCalled();
   f.broker.clear();
 });
+
+it('collects immutable selected bytes for confirmed import without exposing file paths', async () => {
+  const f = await fixture();
+  const [picked] = await f.broker.select([f.path]);
+  const inputs = await f.broker.collect([picked!.selectionId]);
+  expect(inputs[0]).toMatchObject({ id: picked!.selectionId, name: 'floor.png', bytes: png });
+  expect(inputs[0]).not.toHaveProperty('path');
+  inputs[0]!.bytes[0] = 0;
+  expect((await f.broker.collect([picked!.selectionId]))[0]!.bytes[0]).toBe(137);
+  f.switch();
+  await expect(f.broker.collect([picked!.selectionId])).rejects.toThrow();
+});

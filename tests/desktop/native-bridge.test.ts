@@ -108,6 +108,17 @@ it('drops inspection output when its project changes before native delivery', as
   await expect(f.handlers.inspectAttachment(f.event, 'file-0')).rejects.toThrow('Selection invalidated');
 });
 
+it('retains a still-valid folder after cancelling confirmation so details can be edited', async () => {
+  const f = fixture();
+  const folder = await f.handlers.chooseProjectFolder(f.event, 'create');
+  f.dialogs.confirmPreset.mockResolvedValueOnce(false);
+  await expect(f.handlers.confirmSetup(f.event, folder!.selectionId, 'recommended')).rejects.toThrow('cancelled');
+  expect(f.confirm).not.toHaveBeenCalled();
+  await f.handlers.confirmSetup(f.event, folder!.selectionId, 'recommended');
+  expect(f.confirm).toHaveBeenCalledTimes(1);
+  await expect(f.handlers.confirmSetup(f.event, folder!.selectionId, 'recommended')).rejects.toThrow();
+});
+
 it('restricts attachment inspection and cancellation to the owned main frame', async () => {
   const f = fixture();
   expect(await f.handlers.inspectAttachment(f.event, 'file-0')).toMatchObject({

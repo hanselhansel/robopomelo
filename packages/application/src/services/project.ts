@@ -9,11 +9,18 @@ import {
   type TrustMode,
   ProjectSession,
   initializeProject,
+  requireExpectedRoot,
   parseSource,
   ProjectFsError,
   type Authorization,
   type OpenResult,
+  type RootIdentity,
 } from '@robopomelo/project-fs';
+/** Identity the caller confirmed before selection. Absent fields are not checked. */
+export interface ExpectedProject {
+  root?: RootIdentity;
+  projectId?: string | null;
+}
 export interface ProjectServiceOptions {
   toolVersion: string;
   configDirectory?: string;
@@ -59,12 +66,14 @@ export class ProjectService {
     path: string,
     scopes: Scope[] = [],
     expectedEpoch?: string,
+    expected: ExpectedProject = {},
   ): Promise<ReturnType<ProjectService['status']>> {
     const action = this.#selection.then(async () => {
       if (expectedEpoch !== undefined && expectedEpoch !== this.epoch)
         throw new ProjectFsError('PROJECT_CHANGED', 'Project changed before selection completed.');
       const root = await SafeRoot.open(path);
       try {
+        requireExpectedRoot(root, expected.root);
         await root.readFile('deployment.yaml');
         const selected: SelectedProject = {
           root,
@@ -75,6 +84,8 @@ export class ProjectService {
           closing: false,
         };
         await this.#attach(selected, scopes);
+        if (expected.projectId !== undefined && selected.projectId !== expected.projectId)
+          throw new ProjectFsError('PROJECT_CHANGED', 'The project identity differs from the confirmed project.');
         await this.#closeCurrent();
         this.current = selected;
         this.epoch = this.id();
@@ -115,13 +126,22 @@ export class ProjectService {
       id: this.id,
     });
   }
-  async create(path: string, name: string | undefined, example = false, scopes: Scope[] = []) {
+  async create(
+    path: string,
+    name: string | undefined,
+    example = false,
+    scopes: Scope[] = [],
+    expected: { expectedRoot?: RootIdentity } = {},
+  ) {
     const metadata = { id: this.id(), revision: this.id(), timestamp: this.clock() };
     const deployment = example
       ? createInboundExample({ ...metadata, ...(name === undefined ? {} : { name }) })
       : createBlankProject({ ...metadata, name: name ?? 'Deployment plan' });
-    await initializeProject(path, deployment, ['author']);
-    return this.open(path, scopes);
+    await initializeProject(path, deployment, ['author'], expected);
+    return this.open(path, scopes, undefined, {
+      ...(expected.expectedRoot ? { root: expected.expectedRoot } : {}),
+      projectId: deployment.project.id,
+    });
   }
   async withProject<T>(
     action: (selected: SelectedProject) => Promise<T>,

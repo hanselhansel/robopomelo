@@ -13,5 +13,6 @@ export {
   type UpdaterApi,
   type UpdateStatus,
 } from './server/update-routes.js';
-export { ProjectService, type ProjectServiceOptions, type SelectedProject } from './services/project.js';
+export { ProjectService, type ProjectServiceOptions, type SelectedProject, type ExpectedProject } from './services/project.js';
+export { AgentGrantStore, type NativePresetConfirmation } from './agent-grants.js';
 export { RuntimeError, type RunPolicy } from './runtime.js';

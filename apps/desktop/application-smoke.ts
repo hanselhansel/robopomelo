@@ -1,7 +1,8 @@
 import { app, BrowserWindow, dialog, nativeImage } from 'electron';
 import { isAbsolute, join } from 'node:path';
-import { writeFile } from 'node:fs/promises';
+import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import { waitForUi, clickUi, fillUi, dropUiFile } from './smoke-ui.js';
 
 async function run() {
   const base = process.argv[2];
@@ -18,7 +19,7 @@ async function run() {
     await window.webContents.executeJavaScript(`new Promise((resolve, reject) => {
       const timer = setTimeout(() => { observer.disconnect(); reject(new Error('Workspace did not render')); }, 5000);
       const ready = () => {
-        if (!document.querySelector('.welcome-choices')) return;
+        if (!document.querySelector('.desktop-intake')) return;
         clearTimeout(timer); observer.disconnect(); resolve(true);
       };
       const observer = new MutationObserver(ready);
@@ -31,7 +32,7 @@ async function run() {
       node: typeof require,
       bridge: Object.keys(window.robopomelo).sort()
     })`);
-    assert.match(state.title, /Start with the work/);
+    assert.match(state.title, /What should your robots help you do/);
     assert.equal(state.hash, '');
     assert.equal(state.credential, true);
     assert.equal(state.node, 'undefined');
@@ -40,6 +41,7 @@ async function run() {
       'cancelRun',
       'chooseProjectFolder',
       'confirmSetup',
+      'dropAttachments',
       'inspectAttachment',
       'selectAttachments',
     ]);
@@ -92,9 +94,45 @@ async function run() {
         `window.robopomelo.cancelAttachment(${JSON.stringify(picked[0].selectionId)})`,
       );
       assert.equal((await window.webContents.executeJavaScript(fetchPreview)).status, 404);
+      assert.equal(await window.webContents.executeJavaScript(`window.robopomelo.dropAttachments([new File(['x'],'/etc/passwd')]).then(()=>false,()=>true)`), true);
     } finally {
       dialog.showOpenDialog = originalChooser;
     }
+    const projectPath = join(base, 'project-' + process.argv[3]);
+    await mkdir(projectPath);
+    const originalConfirm = dialog.showMessageBox;
+    let confirmations = 0;
+    let cancelled!: () => void;
+    const firstConfirmation = new Promise<void>(resolve => { cancelled = resolve; });
+    dialog.showOpenDialog = (async (_window: unknown, options: { properties?: string[] }) => ({
+      canceled: false, filePaths: [options.properties?.includes('openDirectory') ? projectPath : selectedPath],
+    })) as typeof dialog.showOpenDialog;
+    dialog.showMessageBox = (async (_window: unknown, options: { detail?: string }) => {
+      assert.ok(options.detail?.includes('Native smoke study'));
+      confirmations++;
+      if (confirmations === 1) cancelled();
+      return { response: confirmations === 1 ? 0 : 1, checkboxChecked: false };
+    }) as typeof dialog.showMessageBox;
+    try {
+      await fillUi(window, '#intake-name', 'Native smoke study');
+      await fillUi(window, '#intake-prompt', 'Move pallets between receiving and storage.');
+      await dropUiFile(window, selectedPath);
+      await waitForUi(window, "document.querySelector('.intake-file-state.parsed')");
+      await clickUi(window, 'Choose project folder');
+      await waitForUi(window, "document.querySelector('.intake-folder')");
+      await clickUi(window, 'Continue');
+      await firstConfirmation;
+      await waitForUi(window, "document.querySelector('.intake-submit button')?.textContent.trim()==='Continue' && !document.querySelector('.intake-submit button').disabled");
+      assert.equal(await window.webContents.executeJavaScript("Boolean(document.querySelector('.notice.error'))"), false);
+      await clickUi(window, 'Continue');
+      await waitForUi(window, "document.querySelector('.app-shell')");
+      assert.equal(confirmations, 2);
+      const source = await readFile(join(projectPath, 'deployment.yaml'), 'utf8');
+      assert.match(source, /Native smoke study/);
+      assert.match(source, /initial-brief.txt/);
+      assert.match(source, /floor.png/);
+      assert.doesNotMatch(source, /Move pallets between receiving/);
+    } finally { dialog.showOpenDialog = originalChooser; dialog.showMessageBox = originalConfirm; }
     const quitting = new Promise<void>((resolve) =>
       app.once('will-quit', (event) => {
         event.preventDefault();

@@ -66,6 +66,7 @@ async function run() {
     'cancelRun',
     'chooseProjectFolder',
     'confirmSetup',
+    'dropAttachments',
     'inspectAttachment',
     'selectAttachments',
   ]);

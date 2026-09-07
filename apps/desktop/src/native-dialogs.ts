@@ -6,24 +6,25 @@ import type { AttachmentBroker } from './attachment-broker.js';
 export type NativeSender = { id: number; mainFrame: object; isDestroyed(): boolean };
 export type NativeEvent = { sender: NativeSender; senderFrame: object | null };
 type Identity = { identity: string; name: string; bytes: number; directory: boolean };
-type Selection = { path: string; identity: string; expires: number; mode: FolderMode; frame: object | null };
+type Selection = { choice: number; path: string; identity: string; expires: number; mode: FolderMode; frame: object | null };
 export interface NativeDependencies {
   sender: NativeSender;
   uiOrigin: string;
   dialogs: {
     chooseFolder(mode: FolderMode): Promise<string | null>;
     chooseFiles(): Promise<string[]>;
-    confirmPreset(path: string, preset: PresetId): Promise<boolean>;
+    confirmPreset(path: string, preset: PresetId, detail?: string): Promise<boolean>;
   };
   identity(path: string): Promise<Identity>;
   now?: () => number;
-  confirm(path: string, preset: PresetId, mode: FolderMode): Promise<void>;
+  previewSetup?(path: string, preset: PresetId, mode: FolderMode): Promise<{ revision: string; detail: string }>;
+  confirm(path: string, preset: PresetId, mode: FolderMode, revision?: string): Promise<void>;
   cancelRun(runId: string): Promise<void>;
   attachments: Pick<AttachmentBroker, 'select' | 'inspect' | 'cancel' | 'clear' | 'contextKey'>;
 }
 export function createNativeHandlers(deps: NativeDependencies) {
   const selections = new Map<string, Selection>();
-  let generation = 0;
+  let generation = 0, choice = 0;
   const now = deps.now ?? Date.now;
   function authenticate(event: NativeEvent) {
     if (
@@ -53,6 +54,7 @@ export function createNativeHandlers(deps: NativeDependencies) {
     selections.clear();
     const selectionId = randomUUID();
     selections.set(selectionId, {
+      choice: ++choice,
       path,
       identity: identity.identity,
       expires: now() + 300000,
@@ -71,16 +73,31 @@ export function createNativeHandlers(deps: NativeDependencies) {
     if (!selection || selection.frame !== event.senderFrame) throw new Error('Selection expired or unknown');
     // Consume before awaiting: concurrent confirmation cannot reuse authority.
     selections.delete(selectionId);
-    if ((await deps.identity(selection.path)).identity !== selection.identity)
-      throw new Error('Selected root changed');
-    if (!(await deps.dialogs.confirmPreset(selection.path, presetId)))
-      throw new Error('Setup confirmation cancelled');
-    authenticate(event);
-    if (selection.expires <= now() || (await deps.identity(selection.path)).identity !== selection.identity)
-      throw new Error('Selected root changed or expired');
-    authenticate(event);
-    if (started !== generation) throw new Error('Selection invalidated');
-    await deps.confirm(selection.path, presetId, selection.mode);
+    const context = deps.attachments.contextKey();
+    try {
+      if ((await deps.identity(selection.path)).identity !== selection.identity)
+        throw new Error('Selected root changed');
+      const setup = await deps.previewSetup?.(selection.path, presetId, selection.mode);
+      authenticate(event);
+      if (started !== generation) throw new Error('Selection invalidated');
+      const accepted = setup ? await deps.dialogs.confirmPreset(selection.path, presetId, setup.detail) : await deps.dialogs.confirmPreset(selection.path, presetId);
+      if (!accepted) throw new Error('Setup confirmation cancelled');
+      authenticate(event);
+      if (selection.expires <= now() || (await deps.identity(selection.path)).identity !== selection.identity)
+        throw new Error('Selected root changed or expired');
+      authenticate(event);
+      if (started !== generation) throw new Error('Selection invalidated');
+      if (setup) await deps.confirm(selection.path, presetId, selection.mode, setup.revision);
+      else await deps.confirm(selection.path, presetId, selection.mode);
+    } catch (error) {
+      try {
+        authenticate(event);
+        if (started === generation && selection.choice === choice && !selections.size &&
+          selection.expires > now() && context === deps.attachments.contextKey() &&
+          (await deps.identity(selection.path)).identity === selection.identity) selections.set(selectionId, selection);
+      } catch { /* Replaced frames or roots cannot regain selection authority. */ }
+      throw error;
+    }
   }
   async function selectAttachments(event: NativeEvent): Promise<PickedAttachment[]> {
     authenticate(event);
@@ -107,6 +124,15 @@ export function createNativeHandlers(deps: NativeDependencies) {
       throw new Error('Selection invalidated');
     return checkedAttachmentPreview(result);
   }
+  async function dropAttachments(event: NativeEvent, paths: unknown) {
+    authenticate(event);
+    const started = generation, context = deps.attachments.contextKey();
+    if (!Array.isArray(paths) || paths.length > 20) throw new Error('Invalid dropped files');
+    const selected = await deps.attachments.select(paths.map(checkedString));
+    authenticate(event);
+    if (started !== generation || context !== deps.attachments.contextKey()) throw new Error('Selection invalidated');
+    return selected;
+  }
   async function cancelAttachment(event: NativeEvent, id: unknown) {
     authenticate(event);
     deps.attachments.cancel(checkedString(id));
@@ -119,6 +145,7 @@ export function createNativeHandlers(deps: NativeDependencies) {
     chooseProjectFolder,
     confirmSetup,
     selectAttachments,
+    dropAttachments,
     inspectAttachment,
     cancelAttachment,
     cancelRun,

@@ -35,6 +35,7 @@ export const lifetime = new DesktopServiceLifetime({
       assetRoot: join(__dirname, 'ui'),
       configDirectory: join(app.getPath('userData'), 'settings'),
       previews,
+      attachments,
       onClose: () => attachments.close(),
     });
     return application;
@@ -62,8 +63,13 @@ export const lifetime = new DesktopServiceLifetime({
       ownedWindow,
       service.url,
       {
-        async confirm() {
-          throw new Error('Project permission persistence is not connected yet.');
+        async previewSetup(path, preset, mode) {
+          if (!application?.setup) throw new Error('Project setup is unavailable.');
+          return application.setup.preview(path, preset, mode);
+        },
+        async confirm(path, preset, mode, revision) {
+          if (!application?.setup) throw new Error('Project setup is unavailable.');
+          await application.setup.confirm(path, preset, mode, revision);
         },
         async cancelRun() {
           throw new Error('Application run management is not connected yet.');

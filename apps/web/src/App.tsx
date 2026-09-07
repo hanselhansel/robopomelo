@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
 import { api, errorMessage } from './lib/api.js';
 import type { ProjectRead, Session } from './lib/api.js';
+import { Intake } from './features/intake/Intake.js';
+import { initialIntake, nativeBridge } from './features/intake/state.js';
 import { Welcome } from './screens/Welcome.js';
 import { ErrorNotice } from './components/ui.js';
 import { Workspace } from './Workspace.js';
 export function App() {
+  const [intake, setIntake] = useState(initialIntake);
+  const bridge = nativeBridge();
   const [session, setSession] = useState<Session | null>(null);
   const [read, setRead] = useState<ProjectRead | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +40,18 @@ export function App() {
         <h1>Opening local workspace</h1>
         <p>Establishing this browser session.</p>
       </main>
+    );
+  if (!read && bridge)
+    return (
+      <Intake
+        bridge={bridge}
+        state={intake}
+        setState={setIntake}
+        onOpen={(r) => {
+          setSession(api.session);
+          setRead(r);
+        }}
+      />
     );
   if (!read)
     return (

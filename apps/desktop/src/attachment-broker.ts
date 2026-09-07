@@ -175,6 +175,24 @@ export class AttachmentBroker {
     delete selection.bytes;
     this.deps.previews.remove(id);
   }
+  async collect(ids: string[]): Promise<{ id: string; name: string; bytes: Uint8Array }[]> {
+    this.#sync();
+    if (ids.length > 20 || new Set(ids).size !== ids.length) throw new Error('ATTACHMENT_SELECTION_UNKNOWN');
+    const rows = ids.map(id => {
+      const row = this.#selections.get(id);
+      if (!row) throw new Error('ATTACHMENT_SELECTION_UNKNOWN');
+      return row;
+    });
+    const inputs = [];
+    for (const row of rows) {
+      this.#current(row);
+      const bytes = row.bytes ?? await readSelectedFile(row.file);
+      this.#current(row); row.bytes = bytes;
+      inputs.push({ id: row.id, name: safeName(row.file.displayName), bytes: new Uint8Array(bytes) });
+    }
+    for (const row of rows) this.#current(row);
+    return inputs;
+  }
   clear() {
     this.#generation++;
     for (const selection of this.#selections.values()) {

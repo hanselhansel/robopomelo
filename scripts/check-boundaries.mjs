@@ -89,7 +89,7 @@ for (const path of await files(root)) {
           !bindings ||
           !ts.isNamedImports(bindings) ||
           bindings.elements.some(
-            (item) => !['contextBridge', 'ipcRenderer'].includes((item.propertyName ?? item.name).text),
+            (item) => !['contextBridge', 'ipcRenderer', ...(path === 'apps/desktop/src/preload.ts' ? ['webUtils'] : [])].includes((item.propertyName ?? item.name).text),
           )
         )
           errors.push(`${path}: preload may import only contextBridge and ipcRenderer from electron.`);

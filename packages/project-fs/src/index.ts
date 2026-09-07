@@ -1,11 +1,15 @@
-export type { Authorization, OpenResult } from './contracts.js';
+export type { Authorization, OpenResult, RootIdentity } from './contracts.js';
 export { ProjectFsError } from './errors.js';
 export { EvidenceService, type EvidenceInput, type EvidenceMetadata } from './evidence/service.js';
 export { ExportService, type ExportResult } from './export/service.js';
 export { SafeRoot } from './fs/safe-fs.js';
-export { initializeProject } from './init.js';
+export { machineDirectory } from './fs/machine-paths.js';
+export { acquireLock } from './fs/lock.js';
+export { initializeProject, requireExpectedRoot, sameRootIdentity, type InitializeOptions } from './init.js';
 export { ProjectSession } from './session.js';
 export { SettingsStore } from './settings/store.js';
 export type { SettingsAuthority, TrustGrant, TrustMode, UpdatePolicy } from './settings/schema.js';
 export { TrustStore } from './settings/trust.js';
 export { parseSource } from './yaml/parse.js';
+export { validateBinding, type ProjectBinding, type MachineSettings } from './settings/schema.js';
+export { sameBinding } from './settings/trust.js';
