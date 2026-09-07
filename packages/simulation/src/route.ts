@@ -6,7 +6,9 @@ import { SimulationError, type MotionPrimitive, type PathStep, type RobotState, 
 export type Bounds = { minXM: number; maxXM: number; minYM: number; maxYM: number };
 export type RouteTransition = 'none' | 'load' | 'unload';
 export type RouteGoal = { pose: Pose; transition: RouteTransition };
-export type RouteOptions = { bounds: Bounds; tolerances: Tolerances; expansionLimit?: number };
+/** `heuristicWeight` (default 1, exact A*) above 1 gives bounded-suboptimal weighted A*:
+ * the path costs at most weight times the optimum, with far fewer expansions in open space. */
+export type RouteOptions = { bounds: Bounds; tolerances: Tolerances; expansionLimit?: number; heuristicWeight?: number };
 export const DEFAULT_EXPANSION_LIMIT = 20000;
 export type InfeasibleReason = 'EXHAUSTED' | 'START_BLOCKED' | 'GOAL_BLOCKED' | 'STATION_CLEARANCE';
 export type RouteResult =
@@ -104,10 +106,16 @@ export function findRoute(profile: RobotProfile, start: RobotState, goal: RouteG
     if (goalBlocked) return goalBlocked;
   }
 
-  const heuristic = (ix: number, iy: number): number => secondsFor(Math.hypot((g.ix - ix) * tol.gridM, (g.iy - iy) * tol.gridM), profile.maxSpeedMps);
+  // Admissible: straight-line travel plus the unavoidable in-place rotation to the goal yaw
+  // (the shortest of the two turning directions). Keeps optimality, cuts expansions sharply.
+  const yawGap = (iyaw: number): number => Math.min(wrap(g.iyaw - iyaw), wrap(iyaw - g.iyaw)) * yawUnit;
+  const weight = options.heuristicWeight ?? 1;
+  if (!(weight >= 1) || !Number.isFinite(weight)) throw new SimulationError('INVALID_HEURISTIC_WEIGHT', `heuristicWeight ${weight} must be a finite number >= 1`);
+  const heuristic = (ix: number, iy: number, iyaw: number): number =>
+    weight * secondsFor(Math.hypot((g.ix - ix) * tol.gridM, (g.iy - iy) * tol.gridM), profile.maxSpeedMps) + weight * secondsFor(yawGap(iyaw), profile.maxAngularRadps);
   const open = new Heap(before);
   const best = new Map<string, number>();
-  const root: Node = { key: keyOf(s.ix, s.iy, s.iyaw), ix: s.ix, iy: s.iy, iyaw: s.iyaw, seconds: 0, tick: 0, f: ticksForSeconds(heuristic(s.ix, s.iy)), parent: null, primitive: null };
+  const root: Node = { key: keyOf(s.ix, s.iy, s.iyaw), ix: s.ix, iy: s.iy, iyaw: s.iyaw, seconds: 0, tick: 0, f: ticksForSeconds(heuristic(s.ix, s.iy, s.iyaw)), parent: null, primitive: null };
   open.push(root);
   best.set(root.key, 0);
   let expansions = 0;
@@ -138,7 +146,7 @@ export function findRoute(profile: RobotProfile, start: RobotState, goal: RouteG
       if (check.kind === 'unresolved') return { kind: 'unresolved', reason: 'SWEEP_BOUND', expansions };
       if (check.kind !== 'clear') continue;
       best.set(key, seconds);
-      open.push({ key, ix, iy, iyaw, seconds, tick: ticksForSeconds(seconds), f: ticksForSeconds(seconds + heuristic(ix, iy)), parent: node, primitive });
+      open.push({ key, ix, iy, iyaw, seconds, tick: ticksForSeconds(seconds), f: ticksForSeconds(seconds + heuristic(ix, iy, iyaw)), parent: node, primitive });
     }
   }
   return { kind: 'infeasible', reason: 'EXHAUSTED', obstacleId: null, expansions };
