@@ -37,3 +37,9 @@ export async function dropUiFile(window: BrowserWindow, path: string) {
     })()`);
   } finally { window.webContents.debugger.detach(); }
 }
+export async function clickSelector(window: BrowserWindow, selector: string) {
+  await window.webContents.executeJavaScript(`(()=>{
+    const button=document.querySelector(${JSON.stringify(selector)});
+    if(!button||button.disabled)throw new Error('Button unavailable: '+${JSON.stringify(selector)});button.focus();button.click();
+  })()`);
+}

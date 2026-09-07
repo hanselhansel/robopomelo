@@ -42,7 +42,7 @@ export function agentRoutes(agent: AgentService): Route[] {
         if (typeof body.text !== 'string' || body.text.length > 16_000) throw new HttpError(400, 'INVALID_INPUT', 'Supply message text up to 16000 characters.');
         if (!Array.isArray(body.attachmentIds) || body.attachmentIds.length > 20 || body.attachmentIds.some((id) => typeof id !== 'string' || !ID.test(id)))
           throw new HttpError(400, 'INVALID_INPUT', 'Supply valid attachment identifiers.');
-        const questionId = body.questionId === undefined || body.questionId === null ? '' : idText(body.questionId, 'question');
+        const questionId = body.questionId === undefined || body.questionId === null || body.questionId === '' ? '' : idText(body.questionId, 'question');
         const choiceId = body.choiceId === undefined || body.choiceId === null ? null : idText(body.choiceId, 'choice');
         if (body.dispatch !== undefined && typeof body.dispatch !== 'boolean') throw new HttpError(400, 'INVALID_INPUT', 'dispatch must be boolean.');
         return agent.message({ ...base, questionId, choiceId, text: body.text, attachmentIds: body.attachmentIds as string[] }, { dispatch: body.dispatch !== false });
