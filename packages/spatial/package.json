@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "sideEffects": false
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "@robopomelo/spec": "*"
+  }
 }

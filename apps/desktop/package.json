@@ -9,6 +9,7 @@
     "@robopomelo/application": "*",
     "@robopomelo/ingestion": "*",
     "@robopomelo/project-fs": "*",
+    "@robopomelo/spec": "*",
     "pdfjs-dist": "6.3.289"
   }
 }

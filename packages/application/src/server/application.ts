@@ -4,6 +4,7 @@ import { projectRoutes } from './project-routes.js';
 import { reviewRoutes } from './review-routes.js';
 import { evidenceRoutes } from './evidence-routes.js';
 import { exportRoutes } from './export-routes.js';
+import { spatialRoutes } from './spatial-routes.js';
 import { updateRoutes, type UpdaterApi, type RuntimeIdentity } from './update-routes.js';
 import type { Route } from './contracts.js';
 export async function startApplication(
@@ -22,6 +23,7 @@ export async function startApplication(
       ...reviewRoutes(project),
       ...evidenceRoutes(project),
       ...exportRoutes(project),
+      ...spatialRoutes(project),
       ...updateRoutes(updater, identity),
       ...(extensions.routes ?? []),
     ],

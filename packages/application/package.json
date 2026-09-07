@@ -8,9 +8,12 @@
     "./runtime": "./src/runtime.ts"
   },
   "dependencies": {
+    "@robopomelo/agent": "*",
     "@robopomelo/artifacts": "*",
     "@robopomelo/core": "*",
     "@robopomelo/project-fs": "*",
+    "@robopomelo/providers": "*",
+    "@robopomelo/spatial": "*",
     "@robopomelo/spec": "*"
   }
 }
