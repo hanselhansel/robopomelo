@@ -151,3 +151,14 @@ test('only the UI preload may resolve an explicitly dropped native File', async 
   assert.equal((await run('check-boundaries.mjs', { 'apps/desktop/src/preload.ts': code })).status, 0);
   assert.equal((await run('check-boundaries.mjs', { 'apps/desktop/src/parser-preload.ts': code })).status, 1);
 });
+
+test('only native setup in desktop main may mint a native preset confirmation', async () => {
+  const code = "declare const grants: { issueNativeConfirmation(a: unknown, b: unknown): Promise<unknown> };\nvoid grants.issueNativeConfirmation(1, 2);\n";
+  assert.equal((await run('check-boundaries.mjs', { 'apps/desktop/src/native-setup.ts': code })).status, 0);
+  assert.equal((await run('check-boundaries.mjs', { 'packages/application/src/agent-grants.ts': code })).status, 0);
+  for (const path of ['packages/application/src/server/agent-routes.ts', 'apps/desktop/src/main.ts', 'apps/cli/src/dispatch.ts', 'apps/web/src/App.tsx']) {
+    const r = await run('check-boundaries.mjs', { [path]: code });
+    assert.equal(r.status, 1, path);
+    assert.match(r.stderr, /issueNativeConfirmation/);
+  }
+});

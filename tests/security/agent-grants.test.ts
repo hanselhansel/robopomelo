@@ -231,3 +231,19 @@ it('holds authority stable through the bounded action while revocation waits', a
     f.grants.check(f.binding, authorization(agentGrant), ['public-research']),
   ).rejects.toMatchObject({ code: 'GRANT_REVOKED' });
 });
+
+it('records paired AI revocation in the audit trail when legacy trust authority is revoked, regranted or forgotten', async () => {
+  const f = await fixture();
+  const first = await recommended(f);
+  await f.trust.revoke(first.trustGrant.grantId, { scopes: ['manage-settings'] });
+  let state = await f.settings.read();
+  expect(state.agentGrants?.find((grant) => grant.grantId === first.agentGrant.grantId)?.revokedAt).not.toBeNull();
+  const second = await recommended(f);
+  await f.trust.grant(f.binding, ['inspect', 'author'], 'autonomous', { scopes: ['manage-settings'] });
+  state = await f.settings.read();
+  expect(state.agentGrants?.find((grant) => grant.grantId === second.agentGrant.grantId)?.revokedAt).not.toBeNull();
+  expect(await f.grants.lookup(f.binding)).toBeUndefined();
+  await f.trust.forget(f.binding, { scopes: ['manage-settings'] });
+  state = await f.settings.read();
+  expect((state.agentGrants ?? []).filter((grant) => grant.binding.projectId === f.binding.projectId)).toEqual([]);
+});

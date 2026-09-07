@@ -29,7 +29,7 @@ export class TrustStore {
     requireSettingsAuthority(authority); validateBinding(binding); validateScopes(scopes); validateMode(mode);
     const grantId = randomUUID(); const now = new Date().toISOString();
     const saved = await this.settings.update(state => {
-      for (const grant of state.grants) if (sameBinding(grant.binding,binding) && grant.revokedAt === null) {grant.revokedAt = now; grant.generation = state.generation+1;}
+      for (const grant of [...state.grants,...(state.agentGrants ?? [])]) if (sameBinding(grant.binding,binding) && grant.revokedAt === null) {grant.revokedAt = now; grant.generation = state.generation+1;}
       state.grants.push({grantId,generation:state.generation+1,binding:structuredClone(binding),scopes:[...scopes],mode,grantedAt:now,revokedAt:null});
     });
     return saved.grants.find(grant => grant.grantId === grantId)!;
@@ -39,12 +39,18 @@ export class TrustStore {
     await this.settings.update(state => {
       const grant = state.grants.find(grant => grant.grantId === grantId);
       if (!grant) throw new ProjectFsError('GRANT_REVOKED','The remembered grant no longer exists.');
-      grant.revokedAt = new Date().toISOString(); grant.generation = state.generation+1;
+      const now = new Date().toISOString();
+      grant.revokedAt = now; grant.generation = state.generation+1;
+      // Paired AI authority never outlives the human grant it depends on.
+      for (const paired of state.agentGrants ?? []) if (paired.trustGrantId === grantId && paired.revokedAt === null) {paired.revokedAt = now; paired.generation = state.generation+1;}
     });
   }
   async forget(binding:ProjectBinding,authority:SettingsAuthority):Promise<void> {
     requireSettingsAuthority(authority); validateBinding(binding);
-    await this.settings.update(state => {state.grants = state.grants.filter(grant => !sameBinding(grant.binding,binding));});
+    await this.settings.update(state => {
+      state.grants = state.grants.filter(grant => !sameBinding(grant.binding,binding));
+      if (state.agentGrants) state.agentGrants = state.agentGrants.filter(grant => !sameBinding(grant.binding,binding));
+    });
   }
   /** Call only from an explicit trusted CLI/session authorization boundary. */
   authorizeRun(binding:ProjectBinding,scopes:Scope[],mode:TrustMode):TrustGrant {

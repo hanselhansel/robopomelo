@@ -123,6 +123,15 @@ for (const path of await files(root)) {
       current !== 'web'
     )
       errors.push(`${path}: network capability forbidden.`);
+    // Native preset confirmation tokens may be minted only after a real native
+    // dialog acceptance in desktop main; no route, CLI or renderer path.
+    if (
+      ts.isCallExpression(node) &&
+      ts.isPropertyAccessExpression(node.expression) &&
+      node.expression.name.text === 'issueNativeConfirmation' &&
+      !['apps/desktop/src/native-setup.ts', 'packages/application/src/agent-grants.ts'].includes(path)
+    )
+      errors.push(`${path}: issueNativeConfirmation is reserved for native setup after a real native confirmation.`);
     if (
       preload &&
       ts.isCallExpression(node) &&

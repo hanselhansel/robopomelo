@@ -77,9 +77,10 @@ export class CredentialStore {
       else await this.root.renameNoReplace(stage,`${record.id}.enc`);
       await this.root.fsyncDirectory();
     } finally {
+      // Zeroize even when stage cleanup fails; cleanup errors never mask the write outcome.
       try {await this.root.removeOwnedEntry(stage,await this.root.stat(stage)); await this.root.fsyncDirectory();}
-      catch (error) {if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;}
-      ciphertext.fill(0);
+      catch {/* Stage already published, removed or unreadable; the primary error or result stands. */}
+      finally {ciphertext.fill(0);}
     }
   }
   async #read(id:string):Promise<CredentialRecord> {
